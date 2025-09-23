@@ -1,0 +1,12 @@
+# Gereksiz dosyaları dışla
+target
+.idea
+*.iml
+*.class
+*.log
+*.jar
+*.war
+*.ear
+.DS_Store
+.git
+.gitignore

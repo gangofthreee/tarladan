@@ -1,0 +1,88 @@
+### Kullanıcı Kayıt Başarılı
+POST http://localhost:8080/api/users/register
+Content-Type: application/json
+
+{
+  "name": "Ahmet",
+  "surname": "Yılmaz",
+  "phone": "05001112233",
+  "email": "ahmet@example.com",
+  "password": "mypassword123",
+  "role": "FARMER"
+}
+
+###
+
+### Email Boş Gönderilirse (Validation Error)
+POST http://localhost:8080/api/users/register
+Content-Type: application/json
+
+{
+  "name": "Ayşe",
+  "surname": "Demir",
+  "phone": "050099988747",
+  "email": "",
+  "password": "short",
+  "role": "BUYER"
+}
+
+###
+
+### Fazladan Key Gönderilirse (JacksonConfig FAIL_ON_UNKNOWN_PROPERTIES)
+POST http://localhost:8080/api/users/register
+Content-Type: application/json
+
+{
+  "name": "Mehmet",
+  "surname": "Kara",
+  "phone": "05007776655",
+  "email": "mehmet@example.com",
+  "password": "securepassword",
+  "role": "TRUCKER",
+  "extraField": "bunu backend kabul etmez"
+}
+
+###
+
+### Geçersiz Role Gönderilirse (IllegalArgumentException)
+POST http://localhost:8080/api/users/register
+Content-Type: application/json
+
+{
+  "name": "Ali",
+  "surname": "Vural",
+  "phone": "05005554433",
+  "email": "ali@example.com",
+  "password": "strongpassword",
+  "role": "INVALID_ROLE"
+}
+
+###
+
+### Eksik Password (Validation Error)
+POST http://localhost:8080/api/users/register
+Content-Type: application/json
+
+{
+  "name": "Zeynep",
+  "surname": "Koç",
+  "phone": "05003332211",
+  "email": "zeynep@example.com",
+  "role": "FARMER"
+}
+
+###
+
+### Kısa Password (Validation Error)
+POST http://localhost:8080/api/users/register
+Content-Type: application/json
+
+{
+  "name": "Emre",
+  "surname": "Girgin",
+  "phone": "05002221100",
+  "email": "emre@example.com",
+  "password": "123",
+  "role": "BUYER"
+}
+

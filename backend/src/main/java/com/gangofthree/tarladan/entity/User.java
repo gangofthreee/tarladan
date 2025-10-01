@@ -46,4 +46,13 @@ public class User {
     @Column(nullable = false)
     @NotNull(message = "Role cannot be null")
     private UserRole role;
+
+    @Column(nullable = false)
+    private boolean isMailVerified = false;
+
+    @Column(nullable = false)
+    private boolean isGoogleVerified = false;
+
+    @Column(nullable = false)
+    private boolean isPhoneVerified = false;
 }

@@ -44,6 +44,9 @@ public class UserServiceImpl implements UserService {
                 .email(request.getEmail())
                 .password(encodedPassword)
                 .role(request.getRole())
+                .isMailVerified(false)
+                .isGoogleVerified(false)
+                .isPhoneVerified(false)
                 .build();
 
         return userRepository.save(user);

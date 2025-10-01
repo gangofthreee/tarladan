@@ -14,5 +14,8 @@ public class UserRegisterRequest {
     private String email;
     private String password;
     private UserRole role;
+    private boolean isMailVerified = false;
+    private boolean isPhoneVerified = false;
+    private boolean isGoogleVerified = false;
 }
 

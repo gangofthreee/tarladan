@@ -3,13 +3,14 @@ POST http://localhost:8080/api/users/register
 Content-Type: application/json
 
 {
-  "name": "Ahmet",
-  "surname": "Yılmaz",
-  "phone": "05001112233",
-  "email": "ahmet@example.com",
-  "password": "mypassword123",
+  "name": "Emre",
+  "surname": "Girgin",
+  "email": "emre@ample.com",
+  "phone": "55512247",
+  "password": "1136",
   "role": "FARMER"
 }
+
 
 ###
 

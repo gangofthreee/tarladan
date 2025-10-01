@@ -13,5 +13,5 @@ RUN mvn dependency:go-offline -B
 # Spring Boot uygulamasını run ile başlat
 CMD ["mvn", "spring-boot:run"]
 
-
-
+# fotoğraflar için dizin oluştur
+RUN mkdir -p /app/uploads

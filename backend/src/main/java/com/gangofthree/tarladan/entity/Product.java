@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import jakarta.persistence.*;
 import lombok.*;
+import java.math.*;
 
 @Entity
 @Table(name = "products")
@@ -14,7 +15,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 
-public class Products {
+public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -40,7 +41,7 @@ public class Products {
     private BigInteger min_buy;
 
     @CreationTimestamp
-    private LocalDateTime created_ad
+    private LocalDateTime created_ad;
 
     @Column(name = "image_path")
     private String image_path;

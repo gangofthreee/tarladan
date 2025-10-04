@@ -5,9 +5,9 @@ Content-Type: application/json
 {
   "name": "Emre",
   "surname": "Girgin",
-  "email": "emre@ample.com",
-  "phone": "55512247",
-  "password": "1136",
+  "email": "mazlumemregirgin@msn.com",
+  "phone": "55511256",
+  "password": "133316",
   "role": "FARMER"
 }
 
@@ -86,4 +86,41 @@ Content-Type: application/json
   "password": "123",
   "role": "BUYER"
 }
+
+
+### Verify Email Code (Doğru Kod)
+POST http://localhost:8080/api/verification/verifyCode
+Content-Type: application/json
+
+{
+  "email": "mazlumemregirgin@msn.com",
+  "verificationCode": "366938"
+}
+
+###
+
+### Verify Email Code (Yanlış Kod)
+POST http://localhost:8080/api/verification/verifyCode
+Content-Type: application/json
+
+{
+  "email": "mazlumemregirgin@msn.com",
+  "verificationCode": "882633"
+}
+
+###
+
+### Verify Email Code (Expire Olmuş Kod)
+POST http://localhost:8080/api/verification/verifyCode
+Content-Type: application/json
+
+{
+  "email": "mazlumemregirgin@msn.com",
+  "verificationCode": "654321"
+}
+
+
+### Resend Verification Code
+POST http://localhost:8080/api/verification/resendCode?email=mazlumemregirgin@msn.com
+
 

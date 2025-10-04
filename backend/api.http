@@ -8,7 +8,7 @@ Content-Type: application/json
   "email": "mazlumemregirgin@msn.com",
   "phone": "55511256",
   "password": "133316",
-  "role": "FARMER"
+  "role": "DEPOT_OWNER"
 }
 
 

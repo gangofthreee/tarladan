@@ -4,5 +4,5 @@ public enum UserRole {
     FARMER,
     BUYER,
     TRUCKER,
-    DEPOTS
+    DEPOT_OWNER
 }

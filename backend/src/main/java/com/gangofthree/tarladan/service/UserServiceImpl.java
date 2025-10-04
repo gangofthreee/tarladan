@@ -1,10 +1,13 @@
 package com.gangofthree.tarladan.service;
 
 import com.gangofthree.tarladan.dto.UserRegisterRequest;
+import com.gangofthree.tarladan.entity.DepotOwner;
+import com.gangofthree.tarladan.entity.Farmer;
 import com.gangofthree.tarladan.entity.User;
 import com.gangofthree.tarladan.enums.UserRole;
 import com.gangofthree.tarladan.repository.UserRepository;
-import com.gangofthree.tarladan.service.VerificationService;
+import com.gangofthree.tarladan.repository.DepotOwnerRepository;
+import com.gangofthree.tarladan.repository.FarmerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,6 +19,8 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final VerificationService verificationService;
+    private final FarmerRepository farmerRepository;
+    private final DepotOwnerRepository depotOwnerRepository;
 
     @Override
     public User register(UserRegisterRequest request) {
@@ -52,6 +57,19 @@ public class UserServiceImpl implements UserService {
                 .build();
 
         User savedUser = userRepository.save(user);
+
+        // Role göre ilgili tabloya kaydet
+        switch (userRole) {
+            case FARMER -> {
+                Farmer farmer = Farmer.builder().user(savedUser).build();
+                farmerRepository.save(farmer);
+            }
+            case DEPOT_OWNER -> {
+                DepotOwner depotOwner = DepotOwner.builder().user(savedUser).build();
+                depotOwnerRepository.save(depotOwner);
+            }
+        }
+
         verificationService.sendCode(savedUser);
 
         return savedUser;

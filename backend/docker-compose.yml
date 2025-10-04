@@ -34,6 +34,12 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - app_uploads:/app/uploads 
 
+  redis:
+    image: redis:7
+    container_name: tarladan-redis
+    ports:
+      - "6379:6379"
+
 volumes:
   postgres_data:
   app_uploads:

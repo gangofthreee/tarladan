@@ -4,6 +4,7 @@ import com.gangofthree.tarladan.dto.UserRegisterRequest;
 import com.gangofthree.tarladan.entity.User;
 import com.gangofthree.tarladan.enums.UserRole;
 import com.gangofthree.tarladan.repository.UserRepository;
+import com.gangofthree.tarladan.service.VerificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final VerificationService verificationService;
 
     @Override
     public User register(UserRegisterRequest request) {
@@ -49,7 +51,10 @@ public class UserServiceImpl implements UserService {
                 .isPhoneVerified(false)
                 .build();
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        verificationService.sendCode(savedUser);
+
+        return savedUser;
     }
 }
 

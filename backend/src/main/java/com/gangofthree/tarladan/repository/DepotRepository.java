@@ -1,6 +1,10 @@
 package com.gangofthree.tarladan.repository;
-
 import org.springframework.data.jpa.repository.JpaRepository;
+import com.gangofthree.tarladan.entity.Depot;
 
-public interface DepotRepository extends JpaRepository {
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface DepotRepository extends JpaRepository<Depot, Long> {
+
 }

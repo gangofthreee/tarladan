@@ -1,0 +1,126 @@
+### Kullanıcı Kayıt Başarılı
+POST http://localhost:8080/api/users/register
+Content-Type: application/json
+
+{
+  "name": "Emre",
+  "surname": "Girgin",
+  "email": "mazlumemregirgin@msn.com",
+  "phone": "55511256",
+  "password": "133316",
+  "role": "DEPOT_OWNER"
+}
+
+
+###
+
+### Email Boş Gönderilirse (Validation Error)
+POST http://localhost:8080/api/users/register
+Content-Type: application/json
+
+{
+  "name": "Ayşe",
+  "surname": "Demir",
+  "phone": "050099988747",
+  "email": "",
+  "password": "short",
+  "role": "BUYER"
+}
+
+###
+
+### Fazladan Key Gönderilirse (JacksonConfig FAIL_ON_UNKNOWN_PROPERTIES)
+POST http://localhost:8080/api/users/register
+Content-Type: application/json
+
+{
+  "name": "Mehmet",
+  "surname": "Kara",
+  "phone": "05007776655",
+  "email": "mehmet@example.com",
+  "password": "securepassword",
+  "role": "TRUCKER",
+  "extraField": "bunu backend kabul etmez"
+}
+
+###
+
+### Geçersiz Role Gönderilirse (IllegalArgumentException)
+POST http://localhost:8080/api/users/register
+Content-Type: application/json
+
+{
+  "name": "Ali",
+  "surname": "Vural",
+  "phone": "05005554433",
+  "email": "ali@example.com",
+  "password": "strongpassword",
+  "role": "INVALID_ROLE"
+}
+
+###
+
+### Eksik Password (Validation Error)
+POST http://localhost:8080/api/users/register
+Content-Type: application/json
+
+{
+  "name": "Zeynep",
+  "surname": "Koç",
+  "phone": "05003332211",
+  "email": "zeynep@example.com",
+  "role": "FARMER"
+}
+
+###
+
+### Kısa Password (Validation Error)
+POST http://localhost:8080/api/users/register
+Content-Type: application/json
+
+{
+  "name": "Emre",
+  "surname": "Girgin",
+  "phone": "05002221100",
+  "email": "emre@example.com",
+  "password": "123",
+  "role": "BUYER"
+}
+
+
+### Verify Email Code (Doğru Kod)
+POST http://localhost:8080/api/verification/verifyCode
+Content-Type: application/json
+
+{
+  "email": "mazlumemregirgin@msn.com",
+  "verificationCode": "366938"
+}
+
+###
+
+### Verify Email Code (Yanlış Kod)
+POST http://localhost:8080/api/verification/verifyCode
+Content-Type: application/json
+
+{
+  "email": "mazlumemregirgin@msn.com",
+  "verificationCode": "882633"
+}
+
+###
+
+### Verify Email Code (Expire Olmuş Kod)
+POST http://localhost:8080/api/verification/verifyCode
+Content-Type: application/json
+
+{
+  "email": "mazlumemregirgin@msn.com",
+  "verificationCode": "654321"
+}
+
+
+### Resend Verification Code
+POST http://localhost:8080/api/verification/resendCode?email=mazlumemregirgin@msn.com
+
+

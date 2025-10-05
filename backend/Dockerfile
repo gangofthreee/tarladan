@@ -1,14 +1,17 @@
-# Build aşaması
-FROM maven:3.9.3-eclipse-temurin-17 AS builder
+# Dev image
+FROM maven:3.9.3-eclipse-temurin-17 AS dev
+
 WORKDIR /app
-COPY . .
-RUN mvn clean package -DskipTests
 
-# Run aşaması (hafif)
-FROM openjdk:17-slim
-WORKDIR /app
-COPY --from=builder /app/target/*.jar app.jar
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# pom.xml'i önce kopyala ve dependencyleri offline indir
+COPY pom.xml .
+RUN mvn dependency:go-offline -B
 
+# Kaynak kod mount edileceği için kopyalamıyoruz
+# COPY src ./src
 
+# Spring Boot uygulamasını run ile başlat
+CMD ["mvn", "spring-boot:run"]
+
+# fotoğraflar için dizin oluştur
+RUN mkdir -p /app/uploads

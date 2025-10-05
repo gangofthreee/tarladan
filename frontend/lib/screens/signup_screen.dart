@@ -39,10 +39,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           children: [
             Icon(icon, size: 40, color: Colors.black87),
             const SizedBox(height: 8),
-            Text(
-              role,
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
+            Text(role, style: const TextStyle(fontWeight: FontWeight.w600)),
           ],
         ),
       ),
@@ -61,11 +58,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          "Tarladan’a Katıl",
-          style: TextStyle(
-            color: Colors.black87,
-            fontWeight: FontWeight.bold,
-          ),
+          "Tarladan'a Katıl",
+          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
       ),
@@ -74,13 +68,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         child: ListView(
           children: [
             // Form Alanları
-            const TextField(
-              decoration: InputDecoration(labelText: 'Ad'),
-            ),
+            const TextField(decoration: InputDecoration(labelText: 'Ad')),
             const SizedBox(height: 12),
-            const TextField(
-              decoration: InputDecoration(labelText: 'Soyad'),
-            ),
+            const TextField(decoration: InputDecoration(labelText: 'Soyad')),
             const SizedBox(height: 12),
             const TextField(
               decoration: InputDecoration(labelText: 'Telefon'),
@@ -109,7 +99,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
               spacing: 20,
               runSpacing: 20,
               children: roles
-                  .map((r) => buildRoleCard(r['label'] as String, r['icon'] as IconData))
+                  .map(
+                    (r) => buildRoleCard(
+                      r['label'] as String,
+                      r['icon'] as IconData,
+                    ),
+                  )
                   .toList(),
             ),
             const SizedBox(height: 32),

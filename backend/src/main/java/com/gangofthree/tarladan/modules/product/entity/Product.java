@@ -1,8 +1,12 @@
 package com.gangofthree.tarladan.modules.product.entity;
 
 import com.gangofthree.tarladan.modules.farmer.entity.Farmer;
+//import com.gangofthree.tarladan.modules.depot.entity.Depot;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
+
+import jakarta.validation.constraints.NotNull;
 import org.hibernate.annotations.CreationTimestamp;
 import jakarta.persistence.*;
 import lombok.*;
@@ -25,24 +29,27 @@ public class Product {
     @JoinColumn(name="farmer_id", referencedColumnName = "id") 
 	private Farmer farmer;
 
-    //@OnetoOne
-    //JoinColumn(name="depo_id", referencedColumnName = "id") 
-	//private Depo depo;
+//    @ManyToOne
+//    @JoinColumn(name="depot_id", referencedColumnName = "id")
+//	private Depot depot;
 
     @NotBlank(message = "Name cannot be empty")
     private String name;
-    
-    @NotBlank(message = "Kg cannot be empty")
+
+    @NotNull(message = "Kg cannot be empty")
+    @Min(value = 1, message = "Miktar 0'dan büyük olmalıdır.")
     private BigInteger quantity_kg;
 
-    @NotBlank(message = "price cannot be empty")
+    @NotNull(message = "price cannot be empty")
+    @Min(value = 1, message = "Fiyat 0'dan büyük olmalıdır.")
     private BigInteger price_per_kg;
 
-    @NotBlank(message = "minimum purchase amount cannot be empty")
+    @NotNull(message = "minimum purchase amount cannot be empty")
+    @Min(value = 1, message = "Minimum alım miktarı 0'dan büyük olmalıdır.")
     private BigInteger min_buy;
 
-    @CreationTimestamp
-    private LocalDateTime created_ad;
+    //@CreationTimestamp
+    //private LocalDateTime created_ad;
 
     @Column(name = "image_path")
     private String image_path;

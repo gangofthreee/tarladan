@@ -10,5 +10,7 @@ public interface ProductService {
     Product addProduct(AddProductRequest addProductRequest);
 
     Product updateProduct(Long id, Map<String, Object> updates);
+
+    Product deleteProduct(Long id);
 }
 

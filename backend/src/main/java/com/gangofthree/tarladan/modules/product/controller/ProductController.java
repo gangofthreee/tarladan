@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -55,5 +56,19 @@ public class ProductController {
         Product deletedProduct = productService.deleteProduct(id);
         return ResponseEntity.ok(deletedProduct);
     }
+
+    @GetMapping("/get/{id}")
+    public ResponseEntity<Product> getProduct(@PathVariable Long id) {
+        Product product = productService.getProduct(id);
+        return ResponseEntity.ok(product);
+    }
+
+    @GetMapping("/getFarmerProduct/{id}")
+    public ResponseEntity<List<Product>> getFarmerProducts(@PathVariable("id") Long farmerId) {
+        List<Product> products = productService.getProductsByFarmerId(farmerId);
+        return ResponseEntity.ok(products);
+    }
+
+
 
 }

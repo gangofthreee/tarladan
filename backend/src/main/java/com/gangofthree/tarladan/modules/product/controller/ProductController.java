@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/farmer/product")
 @RequiredArgsConstructor
@@ -34,5 +36,14 @@ public class ProductController {
 
         Product createdProduct = productService.addProduct(request);
         return ResponseEntity.ok(createdProduct);
+    }
+
+    @PatchMapping("/update/{id}")
+    public ResponseEntity<Product> updateProduct(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> updates
+    ) {
+        Product updatedProduct = productService.updateProduct(id, updates);
+        return ResponseEntity.ok(updatedProduct);
     }
 }

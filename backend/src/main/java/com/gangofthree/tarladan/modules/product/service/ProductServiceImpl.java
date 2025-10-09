@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -90,5 +91,17 @@ public class ProductServiceImpl implements ProductService {
 
         productRepository.delete(product);
         return product;
+    }
+
+    @Override
+    public Product getProduct(Long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id));
+        return product;
+    }
+
+    @Override
+    public List<Product> getProductsByFarmerId(Long farmerId) {
+        return productRepository.findByFarmerId(farmerId);
     }
 }

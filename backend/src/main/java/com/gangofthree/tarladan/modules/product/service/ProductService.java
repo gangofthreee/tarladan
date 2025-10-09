@@ -3,6 +3,7 @@ package com.gangofthree.tarladan.modules.product.service;
 import com.gangofthree.tarladan.modules.product.dto.AddProductRequest;
 import com.gangofthree.tarladan.modules.product.entity.Product;
 
+import java.util.List;
 import java.util.Map;
 
 
@@ -12,5 +13,9 @@ public interface ProductService {
     Product updateProduct(Long id, Map<String, Object> updates);
 
     Product deleteProduct(Long id);
+
+    Product getProduct(Long id);
+
+    List<Product> getProductsByFarmerId(Long farmerId);
 }
 

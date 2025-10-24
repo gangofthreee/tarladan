@@ -31,6 +31,9 @@ public class SecurityConfig {
         http
                 // 1. CSRF korumasını devre dışı bırakır (JWT için uygundur).
                 .csrf(AbstractHttpConfigurer::disable)
+                
+                // CORS'u etkinleştir
+                .cors(cors -> cors.configure(http))
 
                 // 2. HTTP Basic ve Form tabanlı kimlik doğrulamasını devre dışı bırakır.
                 .formLogin(AbstractHttpConfigurer::disable)

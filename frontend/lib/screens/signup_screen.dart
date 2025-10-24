@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'verification_screen.dart';
+import '../config/api_config.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -9,19 +13,170 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   String? selectedRole;
+  final _formKey = GlobalKey<FormState>();
+  bool _showRoleError = false;
+
+  // Form controllers
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _surnameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  bool _isLoading = false;
 
   final roles = [
-    {'label': 'Çiftçi', 'icon': Icons.spa},
-    {'label': 'Alıcı', 'icon': Icons.shopping_cart},
-    {'label': 'Tırcı', 'icon': Icons.local_shipping},
-    {'label': 'Depocu', 'icon': Icons.apartment},
+    {'label': 'Çiftçi', 'icon': Icons.spa, 'value': 'FARMER'},
+    {'label': 'Alıcı', 'icon': Icons.shopping_cart, 'value': 'BUYER'},
+    {'label': 'Tırcı', 'icon': Icons.local_shipping, 'value': 'DRIVER'},
+    {'label': 'Depocu', 'icon': Icons.apartment, 'value': 'DEPOT_OWNER'},
   ];
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _surnameController.dispose();
+    _phoneController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  String? _getRoleValue(String label) {
+    final role = roles.firstWhere((r) => r['label'] == label);
+    return role['value'] as String?;
+  }
+
+  Future<void> _register() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (selectedRole == null) {
+      setState(() {
+        _showRoleError = true;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Lütfen bir rol seçin"),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _showRoleError = false;
+    });
+
+    try {
+      // Telefon numarasını 0 ile birleştir
+      final fullPhoneNumber = '0${_phoneController.text.trim()}';
+
+      print('API URL: ${ApiConfig.registerUrl}'); // Debug için
+      print(
+        'Gönderilen veri: ${jsonEncode({'name': _nameController.text.trim(), 'surname': _surnameController.text.trim(), 'email': _emailController.text.trim(), 'phone': fullPhoneNumber, 'password': _passwordController.text, 'role': _getRoleValue(selectedRole!)})}',
+      );
+
+      final response = await http
+          .post(
+            Uri.parse(ApiConfig.registerUrl),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'name': _nameController.text.trim(),
+              'surname': _surnameController.text.trim(),
+              'email': _emailController.text.trim(),
+              'phone': fullPhoneNumber,
+              'password': _passwordController.text,
+              'role': _getRoleValue(selectedRole!),
+            }),
+          )
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              throw Exception(
+                'Bağlantı zaman aşımına uğradı. Lütfen tekrar deneyin.',
+              );
+            },
+          );
+
+      print('Response status: ${response.statusCode}'); // Debug için
+      print('Response body: ${response.body}'); // Debug için
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Başarılı kayıt - verification ekranına yönlendir
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Kayıt başarılı! E-postanızı kontrol edin."),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                VerificationScreen(email: _emailController.text.trim()),
+          ),
+        );
+      } else {
+        // Hata durumu
+        final errorMessage = response.body.isNotEmpty
+            ? jsonDecode(response.body)['message'] ?? 'Kayıt başarısız oldu'
+            : 'Kayıt başarısız oldu';
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      print('Hata detayı: $e'); // Debug için
+
+      String errorMessage = 'Bağlantı hatası: ';
+      if (e.toString().contains('Failed host lookup')) {
+        errorMessage +=
+            'Sunucuya ulaşılamadı. Backend çalışıyor mu kontrol edin.';
+      } else if (e.toString().contains('Connection refused')) {
+        errorMessage +=
+            'Bağlantı reddedildi. Backend uygulaması çalışmıyor olabilir.';
+      } else if (e.toString().contains('SocketException')) {
+        errorMessage +=
+            'Ağ bağlantısı hatası. İnternet bağlantınızı kontrol edin.';
+      } else if (e.toString().contains('timeout')) {
+        errorMessage += 'İstek zaman aşımına uğradı. Lütfen tekrar deneyin.';
+      } else {
+        errorMessage += e.toString();
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   Widget buildRoleCard(String role, IconData icon) {
     final isSelected = selectedRole == role;
     return GestureDetector(
       onTap: () {
-        setState(() => selectedRole = role);
+        setState(() {
+          selectedRole = role;
+          _showRoleError = false; // Rol seçildiğinde hatayı kaldır
+        });
       },
       child: Container(
         width: 100,
@@ -65,78 +220,175 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-        child: ListView(
-          children: [
-            // Form Alanları
-            const TextField(decoration: InputDecoration(labelText: 'Ad')),
-            const SizedBox(height: 12),
-            const TextField(decoration: InputDecoration(labelText: 'Soyad')),
-            const SizedBox(height: 12),
-            const TextField(
-              decoration: InputDecoration(labelText: 'Telefon'),
-              keyboardType: TextInputType.phone,
-            ),
-            const SizedBox(height: 12),
-            const TextField(
-              decoration: InputDecoration(labelText: 'E-posta'),
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: 12),
-            const TextField(
-              decoration: InputDecoration(labelText: 'Parola'),
-              obscureText: true,
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              "Rolünü Seç",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-
-            // Rol Seçimi Grid
-            Wrap(
-              alignment: WrapAlignment.spaceAround,
-              spacing: 20,
-              runSpacing: 20,
-              children: roles
-                  .map(
-                    (r) => buildRoleCard(
-                      r['label'] as String,
-                      r['icon'] as IconData,
-                    ),
-                  )
-                  .toList(),
-            ),
-            const SizedBox(height: 32),
-
-            // Kayıt Ol Butonu
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  // Burada kayıt işlemini tetikle
-                  if (selectedRole == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Lütfen bir rol seçin")),
-                    );
-                  } else {
-                    // Kayıt işlemleri
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: [
+              // Form Alanları
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(labelText: 'Ad'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Lütfen adınızı girin';
                   }
+                  return null;
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _surnameController,
+                decoration: const InputDecoration(labelText: 'Soyad'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Lütfen soyadınızı girin';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _phoneController,
+                decoration: const InputDecoration(
+                  labelText: 'Telefon',
+                  prefixText: '0',
+                  hintText: '5XX XXX XX XX',
+                ),
+                keyboardType: TextInputType.phone,
+                maxLength: 10,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Lütfen telefon numaranızı girin';
+                  }
+                  // Sadece rakam kontrolü
+                  if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
+                    return 'Sadece rakam giriniz';
+                  }
+                  // 10 hane kontrolü
+                  if (value.length != 10) {
+                    return 'Telefon numarası 10 haneli olmalıdır';
+                  }
+                  // 5 ile başlamalı (0'dan sonra)
+                  if (!value.startsWith('5')) {
+                    return 'Telefon numarası 5 ile başlamalıdır';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _emailController,
+                decoration: const InputDecoration(labelText: 'E-posta'),
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Lütfen e-posta adresinizi girin';
+                  }
+                  if (!value.contains('@')) {
+                    return 'Geçerli bir e-posta adresi girin';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _passwordController,
+                decoration: const InputDecoration(labelText: 'Parola'),
+                obscureText: true,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Lütfen parola girin';
+                  }
+                  if (value.length < 6) {
+                    return 'Parola en az 6 karakter olmalıdır';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                "Rolünü Seç",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              if (_showRoleError)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        color: Colors.red[700],
+                        size: 18,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        "Lütfen bir rol seçin",
+                        style: TextStyle(color: Colors.red[700], fontSize: 13),
+                      ),
+                    ],
                   ),
                 ),
-                child: const Text(
-                  "Kayıt Ol",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              const SizedBox(height: 16),
+
+              // Rol Seçimi Grid
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: _showRoleError ? Colors.red : Colors.transparent,
+                    width: 2,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.all(8),
+                child: Wrap(
+                  alignment: WrapAlignment.spaceAround,
+                  spacing: 20,
+                  runSpacing: 20,
+                  children: roles
+                      .map(
+                        (r) => buildRoleCard(
+                          r['label'] as String,
+                          r['icon'] as IconData,
+                        ),
+                      )
+                      .toList(),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 32),
+
+              // Kayıt Ol Butonu
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _register,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          "Kayıt Ol",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

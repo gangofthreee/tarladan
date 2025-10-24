@@ -205,6 +205,7 @@ class _FarmerAllAdsState extends State<FarmerAllAds> {
   }
 
   Widget _buildProductCard(BuildContext context, Map<String, dynamic> product) {
+    final int productId = product['id'] ?? 0;
     final String name = product['name'] ?? 'Ürün';
     final double quantityKg = (product['quantity_kg'] ?? 0).toDouble();
     final double pricePerKg = (product['price_per_kg'] ?? 0).toDouble();
@@ -213,7 +214,9 @@ class _FarmerAllAdsState extends State<FarmerAllAds> {
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => FarmerAdDetail(name: name)),
+        MaterialPageRoute(
+          builder: (context) => FarmerAdDetail(productId: productId),
+        ),
       ),
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -237,17 +240,29 @@ class _FarmerAllAdsState extends State<FarmerAllAds> {
                 color: const Color(0xFF00D563),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: product['photo'] != null
+              child: product['image_path'] != null
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        product['photo'],
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(
-                            Icons.image_not_supported,
-                            color: Colors.white.withOpacity(0.7),
-                            size: 40,
+                      child: Builder(
+                        builder: (context) {
+                          // /app/uploads/xxx -> /uploads/xxx dönüştür
+                          String imagePath = product['image_path'];
+                          if (imagePath.startsWith('/app/uploads/')) {
+                            imagePath = imagePath.replaceFirst(
+                              '/app/uploads/',
+                              '/uploads/',
+                            );
+                          }
+                          return Image.network(
+                            '${ApiConfig.baseUrl}$imagePath',
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(
+                                Icons.image_not_supported,
+                                color: Colors.white.withOpacity(0.7),
+                                size: 40,
+                              );
+                            },
                           );
                         },
                       ),
@@ -331,7 +346,7 @@ class _FarmerAllAdsState extends State<FarmerAllAds> {
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => FarmerAdDetail(name: name)),
+        MaterialPageRoute(builder: (context) => FarmerAdDetail(productId: 0)),
       ),
       child: Container(
         padding: EdgeInsets.all(16),

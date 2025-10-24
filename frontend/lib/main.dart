@@ -20,7 +20,8 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
         useMaterial3: true,
       ),
-      home: const SplashScreen(),
+      home: const FarmerMainPage(), // Geliştirme için doğrudan farmer sayfası
+      // home: const SplashScreen(), // Prod için splash screen
       routes: {
         '/splash': (context) => const SplashScreen(),
         '/login': (context) => const LoginPage(),

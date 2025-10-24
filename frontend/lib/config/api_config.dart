@@ -27,6 +27,8 @@ class ApiConfig {
   static const String verifyCodeEndpoint = '/api/verification/verifyCode';
   static const String resendCodeEndpoint = '/api/verification/resendCode';
   static const String createProductEndpoint = '/farmer/product/create';
+  static const String getFarmerProductsEndpoint =
+      '/farmer/product/getFarmerProduct';
 
   static String get registerUrl => '$baseUrl$registerEndpoint';
   static String get verifyUrl => '$baseUrl$verifyEndpoint';
@@ -34,4 +36,6 @@ class ApiConfig {
   static String resendCodeUrl(String email) =>
       '$baseUrl$resendCodeEndpoint?email=$email';
   static String get createProductUrl => '$baseUrl$createProductEndpoint';
+  static String getFarmerProductsUrl(int farmerId) =>
+      '$baseUrl$getFarmerProductsEndpoint/$farmerId';
 }

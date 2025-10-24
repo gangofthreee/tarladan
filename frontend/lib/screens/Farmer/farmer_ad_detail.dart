@@ -68,7 +68,8 @@ class _FarmerAdDetailState extends State<FarmerAdDetail> {
         setState(() {
           _product = productData;
           _nameController.text = productData['name'] ?? '';
-          _quantityController.text = (productData['quantity_kg'] ?? 0).toString();
+          _quantityController.text = (productData['quantity_kg'] ?? 0)
+              .toString();
           _priceController.text = (productData['price_per_kg'] ?? 0).toString();
           _minBuyController.text = (productData['min_buy'] ?? 0).toString();
           _isLoading = false;
@@ -187,10 +188,7 @@ class _FarmerAdDetailState extends State<FarmerAdDetail> {
   void _showErrorSnackBar(String message) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text(message), backgroundColor: Colors.red),
       );
     }
   }
@@ -227,9 +225,16 @@ class _FarmerAdDetailState extends State<FarmerAdDetail> {
                       return const Center(child: CircularProgressIndicator());
                     },
                   )
-                : (_product!['image_path'] != null && _product!['image_path'].isNotEmpty
-                    ? _buildNetworkImage()
-                    : Center(child: Icon(Icons.image, size: 80, color: Colors.grey[400]))),
+                : (_product!['image_path'] != null &&
+                          _product!['image_path'].isNotEmpty
+                      ? _buildNetworkImage()
+                      : Center(
+                          child: Icon(
+                            Icons.image,
+                            size: 80,
+                            color: Colors.grey[400],
+                          ),
+                        )),
           ),
           if (_isEditMode)
             Positioned(
@@ -269,7 +274,8 @@ class _FarmerAdDetailState extends State<FarmerAdDetail> {
         return Center(
           child: CircularProgressIndicator(
             value: loadingProgress.expectedTotalBytes != null
-                ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                ? loadingProgress.cumulativeBytesLoaded /
+                      loadingProgress.expectedTotalBytes!
                 : null,
           ),
         );
@@ -281,7 +287,10 @@ class _FarmerAdDetailState extends State<FarmerAdDetail> {
             children: [
               Icon(Icons.error_outline, size: 60, color: Colors.red[300]),
               const SizedBox(height: 8),
-              Text('Fotoğraf yüklenemedi', style: TextStyle(color: Colors.grey[600])),
+              Text(
+                'Fotoğraf yüklenemedi',
+                style: TextStyle(color: Colors.grey[600]),
+              ),
             ],
           ),
         );
@@ -289,7 +298,12 @@ class _FarmerAdDetailState extends State<FarmerAdDetail> {
     );
   }
 
-  Widget _buildInfoField(String label, String value, TextEditingController controller, {String suffix = ''}) {
+  Widget _buildInfoField(
+    String label,
+    String value,
+    TextEditingController controller, {
+    String suffix = '',
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -301,7 +315,10 @@ class _FarmerAdDetailState extends State<FarmerAdDetail> {
                 decoration: InputDecoration(
                   suffix: Text(suffix),
                   isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: 8,
+                  ),
                   border: const OutlineInputBorder(),
                 ),
                 validator: (value) {
@@ -314,7 +331,13 @@ class _FarmerAdDetailState extends State<FarmerAdDetail> {
                   return null;
                 },
               )
-            : Text('$value$suffix', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            : Text(
+                '$value$suffix',
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
       ],
     );
   }
@@ -335,189 +358,248 @@ class _FarmerAdDetailState extends State<FarmerAdDetail> {
             icon: const Icon(Icons.arrow_back, color: Colors.black),
             onPressed: () => Navigator.pop(context, _hasChanges),
           ),
-        title: Text(
-          _product?['name'] ?? 'İlan Detayları',
-          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          title: Text(
+            _product?['name'] ?? 'İlan Detayları',
+            style: const TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          actions: [
+            if (!_isEditMode && _product != null)
+              IconButton(
+                icon: const Icon(Icons.edit, color: Colors.black),
+                onPressed: _toggleEditMode,
+              ),
+            if (_isEditMode)
+              TextButton(
+                onPressed: _toggleEditMode,
+                child: const Text('İptal', style: TextStyle(color: Colors.red)),
+              ),
+          ],
         ),
-        actions: [
-          if (!_isEditMode && _product != null)
-            IconButton(
-              icon: const Icon(Icons.edit, color: Colors.black),
-              onPressed: _toggleEditMode,
-            ),
-          if (_isEditMode)
-            TextButton(
-              onPressed: _toggleEditMode,
-              child: const Text('İptal', style: TextStyle(color: Colors.red)),
-            ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _errorMessage != null
-              ? Center(
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _errorMessage != null
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      _errorMessage!,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _fetchProductDetail,
+                      child: const Text('Tekrar Dene'),
+                    ),
+                  ],
+                ),
+              )
+            : Form(
+                key: _formKey,
+                child: SingleChildScrollView(
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: _fetchProductDetail,
-                        child: const Text('Tekrar Dene'),
-                      ),
-                    ],
-                  ),
-                )
-              : Form(
-                  key: _formKey,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildImageSection(),
-                        Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Ürün Adı
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Ürün Adı', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-                                  _isEditMode
-                                      ? TextFormField(
-                                          controller: _nameController,
-                                          decoration: const InputDecoration(
-                                            isDense: true,
-                                            contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-                                            border: OutlineInputBorder(),
+                      _buildImageSection(),
+                      Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Ürün Adı
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Ürün Adı',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                _isEditMode
+                                    ? TextFormField(
+                                        controller: _nameController,
+                                        decoration: const InputDecoration(
+                                          isDense: true,
+                                          contentPadding: EdgeInsets.symmetric(
+                                            vertical: 8,
+                                            horizontal: 8,
                                           ),
-                                          validator: (value) {
-                                            if (value == null || value.isEmpty) {
-                                              return 'Ürün adı boş bırakılamaz';
-                                            }
-                                            return null;
-                                          },
-                                        )
-                                      : Text(_product!['name'] ?? 'N/A',
-                                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                                ],
-                              ),
-                              const SizedBox(height: 16),
-                              // Diğer Bilgiler
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: _buildInfoField(
-                                      'Miktar',
-                                      (_product!['quantity_kg'] ?? 0).toString(),
-                                      _quantityController,
-                                      suffix: ' kg',
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: _buildInfoField(
-                                      'Fiyat',
-                                      (_product!['price_per_kg'] ?? 0).toString(),
-                                      _priceController,
-                                      suffix: ' ₺/kg',
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 16),
-                              _buildInfoField(
-                                'Minimum Alım',
-                                (_product!['min_buy'] ?? 0).toString(),
-                                _minBuyController,
-                                suffix: ' kg',
-                              ),
-                              const SizedBox(height: 24),
-                              // Depo Konumu
-                              const Text('Depo Konumu', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                              const SizedBox(height: 12),
-                              Container(
-                                height: 200,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[300],
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.map, size: 60, color: Colors.grey[500]),
-                                      const SizedBox(height: 8),
-                                      Text('Harita Görünümü', style: TextStyle(color: Colors.grey[600])),
-                                    ],
+                                          border: OutlineInputBorder(),
+                                        ),
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return 'Ürün adı boş bırakılamaz';
+                                          }
+                                          return null;
+                                        },
+                                      )
+                                    : Text(
+                                        _product!['name'] ?? 'N/A',
+                                        style: const TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            // Diğer Bilgiler
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: _buildInfoField(
+                                    'Miktar',
+                                    (_product!['quantity_kg'] ?? 0).toString(),
+                                    _quantityController,
+                                    suffix: ' kg',
                                   ),
                                 ),
-                              ),
-                              const SizedBox(height: 24),
-                              // Butonlar
-                              if (_isEditMode)
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: ElevatedButton(
-                                    onPressed: _isSaving ? null : _updateProduct,
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF1B5E20),
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(vertical: 16),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                    ),
-                                    child: _isSaving
-                                        ? const SizedBox(
-                                            height: 20,
-                                            width: 20,
-                                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                                          )
-                                        : const Text('Değişiklikleri Kaydet', style: TextStyle(fontSize: 16)),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: _buildInfoField(
+                                    'Fiyat',
+                                    (_product!['price_per_kg'] ?? 0).toString(),
+                                    _priceController,
+                                    suffix: ' ₺/kg',
                                   ),
-                                )
-                              else
-                                Row(
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            _buildInfoField(
+                              'Minimum Alım',
+                              (_product!['min_buy'] ?? 0).toString(),
+                              _minBuyController,
+                              suffix: ' kg',
+                            ),
+                            const SizedBox(height: 24),
+                            // Depo Konumu
+                            const Text(
+                              'Depo Konumu',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Container(
+                              height: 200,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Expanded(
-                                      child: ElevatedButton.icon(
-                                        onPressed: _toggleEditMode,
-                                        icon: const Icon(Icons.edit),
-                                        label: const Text('Düzenle'),
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: const Color(0xFF1B5E20),
-                                          foregroundColor: Colors.white,
-                                          padding: const EdgeInsets.symmetric(vertical: 16),
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                        ),
-                                      ),
+                                    Icon(
+                                      Icons.map,
+                                      size: 60,
+                                      color: Colors.grey[500],
                                     ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: OutlinedButton.icon(
-                                        onPressed: () {},
-                                        icon: const Icon(Icons.delete_outline),
-                                        label: const Text('İlanı Kaldır'),
-                                        style: OutlinedButton.styleFrom(
-                                          foregroundColor: Colors.red,
-                                          side: const BorderSide(color: Colors.red),
-                                          padding: const EdgeInsets.symmetric(vertical: 16),
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                        ),
-                                      ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Harita Görünümü',
+                                      style: TextStyle(color: Colors.grey[600]),
                                     ),
                                   ],
                                 ),
-                              const SizedBox(height: 24),
-                            ],
-                          ),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            // Butonlar
+                            if (_isEditMode)
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  onPressed: _isSaving ? null : _updateProduct,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF1B5E20),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 16,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  child: _isSaving
+                                      ? const SizedBox(
+                                          height: 20,
+                                          width: 20,
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : const Text(
+                                          'Değişiklikleri Kaydet',
+                                          style: TextStyle(fontSize: 16),
+                                        ),
+                                ),
+                              )
+                            else
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: ElevatedButton.icon(
+                                      onPressed: _toggleEditMode,
+                                      icon: const Icon(Icons.edit),
+                                      label: const Text('Düzenle'),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(
+                                          0xFF1B5E20,
+                                        ),
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 16,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: OutlinedButton.icon(
+                                      onPressed: () {},
+                                      icon: const Icon(Icons.delete_outline),
+                                      label: const Text('İlanı Kaldır'),
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: Colors.red,
+                                        side: const BorderSide(
+                                          color: Colors.red,
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 16,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            const SizedBox(height: 24),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
+              ),
       ),
     );
   }

@@ -204,7 +204,7 @@ class FarmerMainPage extends StatelessWidget {
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => FarmerAdDetail(name: name)),
+        MaterialPageRoute(builder: (context) => FarmerAdDetail(productId: 0)),
       ),
       child: Container(
         padding: EdgeInsets.all(16),

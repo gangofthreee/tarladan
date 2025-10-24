@@ -1,9 +1,66 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import '../../config/api_config.dart';
 import 'farmer_ad_detail.dart';
 import 'farmer_orders.dart';
 
-class FarmerAllAds extends StatelessWidget {
+class FarmerAllAds extends StatefulWidget {
   const FarmerAllAds({super.key});
+
+  @override
+  State<FarmerAllAds> createState() => _FarmerAllAdsState();
+}
+
+class _FarmerAllAdsState extends State<FarmerAllAds> {
+  List<dynamic> _products = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+  final int _farmerId = 1; // Şimdilik test için sabit ID
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchProducts();
+  }
+
+  Future<void> _fetchProducts() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse(ApiConfig.getFarmerProductsUrl(_farmerId)),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          _products = data is List ? data : [data];
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _errorMessage = 'Ürünler yüklenemedi: ${response.statusCode}';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = 'Bağlantı hatası: $e';
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,38 +127,185 @@ class FarmerAllAds extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Expanded(
-            child: ListView(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              children: [
-                _buildListingCard(
-                  context,
-                  'Üzüm',
-                  '500 kg',
-                  '15 ₺/kg',
-                  'grape',
-                ),
-                SizedBox(height: 12),
-                _buildListingCard(
-                  context,
-                  'Domates',
-                  '300 kg',
-                  '8 ₺/kg',
-                  'tomato',
-                ),
-                SizedBox(height: 12),
-                _buildListingCard(
-                  context,
-                  'Salatalık',
-                  '200 kg',
-                  '5 ₺/kg',
-                  'cucumber',
-                ),
-              ],
-            ),
+            child: _isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(color: Color(0xFF00D563)),
+                  )
+                : _errorMessage != null
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: Colors.grey[400],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          _errorMessage!,
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 16,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          onPressed: _fetchProducts,
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Tekrar Dene'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF00D563),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : _products.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.inventory_2_outlined,
+                          size: 64,
+                          color: Colors.grey[400],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Henüz ilan eklemediniz',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : RefreshIndicator(
+                    onRefresh: _fetchProducts,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: _products.length,
+                      itemBuilder: (context, index) {
+                        final product = _products[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _buildProductCard(context, product),
+                        );
+                      },
+                    ),
+                  ),
           ),
         ],
       ),
       bottomNavigationBar: _buildBottomNav(context, 1),
+    );
+  }
+
+  Widget _buildProductCard(BuildContext context, Map<String, dynamic> product) {
+    final String name = product['name'] ?? 'Ürün';
+    final double quantityKg = (product['quantity_kg'] ?? 0).toDouble();
+    final double pricePerKg = (product['price_per_kg'] ?? 0).toDouble();
+    final double minBuy = (product['min_buy'] ?? 0).toDouble();
+
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => FarmerAdDetail(name: name)),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: const Color(0xFF00D563),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: product['photo'] != null
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        product['photo'],
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Icon(
+                            Icons.image_not_supported,
+                            color: Colors.white.withOpacity(0.7),
+                            size: 40,
+                          );
+                        },
+                      ),
+                    )
+                  : Icon(
+                      Icons.inventory_2,
+                      color: Colors.white.withOpacity(0.7),
+                      size: 40,
+                    ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Miktar: ${quantityKg.toStringAsFixed(0)} kg',
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Fiyat: ${pricePerKg.toStringAsFixed(2)} ₺/kg',
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Min. Alım: ${minBuy.toStringAsFixed(0)} kg',
+                    style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFF00D563),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Text(
+                'Aktif',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

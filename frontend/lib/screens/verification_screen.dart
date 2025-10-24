@@ -21,6 +21,12 @@ class _VerificationScreenState extends State<VerificationScreen> {
   int _remainingSeconds = 120; // 2 dakika = 120 saniye
   Timer? _timer;
 
+  // Resend code için yeni değişkenler
+  bool _isResendLoading = false;
+  bool _canResend = true;
+  int _resendCooldown = 0;
+  Timer? _resendTimer;
+
   @override
   void initState() {
     super.initState();
@@ -150,9 +156,86 @@ class _VerificationScreenState extends State<VerificationScreen> {
     );
   }
 
+  void _showSuccessSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+  }
+
+  Future<void> _resendVerificationCode() async {
+    if (!_canResend) {
+      _showErrorSnackBar("Lütfen ${_resendCooldown} saniye bekleyin.");
+      return;
+    }
+
+    setState(() {
+      _isResendLoading = true;
+    });
+
+    try {
+      final response = await http.post(
+        Uri.parse(ApiConfig.resendCodeUrl(widget.email)),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        _showSuccessSnackBar("Yeni doğrulama kodu gönderildi!");
+
+        // Timer'ı sıfırla ve yeniden başlat
+        _timer?.cancel();
+        setState(() {
+          _remainingSeconds = 120;
+          _isTimerExpired = false;
+          _codeController.clear();
+        });
+        _startTimer();
+
+        // 60 saniye cooldown başlat
+        _startResendCooldown();
+      } else {
+        _showErrorSnackBar("Kod gönderilemedi. Lütfen tekrar deneyin.");
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _showErrorSnackBar("Bağlantı hatası: $e");
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isResendLoading = false;
+        });
+      }
+    }
+  }
+
+  void _startResendCooldown() {
+    setState(() {
+      _canResend = false;
+      _resendCooldown = 120;
+    });
+
+    _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        if (_resendCooldown > 0) {
+          _resendCooldown--;
+        } else {
+          _canResend = true;
+          timer.cancel();
+        }
+      });
+    });
+  }
+
   @override
   void dispose() {
     _timer?.cancel();
+    _resendTimer?.cancel();
     _codeController.dispose();
     super.dispose();
   }
@@ -269,6 +352,72 @@ class _VerificationScreenState extends State<VerificationScreen> {
                       ),
               ),
             ),
+            const SizedBox(height: 16),
+            // Kodu Tekrar Gönder Butonu
+            Center(
+              child: TextButton.icon(
+                onPressed: (_isResendLoading || !_isTimerExpired || !_canResend)
+                    ? null
+                    : _resendVerificationCode,
+                icon: _isResendLoading
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.refresh),
+                label: Text(
+                  !_canResend
+                      ? 'Tekrar gönder ($_resendCooldown sn)'
+                      : 'Kodu Tekrar Gönder',
+                  style: const TextStyle(fontSize: 16),
+                ),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.green,
+                  disabledForegroundColor: Colors.grey,
+                ),
+              ),
+            ),
+            // Bilgilendirme mesajı
+            if (!_isTimerExpired)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  'Kod yeniden gönderilebilmesi için ${_formatTime(_remainingSeconds)} beklemeniz gerekmektedir.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey[600],
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+            if (_isTimerExpired && _canResend)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  'Artık yeni bir doğrulama kodu talep edebilirsiniz.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.green[700],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            if (!_canResend && _isTimerExpired)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  'Yeni kod göndermek için ${_formatTime(_resendCooldown)} beklemeniz gerekmektedir.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.orange[700],
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
             if (_isTimerExpired) ...[
               const SizedBox(height: 16),
               Container(
@@ -287,7 +436,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Süre doldu. Lütfen kayıt işlemini tekrar başlatın.',
+                        'Doğrulama kodunuzun süresi doldu.',
                         style: TextStyle(color: Colors.orange[900]),
                       ),
                     ),

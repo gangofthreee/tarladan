@@ -24,7 +24,9 @@ class ApiConfig {
 
   static const String registerEndpoint = '/api/users/register';
   static const String verifyEndpoint = '/api/users/verify';
+  static const String verifyCodeEndpoint = '/api/verification/verifyCode';
 
   static String get registerUrl => '$baseUrl$registerEndpoint';
   static String get verifyUrl => '$baseUrl$verifyEndpoint';
+  static String get verifyCodeUrl => '$baseUrl$verifyCodeEndpoint';
 }

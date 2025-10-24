@@ -202,10 +202,13 @@ class FarmerMainPage extends StatelessWidget {
     bool isActive,
   ) {
     return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => FarmerAdDetail(productId: 0)),
-      ),
+      onTap: () async {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => FarmerAdDetail(productId: 0)),
+        );
+        // Bu sayfada statik veri olduğu için refresh gerekmez
+      },
       child: Container(
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(

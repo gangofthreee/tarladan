@@ -10,7 +10,7 @@ public class JacksonConfig {
     @Bean
     public ObjectMapper objectMapper() {
         ObjectMapper mapper = new ObjectMapper();
-        // JSON içinde DTO’da tanımlı olmayan extra field varsa hata fırlatır
+        // JSON içinde DTO'da tanımlı olmayan extra field varsa hata fırlatır
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
         return mapper;
     }

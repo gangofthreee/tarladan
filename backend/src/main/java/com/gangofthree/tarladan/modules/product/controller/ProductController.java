@@ -40,12 +40,16 @@ public class ProductController {
         return ResponseEntity.ok(createdProduct);
     }
 
-    @PatchMapping("/update/{id}")
+    @PatchMapping(value = "/update/{id}", consumes = {"multipart/form-data"})
     public ResponseEntity<Product> updateProduct(
             @PathVariable Long id,
-            @RequestBody Map<String, Object> updates
+            @RequestPart(value = "name", required = false) String name,
+            @RequestPart(value = "quantity_kg", required = false) String quantityKg,
+            @RequestPart(value = "price_per_kg", required = false) String pricePerKg,
+            @RequestPart(value = "min_buy", required = false) String minBuy,
+            @RequestPart(value = "photo", required = false) MultipartFile photo
     ) {
-        Product updatedProduct = productService.updateProduct(id, updates);
+        Product updatedProduct = productService.updateProductWithMultipart(id, name, quantityKg, pricePerKg, minBuy, photo);
         return ResponseEntity.ok(updatedProduct);
     }
 

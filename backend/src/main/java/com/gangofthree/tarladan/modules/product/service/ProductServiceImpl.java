@@ -85,6 +85,44 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public Product updateProductWithMultipart(Long id, String name, String quantityKg, String pricePerKg, String minBuy, MultipartFile photo) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id));
+
+        try {
+            // Alanları güncelle
+            if (name != null && !name.isEmpty()) {
+                product.setName(name);
+            }
+            if (quantityKg != null && !quantityKg.isEmpty()) {
+                product.setQuantity_kg(new BigInteger(quantityKg));
+            }
+            if (pricePerKg != null && !pricePerKg.isEmpty()) {
+                product.setPrice_per_kg(new BigInteger(pricePerKg));
+            }
+            if (minBuy != null && !minBuy.isEmpty()) {
+                product.setMin_buy(new BigInteger(minBuy));
+            }
+
+            // Eğer yeni fotoğraf gönderildiyse
+            if (photo != null && !photo.isEmpty()) {
+                String uploadDir = "/app/uploads";
+                String fileName = System.currentTimeMillis() + "_" + photo.getOriginalFilename();
+                Path filePath = Paths.get(uploadDir, fileName);
+
+                Files.createDirectories(filePath.getParent());
+                photo.transferTo(filePath.toFile());
+
+                product.setImage_path("/app/uploads/" + fileName);
+            }
+
+            return productRepository.save(product);
+        } catch (IOException e) {
+            throw new RuntimeException("Fotoğraf güncelleme sırasında hata oluştu", e);
+        }
+    }
+
+    @Override
     public Product deleteProduct(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id));

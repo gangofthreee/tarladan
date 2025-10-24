@@ -212,12 +212,18 @@ class _FarmerAllAdsState extends State<FarmerAllAds> {
     final double minBuy = (product['min_buy'] ?? 0).toDouble();
 
     return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => FarmerAdDetail(productId: productId),
-        ),
-      ),
+      onTap: () async {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => FarmerAdDetail(productId: productId),
+          ),
+        );
+        // Eğer güncelleme yapıldıysa listeyi yenile
+        if (result == true) {
+          _fetchProducts();
+        }
+      },
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(

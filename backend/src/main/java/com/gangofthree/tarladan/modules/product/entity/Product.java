@@ -4,10 +4,8 @@ import com.gangofthree.tarladan.modules.farmer.entity.Farmer;
 //import com.gangofthree.tarladan.modules.depot.entity.Depot;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import java.time.LocalDateTime;
 
 import jakarta.validation.constraints.NotNull;
-import org.hibernate.annotations.CreationTimestamp;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.*;
@@ -47,9 +45,6 @@ public class Product {
     @NotNull(message = "minimum purchase amount cannot be empty")
     @Min(value = 1, message = "Minimum alım miktarı 0'dan büyük olmalıdır.")
     private BigInteger min_buy;
-
-    //@CreationTimestamp
-    //private LocalDateTime created_ad;
 
     @Column(name = "image_path")
     private String image_path;

@@ -31,6 +31,7 @@ class ApiConfig {
       '/farmer/product/getFarmerProduct';
   static const String getProductDetailEndpoint = '/farmer/product/get';
   static const String updateProductEndpoint = '/farmer/product/update';
+  static const String deleteProductEndpoint = '/farmer/product/delete';
 
   static String get registerUrl => '$baseUrl$registerEndpoint';
   static String get verifyUrl => '$baseUrl$verifyEndpoint';
@@ -44,4 +45,6 @@ class ApiConfig {
       '$baseUrl$getProductDetailEndpoint/$productId';
   static String updateProductUrl(int productId) =>
       '$baseUrl$updateProductEndpoint/$productId';
+  static String deleteProductUrl(int productId) =>
+      '$baseUrl$deleteProductEndpoint/$productId';
 }

@@ -124,12 +124,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
       } else {
         // Hata durumu
-        final errorMessage = response.body.isNotEmpty
-            ? jsonDecode(response.body)['message'] ?? 'Kayıt başarısız oldu'
-            : 'Kayıt başarısız oldu';
+        String errorMessage = 'Kayıt başarısız oldu';
+
+        if (response.body.isNotEmpty) {
+          try {
+            final errorData = jsonDecode(response.body);
+            // Backend'den gelen error veya message alanını kontrol et
+            if (errorData['error'] != null) {
+              errorMessage = errorData['error'];
+              // Email already in use hatası için Türkçe mesaj
+              if (errorMessage.contains('Email already in use')) {
+                errorMessage =
+                    'Bu e-posta adresi zaten kullanılıyor. Lütfen farklı bir e-posta adresi deneyin.';
+              }
+            } else if (errorData['message'] != null) {
+              errorMessage = errorData['message'];
+            }
+          } catch (e) {
+            // JSON parse hatası durumunda default mesaj
+            errorMessage = 'Kayıt başarısız oldu';
+          }
+        }
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
         );
       }
     } catch (e) {

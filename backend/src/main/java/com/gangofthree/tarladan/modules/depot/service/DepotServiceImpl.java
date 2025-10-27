@@ -2,6 +2,7 @@ package com.gangofthree.tarladan.modules.depot.service;
 
 import com.gangofthree.tarladan.modules.depot.dto.DepotCreateRequest;
 import com.gangofthree.tarladan.modules.depot.dto.DepotResponse;
+import com.gangofthree.tarladan.modules.depot.dto.DepotUpdateRequest;
 import com.gangofthree.tarladan.modules.depot.entity.Depot;
 import com.gangofthree.tarladan.modules.depot.repository.DepotRepository;
 import com.gangofthree.tarladan.modules.depotOwner.entity.DepotOwner;
@@ -68,6 +69,29 @@ public class DepotServiceImpl implements DepotService {
                 .orElseThrow(() -> new IllegalArgumentException("Depot not found with id: " + id));
 
         return convertToResponse(depot);
+    }
+
+    @Override
+    public DepotResponse updateDepot(Long id, DepotUpdateRequest request) {
+        Depot depot = depotRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Depot not found with id: " + id));
+
+        // Kısmi güncelleme (null değilse güncelle)
+        if (request.getAddress() != null) {
+            depot.setAddress(request.getAddress());
+        }
+        if (request.getSizeM2() != null) {
+            depot.setSizeM2(request.getSizeM2());
+        }
+        if (request.getCapacityTon() != null) {
+            depot.setCapacityTon(request.getCapacityTon());
+        }
+        if (request.getPrice() != null) {
+            depot.setPrice(request.getPrice());
+        }
+
+        Depot updatedDepot = depotRepository.save(depot);
+        return convertToResponse(updatedDepot);
     }
 
     private DepotResponse convertToResponse(Depot depot) {

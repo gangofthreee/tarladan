@@ -146,3 +146,8 @@ Content-Type: application/json
   "capacityTon": 50,
   "price": 2500
 }
+
+
+### GET ALL DEPOTS
+GET http://localhost:8080/depot/all
+Accept: application/json

@@ -61,5 +61,24 @@ public class DepotServiceImpl implements DepotService {
                         .build())
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public DepotResponse getDepotById(Long id) {
+        Depot depot = depotRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Depot not found with id: " + id));
+
+        return convertToResponse(depot);
+    }
+
+    private DepotResponse convertToResponse(Depot depot) {
+        return DepotResponse.builder()
+                .id(depot.getId())
+                .depotOwnerId(depot.getDepotOwner().getId())
+                .address(depot.getAddress())
+                .sizeM2(depot.getSizeM2())
+                .capacityTon(depot.getCapacityTon())
+                .price(depot.getPrice())
+                .build();
+    }
 }
 

@@ -9,6 +9,9 @@ import com.gangofthree.tarladan.modules.depotOwner.repository.DepotOwnerReposito
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class DepotServiceImpl implements DepotService {
@@ -42,6 +45,21 @@ public class DepotServiceImpl implements DepotService {
                 .price(savedDepot.getPrice())
                 .depotOwnerId(savedDepot.getDepotOwner().getId())
                 .build();
+    }
+
+    public List<DepotResponse> getAllDepots() {
+        List<Depot> depots = depotRepository.findAll();
+
+        return depots.stream()
+                .map(depot -> DepotResponse.builder()
+                        .id(depot.getId())
+                        .depotOwnerId(depot.getDepotOwner().getId())
+                        .address(depot.getAddress())
+                        .sizeM2(depot.getSizeM2())
+                        .capacityTon(depot.getCapacityTon())
+                        .price(depot.getPrice())
+                        .build())
+                .collect(Collectors.toList());
     }
 }
 

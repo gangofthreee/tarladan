@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/depot")
 @RequiredArgsConstructor
@@ -18,6 +20,12 @@ public class DepotController {
     public ResponseEntity<DepotResponse> createDepot(@RequestBody DepotCreateRequest request) {
         DepotResponse response = depotService.createDepot(request);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<DepotResponse>> getAllDepots() {
+        List<DepotResponse> depots = depotService.getAllDepots();
+        return ResponseEntity.ok(depots);
     }
 }
 

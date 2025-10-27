@@ -101,6 +101,15 @@ public class DepotServiceImpl implements DepotService {
         depotRepository.delete(depot);
     }
 
+    @Override
+    public List<DepotResponse> getDepotsByDepotOwner(Long depotOwnerId) {
+        List<Depot> depots = depotRepository.findAllByDepotOwner_Id(depotOwnerId);
+
+        return depots.stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+    }
+
     private DepotResponse convertToResponse(Depot depot) {
         return DepotResponse.builder()
                 .id(depot.getId())

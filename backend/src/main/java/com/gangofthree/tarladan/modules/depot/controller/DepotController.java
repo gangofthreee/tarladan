@@ -2,6 +2,7 @@ package com.gangofthree.tarladan.modules.depot.controller;
 
 import com.gangofthree.tarladan.modules.depot.dto.DepotCreateRequest;
 import com.gangofthree.tarladan.modules.depot.dto.DepotResponse;
+import com.gangofthree.tarladan.modules.depot.dto.DepotUpdateRequest;
 import com.gangofthree.tarladan.modules.depot.service.DepotService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +33,15 @@ public class DepotController {
     public ResponseEntity<DepotResponse> getDepotById(@PathVariable Long id) {
         DepotResponse depot = depotService.getDepotById(id);
         return ResponseEntity.ok(depot);
+    }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<DepotResponse> updateDepot(
+            @PathVariable Long id,
+            @RequestBody DepotUpdateRequest request
+    ) {
+        DepotResponse updatedDepot = depotService.updateDepot(id, request);
+        return ResponseEntity.ok(updatedDepot);
     }
 }
 

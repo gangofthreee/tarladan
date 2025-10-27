@@ -154,5 +154,16 @@ Accept: application/json
 
 
 ### GET DEPOT BY ID
-GET http://localhost:8080/depot/3
+GET http://localhost:8080/depot/1
 Accept: application/json
+
+
+### UPDATE DEPOT
+PUT http://localhost:8080/depot/update/1
+Content-Type: application/json
+
+{
+  "price": 3200,
+  "address": "Muğla / Kötekli - Güncellenmiş",
+  "capacityTon": 55
+}

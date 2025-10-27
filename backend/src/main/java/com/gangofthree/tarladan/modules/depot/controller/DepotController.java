@@ -27,5 +27,11 @@ public class DepotController {
         List<DepotResponse> depots = depotService.getAllDepots();
         return ResponseEntity.ok(depots);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<DepotResponse> getDepotById(@PathVariable Long id) {
+        DepotResponse depot = depotService.getDepotById(id);
+        return ResponseEntity.ok(depot);
+    }
 }
 

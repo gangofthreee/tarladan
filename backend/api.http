@@ -151,3 +151,8 @@ Content-Type: application/json
 ### GET ALL DEPOTS
 GET http://localhost:8080/depot/all
 Accept: application/json
+
+
+### GET DEPOT BY ID
+GET http://localhost:8080/depot/3
+Accept: application/json

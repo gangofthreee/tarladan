@@ -8,6 +8,7 @@ import java.util.List;
 public interface DepotService {
     DepotResponse createDepot(DepotCreateRequest request);
     List<DepotResponse> getAllDepots();
+    DepotResponse getDepotById(Long id);
 
 }
 

@@ -2,7 +2,7 @@ package com.gangofthree.tarladan.common.enums;
 
 public enum UserRole {
     FARMER,
-    BUYER,
+    CUSTOMER,
     TRUCKER,
     DEPOT_OWNER
 }

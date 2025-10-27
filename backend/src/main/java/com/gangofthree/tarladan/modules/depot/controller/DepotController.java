@@ -1,4 +1,23 @@
 package com.gangofthree.tarladan.modules.depot.controller;
 
+import com.gangofthree.tarladan.modules.depot.dto.DepotCreateRequest;
+import com.gangofthree.tarladan.modules.depot.dto.DepotResponse;
+import com.gangofthree.tarladan.modules.depot.service.DepotService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/depot")
+@RequiredArgsConstructor
 public class DepotController {
+
+    private final DepotService depotService;
+
+    @PostMapping("/create")
+    public ResponseEntity<DepotResponse> createDepot(@RequestBody DepotCreateRequest request) {
+        DepotResponse response = depotService.createDepot(request);
+        return ResponseEntity.ok(response);
+    }
 }
+

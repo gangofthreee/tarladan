@@ -116,7 +116,7 @@ Content-Type: application/json
 
 {
   "email": "mazlumemregirgin@msn.com",
-  "verificationCode": "397216"
+  "verificationCode": "613559"
 }
 
 
@@ -131,4 +131,18 @@ Content-Type: application/json
 {
   "email": "mazlumemregirgin@msn.com",
   "password": "123456"
+}
+
+
+
+### CREATE DEPOT
+POST http://localhost:8080/depot/create
+Content-Type: application/json
+
+{
+  "depoOwnerId": 1,
+  "address": "Muğl / Menteşe",
+  "sizeM2": 300,
+  "capacityTon": 50,
+  "price": 2500
 }

@@ -49,5 +49,10 @@ public class DepotController {
         depotService.deleteDepot(id);
         return ResponseEntity.ok("Depot with id " + id + " has been deleted successfully.");
     }
+
+    @GetMapping("/owner/{depotOwnerId}")
+    public ResponseEntity<List<DepotResponse>> getDepotsByDepotOwner(@PathVariable Long depotOwnerId) {
+        return ResponseEntity.ok(depotService.getDepotsByDepotOwner(depotOwnerId));
+    }
 }
 

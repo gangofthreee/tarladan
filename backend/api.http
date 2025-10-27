@@ -172,3 +172,8 @@ Content-Type: application/json
 ### DELETE DEPOT
 DELETE http://localhost:8080/depot/1
 Accept: application/json
+
+
+### GET DEPOTS BY DEPOT OWNER
+GET http://localhost:8080/depot/owner/1
+Accept: application/json

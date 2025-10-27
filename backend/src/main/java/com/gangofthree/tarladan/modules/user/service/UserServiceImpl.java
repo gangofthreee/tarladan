@@ -1,5 +1,7 @@
 package com.gangofthree.tarladan.modules.user.service;
 
+import com.gangofthree.tarladan.modules.customer.entity.Customer;
+import com.gangofthree.tarladan.modules.customer.repository.CustomerRepository;
 import com.gangofthree.tarladan.modules.user.dto.UserLoginRequest;
 import com.gangofthree.tarladan.modules.user.dto.UserLoginResponse;
 import com.gangofthree.tarladan.modules.user.dto.UserRegisterRequest;
@@ -24,6 +26,7 @@ public class UserServiceImpl implements UserService {
     private final VerificationService verificationService;
     private final FarmerRepository farmerRepository;
     private final DepotOwnerRepository depotOwnerRepository;
+    private final CustomerRepository customerRepository;
 
     @Override
     public User register(UserRegisterRequest request) {
@@ -71,6 +74,11 @@ public class UserServiceImpl implements UserService {
                 DepotOwner depotOwner = DepotOwner.builder().user(savedUser).build();
                 depotOwnerRepository.save(depotOwner);
             }
+            case CUSTOMER -> {
+                Customer customer = Customer.builder().user(savedUser).build();
+                customerRepository.save(customer);
+            }
+
         }
 
         verificationService.sendCode(savedUser);

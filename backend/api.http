@@ -167,3 +167,8 @@ Content-Type: application/json
   "address": "Muğla / Kötekli - Güncellenmiş",
   "capacityTon": 55
 }
+
+
+### DELETE DEPOT
+DELETE http://localhost:8080/depot/1
+Accept: application/json

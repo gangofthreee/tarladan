@@ -43,5 +43,11 @@ public class DepotController {
         DepotResponse updatedDepot = depotService.updateDepot(id, request);
         return ResponseEntity.ok(updatedDepot);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteDepot(@PathVariable Long id) {
+        depotService.deleteDepot(id);
+        return ResponseEntity.ok("Depot with id " + id + " has been deleted successfully.");
+    }
 }
 

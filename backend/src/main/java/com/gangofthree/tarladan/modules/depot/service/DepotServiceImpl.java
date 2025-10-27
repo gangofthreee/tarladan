@@ -94,6 +94,13 @@ public class DepotServiceImpl implements DepotService {
         return convertToResponse(updatedDepot);
     }
 
+    @Override
+    public void deleteDepot(Long id) {
+        Depot depot = depotRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Depot not found with id: " + id));
+        depotRepository.delete(depot);
+    }
+
     private DepotResponse convertToResponse(Depot depot) {
         return DepotResponse.builder()
                 .id(depot.getId())

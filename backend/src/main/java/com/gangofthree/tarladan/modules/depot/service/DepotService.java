@@ -11,6 +11,7 @@ public interface DepotService {
     List<DepotResponse> getAllDepots();
     DepotResponse getDepotById(Long id);
     DepotResponse updateDepot(Long id, DepotUpdateRequest request);
+    void deleteDepot(Long id);
 
 }
 

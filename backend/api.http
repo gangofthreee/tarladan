@@ -5,9 +5,9 @@ Content-Type: application/json
 {
   "name": "Emre",
   "surname": "Girgin",
-  "email": "mazlumemrigin@msn.com",
+  "email": "mazlumemregirgin@msn.com",
   "phone": "5551256",
-  "password": "133316",
+  "password": "123456",
   "role": "DEPOT_OWNER"
 }
 
@@ -116,7 +116,7 @@ Content-Type: application/json
 
 {
   "email": "mazlumemregirgin@msn.com",
-  "verificationCode": "654321"
+  "verificationCode": "397216"
 }
 
 
@@ -124,3 +124,11 @@ Content-Type: application/json
 POST http://localhost:8080/api/verification/resendCode?email=mazlumemregirgin@msn.com
 
 
+### Login
+POST http://localhost:8080/api/users/login
+Content-Type: application/json
+
+{
+  "email": "mazlumemregirgin@msn.com",
+  "password": "123456"
+}

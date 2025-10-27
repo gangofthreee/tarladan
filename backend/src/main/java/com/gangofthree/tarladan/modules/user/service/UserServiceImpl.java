@@ -1,5 +1,7 @@
 package com.gangofthree.tarladan.modules.user.service;
 
+import com.gangofthree.tarladan.modules.user.dto.UserLoginRequest;
+import com.gangofthree.tarladan.modules.user.dto.UserLoginResponse;
 import com.gangofthree.tarladan.modules.user.dto.UserRegisterRequest;
 import com.gangofthree.tarladan.modules.depotOwner.entity.DepotOwner;
 import com.gangofthree.tarladan.modules.farmer.entity.Farmer;
@@ -75,5 +77,34 @@ public class UserServiceImpl implements UserService {
 
         return savedUser;
     }
+
+    @Override
+    public UserLoginResponse login(UserLoginRequest request) {
+        // Email’e göre kullanıcıyı bul
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + request.getEmail()));
+
+        // Şifre kontrolü
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("Invalid password");
+        }
+
+        // E-posta doğrulama kontrolü (opsiyonel)
+        if (!user.isMailVerified()) {
+            throw new IllegalArgumentException("Email is not verified");
+        }
+
+        // Şifre veya hassas bilgileri dönme — sadece frontend’in ihtiyaç duyduğu bilgileri ver
+        return UserLoginResponse.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .surname(user.getSurname())
+                .email(user.getEmail())
+                .phone(user.getPhone())
+                .role(user.getRole())  // FARMER, BUYER, TRUCKER, DEPOT_OWNER
+                .build();
+    }
+
+
 }
 

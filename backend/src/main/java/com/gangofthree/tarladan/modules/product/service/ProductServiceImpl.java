@@ -35,8 +35,8 @@ public class ProductServiceImpl implements ProductService {
 
             // Fotoğrafı kaydet
             MultipartFile photo = addProductRequest.getPhoto();
-            String uploadDir = "/app/uploads"; // Docker volume path
-            String fileName = System.currentTimeMillis() + "_" + photo.getOriginalFilename();
+            String uploadDir = "/app/uploads/productPhotos"; // Docker volume path
+            String fileName  = "productPhoto_" + addProductRequest.getId();
             Path filePath = Paths.get(uploadDir, fileName);
 
             // Klasör yoksa oluştur

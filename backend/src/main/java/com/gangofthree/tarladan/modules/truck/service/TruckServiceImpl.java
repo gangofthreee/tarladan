@@ -4,6 +4,7 @@ import com.gangofthree.tarladan.modules.truck.entity.Truck;
 import com.gangofthree.tarladan.modules.trucker.entity.Trucker;
 import com.gangofthree.tarladan.modules.truck.repository.TruckRepository;
 import com.gangofthree.tarladan.modules.truck.dto.AddTruckRequest;
+import com.gangofthree.tarladan.modules.truck.dto.UpdateTruckRequest;
 import com.gangofthree.tarladan.modules.trucker.repository.TruckerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,7 +26,7 @@ public class TruckServiceImpl implements TruckService {
 
     @Override
     public Truck addTruck(AddTruckRequest addTruckRequest) {
-        try{
+        try {
             Trucker trucker = truckerRepository.findById(addTruckRequest.getTruckerId())
                     .orElseThrow(() -> new IllegalArgumentException("Trucker not found"));
 
@@ -51,9 +52,85 @@ public class TruckServiceImpl implements TruckService {
                     .build();
 
             return truckRepository.save(truck);
-        }
-        catch (IOException e){
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public Truck updateTruck(Long id, UpdateTruckRequest updateRequest) {
+        Truck existingTruck = truckRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Truck not found"));
+
+        // Eğer yeni plaka geldiyse ve farklı bir truck’ta varsa hata ver
+        if (updateRequest.getPlate() != null &&
+                !updateRequest.getPlate().equals(existingTruck.getPlate()) &&
+                truckRepository.findByPlate(updateRequest.getPlate()).isPresent()) {
+            throw new IllegalArgumentException("Bu plaka zaten sistemde kayıtlı: " + updateRequest.getPlate());
+        }
+
+        if (updateRequest.getVehicle() != null) {
+            existingTruck.setVehicle(updateRequest.getVehicle());
+        }
+        if (updateRequest.getCapacityTon() != null) {
+            existingTruck.setCapacityTon(updateRequest.getCapacityTon());
+        }
+        if (updateRequest.getBasePrice() != null) {
+            existingTruck.setBasePrice(updateRequest.getBasePrice());
+        }
+        if (updateRequest.getPlate() != null) {
+            existingTruck.setPlate(updateRequest.getPlate());
+        }
+
+        // Fotoğraf güncellenecekse
+        MultipartFile newPhoto = updateRequest.getPhoto();
+        if (newPhoto != null && !newPhoto.isEmpty()) {
+            try {
+                // Eski fotoğraf varsa sil
+                if (existingTruck.getImageUrl() != null) {
+                    Path oldPath = Paths.get(UPLOAD_DIR,
+                            Paths.get(existingTruck.getImageUrl()).getFileName().toString());
+                    Files.deleteIfExists(oldPath);
+                }
+
+//                String extension = getFileExtension(newPhoto.getOriginalFilename());
+                String fileName = "truckPhoto_" + existingTruck.getId();
+                Path newPath = Paths.get(UPLOAD_DIR, fileName);
+
+                Files.createDirectories(newPath.getParent());
+                newPhoto.transferTo(newPath.toFile());
+
+                existingTruck.setImageUrl("/uploads/truckPhotos/" + fileName);
+            } catch (IOException e) {
+                throw new RuntimeException("Fotoğraf güncellenirken hata oluştu", e);
+            }
+        }
+        return truckRepository.save(existingTruck);
+    }
+
+//    private String getFileExtension(String filename) {
+//        if (filename == null) return "";
+//        int dotIndex = filename.lastIndexOf(".");
+//        return dotIndex != -1 ? filename.substring(dotIndex) : "";
+//    }
+
+    @Override
+    public void deleteTruck(Long id) {
+        Truck existingTruck = truckRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Truck not found"));
+
+        // Eğer fotoğraf varsa dosyayı sil
+        if (existingTruck.getImageUrl() != null) {
+            try {
+                // imageUrl: /uploads/truckPhotos/truckPhoto_{id}.jpg
+                Path imagePath = Paths.get(UPLOAD_DIR,
+                        Paths.get(existingTruck.getImageUrl()).getFileName().toString());
+                Files.deleteIfExists(imagePath);
+            } catch (IOException e) {
+                throw new RuntimeException("Fotoğraf silinirken hata oluştu", e);
+            }
+        }
+
+        truckRepository.delete(existingTruck);
     }
 }

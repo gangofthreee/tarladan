@@ -2,6 +2,8 @@ package com.gangofthree.tarladan.modules.user.service;
 
 import com.gangofthree.tarladan.modules.customer.entity.Customer;
 import com.gangofthree.tarladan.modules.customer.repository.CustomerRepository;
+import com.gangofthree.tarladan.modules.trucker.entity.Trucker;
+import com.gangofthree.tarladan.modules.trucker.repository.TruckerRepository;
 import com.gangofthree.tarladan.modules.user.dto.UserLoginRequest;
 import com.gangofthree.tarladan.modules.user.dto.UserLoginResponse;
 import com.gangofthree.tarladan.modules.user.dto.UserRegisterRequest;
@@ -27,6 +29,7 @@ public class UserServiceImpl implements UserService {
     private final FarmerRepository farmerRepository;
     private final DepotOwnerRepository depotOwnerRepository;
     private final CustomerRepository customerRepository;
+    private final TruckerRepository truckerRepository;
 
     @Override
     public User register(UserRegisterRequest request) {
@@ -77,6 +80,10 @@ public class UserServiceImpl implements UserService {
             case CUSTOMER -> {
                 Customer customer = Customer.builder().user(savedUser).build();
                 customerRepository.save(customer);
+            }
+            case TRUCKER -> {
+                Trucker trucker = Trucker.builder().user(savedUser).build();
+                truckerRepository.save(trucker);
             }
 
         }

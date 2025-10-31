@@ -14,4 +14,4 @@ RUN mvn dependency:go-offline -B
 CMD ["mvn", "spring-boot:run"]
 
 # fotoğraflar için dizin oluştur
-RUN mkdir -p /app/uploads
+RUN mkdir -p /app/uploads/productPhotos /app/uploads/truckPhotos

@@ -3,12 +3,12 @@ POST http://localhost:8080/api/users/register
 Content-Type: application/json
 
 {
-  "name": "Emre",
-  "surname": "Girgin",
-  "email": "mazlumemregirgin@msn.com",
-  "phone": "5551256",
-  "password": "123456",
-  "role": "DEPOT_OWNER"
+  "name": "koray",
+  "surname": "ürün",
+  "email": "koray@msn.com",
+  "phone": "55512452",
+  "password": "123456789",
+  "role": "TRUCKER"
 }
 
 

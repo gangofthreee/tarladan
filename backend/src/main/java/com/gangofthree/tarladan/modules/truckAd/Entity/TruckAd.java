@@ -1,5 +1,6 @@
 package com.gangofthree.tarladan.modules.truckAd.Entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.gangofthree.tarladan.modules.truck.entity.Truck;
 import com.gangofthree.tarladan.modules.trucker.entity.Trucker;
 import jakarta.persistence.*;
@@ -31,9 +32,11 @@ public class TruckAd {
     private Truck truck;
 
     @Column(name = "start_date")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate startDate;
 
     @Column(name = "end_date")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate endDate;
 
     @Column(name = "price_per_km")

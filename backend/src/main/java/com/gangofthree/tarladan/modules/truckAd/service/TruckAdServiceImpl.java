@@ -4,12 +4,18 @@ import com.gangofthree.tarladan.modules.truck.entity.Truck;
 import com.gangofthree.tarladan.modules.truck.repository.TruckRepository;
 import com.gangofthree.tarladan.modules.truckAd.Entity.TruckAd;
 import com.gangofthree.tarladan.modules.truckAd.dto.AddTruckAdRequest;
+import com.gangofthree.tarladan.modules.truckAd.dto.TruckAdResponse;
+import com.gangofthree.tarladan.modules.truckAd.dto.GetTruckAdsRequest;
+import com.gangofthree.tarladan.modules.truckAd.dto.UpdateTruckAdRequest;
 import com.gangofthree.tarladan.modules.truckAd.repository.TruckAdRepository;
 import com.gangofthree.tarladan.modules.trucker.entity.Trucker;
 import com.gangofthree.tarladan.modules.trucker.repository.TruckerRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -47,5 +53,75 @@ public class TruckAdServiceImpl implements TruckAdService {
 
         return truckAdRepository.save(truckAd);
 
+    }
+
+    @Override
+    public List<TruckAdResponse> getAvailableTruckAds(GetTruckAdsRequest request) {
+        if (request.getSearchStartDate().isAfter(request.getSearchEndDate())) {
+            throw new IllegalArgumentException("Arama başlangıç tarihi, bitiş tarihinden sonra olamaz.");
+        }
+
+        List<TruckAd> availableAds = truckAdRepository.findActiveAdsByAvailability(
+                request.getSearchStartDate(),
+                request.getSearchEndDate()
+        );
+
+        // liste bos
+        if (availableAds.isEmpty()) {
+            return List.of();
+        }
+
+        // Entity Listesi -> Response DTO Listesine Dönüşüm
+        return availableAds.stream()
+                .map(this::convertToResponseDto)
+                .collect(Collectors.toList());
+    }
+
+    private TruckAdResponse convertToResponseDto(TruckAd ad) {
+        String truckerName = ad.getTrucker().getUser().getName() + " " + ad.getTrucker().getUser().getSurname();
+
+        return TruckAdResponse.builder()
+                .adId(ad.getId())
+                .truckerName(truckerName)
+                .vehicle(ad.getTruck().getVehicle())
+                .plate(ad.getTruck().getPlate())
+                .startDate(ad.getStartDate())
+                .endDate(ad.getEndDate())
+                .pricePerKm(ad.getPricePerKm())
+                .build();
+    }
+
+    @Override
+    public TruckAdResponse updateTruckAd(Long adId, UpdateTruckAdRequest request) {
+
+        TruckAd existingAd = truckAdRepository.findById(adId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "ID'si " + adId + " olan Kamyon İlanı bulunamadı."));
+
+        if (request.getStartDate() != null) {
+            existingAd.setStartDate(request.getStartDate());
+        }
+
+        if (request.getEndDate() != null) {
+            existingAd.setEndDate(request.getEndDate());
+        }
+
+        if (request.getPricePerKm() != null) {
+            existingAd.setPricePerKm(request.getPricePerKm());
+        }
+
+        TruckAd updatedAd = truckAdRepository.save(existingAd);
+
+        //Sonucu Response DTO'ya dönüştür
+        return convertToResponseDto(updatedAd);
+    }
+
+    @Override
+    public void deleteTruckAd(Long adId) {
+        if (!truckAdRepository.existsById(adId)) {
+            throw new EntityNotFoundException(
+                    "ID'si " + adId + " olan silinecek Kamyon İlanı bulunamadı.");
+        }
+        truckAdRepository.deleteById(adId);
     }
 }

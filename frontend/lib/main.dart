@@ -4,6 +4,7 @@ import 'screens/login_screen.dart';
 import 'screens/signup_screen.dart';
 import 'screens/Farmer/farmer_main_page.dart';
 import 'screens/Farmer/farmer_orders.dart';
+import 'screens/Warehouseman/warehouseman_main_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -20,7 +21,8 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
         useMaterial3: true,
       ),
-      home: const FarmerMainPage(), // Geliştirme için doğrudan farmer sayfası
+      home:
+          const WarehousemanMainPage(), // Geliştirme için depo görevlisi sayfası
       // home: const SplashScreen(), // Prod için splash screen
       routes: {
         '/splash': (context) => const SplashScreen(),
@@ -28,6 +30,7 @@ class MyApp extends StatelessWidget {
         '/register': (context) => const RegisterScreen(),
         '/farmer-main': (context) => const FarmerMainPage(),
         '/farmer-orders': (context) => const FarmerOrdersScreen(),
+        '/warehouseman-main': (context) => const WarehousemanMainPage(),
       },
     );
   }

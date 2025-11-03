@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'trucker_truckSaving_page.dart';
 import 'trucker_create_ad.dart';
+import 'trucker_truckList_page.dart';
+import 'trucker_listAds_page.dart';
 
 class TruckerMainPage extends StatefulWidget {
   const TruckerMainPage({super.key});
@@ -101,22 +103,27 @@ class _TruckerMainPageState extends State<TruckerMainPage> {
                   childAspectRatio: 1.1,
                   children: [
                     _buildActionCard(
-                      icon: Icons.inventory_2,
-                      emoji: '📦',
-                      title: 'Mevcut İşlerim',
-                      onTap: () {
-                        // Navigate to current jobs
-                      },
-                    ),
-                    _buildActionCard(
-                      icon: Icons.add_circle_outline,
-                      emoji: '➕',
-                      title: 'Yeni İlan Aç',
+                      icon: Icons.local_shipping,
+                      emoji: '🚛',
+                      title: 'Kayıtlı Araçlarım',
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const TruckerCreateAdPage(),
+                            builder: (context) => const TruckerTruckListPage(),
+                          ),
+                        );
+                      },
+                    ),
+                    _buildActionCard(
+                      icon: Icons.campaign,
+                      emoji: '📢',
+                      title: 'İlanlarım',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const TruckerListAdsPage(),
                           ),
                         );
                       },
@@ -136,11 +143,16 @@ class _TruckerMainPageState extends State<TruckerMainPage> {
                       },
                     ),
                     _buildActionCard(
-                      icon: Icons.attach_money,
-                      emoji: '💰',
-                      title: 'Cüzdanım',
+                      icon: Icons.add_circle_outline,
+                      emoji: '➕',
+                      title: 'Yeni İlan Aç',
                       onTap: () {
-                        // Navigate to wallet
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const TruckerCreateAdPage(),
+                          ),
+                        );
                       },
                     ),
                   ],

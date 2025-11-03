@@ -1,5 +1,6 @@
 package com.gangofthree.tarladan.modules.product.entity;
 
+import com.gangofthree.tarladan.modules.depot.entity.Depot;
 import com.gangofthree.tarladan.modules.farmer.entity.Farmer;
 //import com.gangofthree.tarladan.modules.depot.entity.Depot;
 import jakarta.validation.constraints.Min;
@@ -27,9 +28,9 @@ public class Product {
     @JoinColumn(name="farmer_id", referencedColumnName = "id") 
 	private Farmer farmer;
 
-//    @ManyToOne
-//    @JoinColumn(name="depot_id", referencedColumnName = "id")
-//	private Depot depot;
+    @ManyToOne
+    @JoinColumn(name="depot_id", referencedColumnName = "id")
+	private Depot depot;
 
     @NotBlank(message = "Name cannot be empty")
     private String name;

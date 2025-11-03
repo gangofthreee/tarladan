@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'warehouseman_myWarehouse_page.dart';
-import 'Warehouseman_createWarehouse_page.dart';
+import 'warehouseman_createWarehouse_page.dart';
 
 class WarehousemanMainPage extends StatefulWidget {
   const WarehousemanMainPage({super.key});
@@ -118,7 +118,7 @@ class _WarehousemanMainPageState extends State<WarehousemanMainPage> {
                           context,
                           MaterialPageRoute(
                             builder: (context) =>
-                                const WarehousemanCreateWarehousePage(),
+                                WarehousemanCreateWarehousePage(depoOwnerId: 1),
                           ),
                         );
                       },

@@ -32,6 +32,12 @@ class ApiConfig {
   static const String getProductDetailEndpoint = '/farmer/product/get';
   static const String updateProductEndpoint = '/farmer/product/update';
   static const String deleteProductEndpoint = '/farmer/product/delete';
+  static const String createDepotEndpoint = '/depot/create';
+  static const String getAllDepotsEndpoint = '/depot/all';
+  static const String getDepotByIdEndpoint = '/depot';
+  static const String updateDepotEndpoint = '/depot/update';
+  static const String getDepotsByOwnerEndpoint = '/depot/owner';
+  static const String deleteDepotEndpoint = '/depot';
 
   static String get registerUrl => '$baseUrl$registerEndpoint';
   static String get verifyUrl => '$baseUrl$verifyEndpoint';
@@ -47,4 +53,14 @@ class ApiConfig {
       '$baseUrl$updateProductEndpoint/$productId';
   static String deleteProductUrl(int productId) =>
       '$baseUrl$deleteProductEndpoint/$productId';
+  static String get createDepotUrl => '$baseUrl$createDepotEndpoint';
+  static String get getAllDepotsUrl => '$baseUrl$getAllDepotsEndpoint';
+  static String getDepotByIdUrl(int depotId) =>
+      '$baseUrl$getDepotByIdEndpoint/$depotId';
+  static String updateDepotUrl(int depotId) =>
+      '$baseUrl$updateDepotEndpoint/$depotId';
+  static String getDepotsByOwnerUrl(int depoOwnerId) =>
+      '$baseUrl$getDepotsByOwnerEndpoint/$depoOwnerId';
+  static String deleteDepotUrl(int depotId) =>
+      '$baseUrl$deleteDepotEndpoint/$depotId';
 }

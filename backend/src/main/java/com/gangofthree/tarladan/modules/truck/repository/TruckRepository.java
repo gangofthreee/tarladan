@@ -11,4 +11,5 @@ public interface TruckRepository extends JpaRepository<Truck, Long> {
     Optional<Truck> findByPlate(String plate);
 
     List<Truck> findAllByTrucker(Trucker trucker);
+
 }

@@ -55,4 +55,14 @@ public class TruckController {
         return ResponseEntity.ok(trucks);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Truck> getTruckById(@PathVariable("id") Long id) {
+        try {
+            Truck truck = truckService.getTruckById(id);
+            return ResponseEntity.ok(truck);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
 }

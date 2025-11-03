@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import '../../config/api_config.dart';
 import 'warehouseman_myWarehouseDetail_page.dart';
 
 class WarehousemanMyWarehousePage extends StatefulWidget {
@@ -12,6 +15,53 @@ class WarehousemanMyWarehousePage extends StatefulWidget {
 class _WarehousemanMyWarehousePageState
     extends State<WarehousemanMyWarehousePage> {
   int _selectedIndex = 0;
+  List<dynamic> _depots = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDepots();
+  }
+
+  Future<void> _fetchDepots() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse(ApiConfig.getAllDepotsUrl),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          _depots = data is List ? data : [data];
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _errorMessage = 'Depolar yüklenemedi: ${response.statusCode}';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = 'Bağlantı hatası: $e';
+        _isLoading = false;
+      });
+    }
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -22,31 +72,6 @@ class _WarehousemanMyWarehousePageState
       Navigator.pop(context);
     }
   }
-
-  // Örnek depo verileri
-  final List<Map<String, dynamic>> warehouses = [
-    {
-      'name': 'Depo 1',
-      'currentAmount': 1500,
-      'capacity': 2500,
-      'percentage': 60,
-      'image': 'assets/warehouse1.jpg',
-    },
-    {
-      'name': 'Depo 2',
-      'currentAmount': 750,
-      'capacity': 2500,
-      'percentage': 30,
-      'image': 'assets/warehouse2.jpg',
-    },
-    {
-      'name': 'Depo 3',
-      'currentAmount': 2125,
-      'capacity': 2500,
-      'percentage': 85,
-      'image': 'assets/warehouse3.jpg',
-    },
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -69,14 +94,73 @@ class _WarehousemanMyWarehousePageState
           ),
         ),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: warehouses.length,
-        itemBuilder: (context, index) {
-          final warehouse = warehouses[index];
-          return _buildWarehouseCard(warehouse);
-        },
-      ),
+      body: _isLoading
+          ? const Center(
+              child: CircularProgressIndicator(color: Color(0xFF4CAF50)),
+            )
+          : _errorMessage != null
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 64,
+                        color: Colors.grey[400],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        _errorMessage!,
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 16,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: _fetchDepots,
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Tekrar Dene'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF4CAF50),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : _depots.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.warehouse_outlined,
+                            size: 64,
+                            color: Colors.grey[400],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Henüz depo eklemediniz',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: _fetchDepots,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: _depots.length,
+                        itemBuilder: (context, index) {
+                          final depot = _depots[index];
+                          return _buildWarehouseCard(depot);
+                        },
+                      ),
+                    ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [
@@ -120,17 +204,27 @@ class _WarehousemanMyWarehousePageState
     );
   }
 
-  Widget _buildWarehouseCard(Map<String, dynamic> warehouse) {
+  Widget _buildWarehouseCard(Map<String, dynamic> depot) {
+    final int depotId = depot['id'] ?? 0;
+    final String address = depot['address'] ?? 'Adres bilgisi yok';
+    final double sizeM2 = (depot['sizeM2'] ?? 0).toDouble();
+    final double capacityTon = (depot['capacityTon'] ?? 0).toDouble();
+    final double price = (depot['price'] ?? 0).toDouble();
+    
+    // Şimdilik sabit değerler, ileride dinamik olacak
+    final double currentAmount = 0;
+    final int percentage = 0;
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => WarehousemanMyWarehouseDetailPage(
-              warehouseName: warehouse['name'],
-              currentAmount: warehouse['currentAmount'],
-              capacity: warehouse['capacity'],
-              percentage: warehouse['percentage'],
+              warehouseName: 'Depo #$depotId',
+              currentAmount: currentAmount.toInt(),
+              capacity: (capacityTon * 1000).toInt(), // Ton'dan kg'a çevir
+              percentage: percentage,
             ),
           ),
         );
@@ -187,16 +281,20 @@ class _WarehousemanMyWarehousePageState
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        warehouse['name'],
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                      Expanded(
+                        child: Text(
+                          address,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       Text(
-                        '${warehouse['percentage']}%',
+                        '$percentage%',
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -209,7 +307,17 @@ class _WarehousemanMyWarehousePageState
                   const SizedBox(height: 8),
 
                   Text(
-                    '${warehouse['currentAmount']} / ${warehouse['capacity']} kg',
+                    'Kapasite: ${capacityTon.toStringAsFixed(0)} ton',
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  ),
+
+                  Text(
+                    'Alan: ${sizeM2.toStringAsFixed(0)} m²',
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  ),
+
+                  Text(
+                    'Fiyat: ${price.toStringAsFixed(2)} ₺',
                     style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   ),
 
@@ -219,7 +327,7 @@ class _WarehousemanMyWarehousePageState
                   ClipRRect(
                     borderRadius: BorderRadius.circular(10),
                     child: LinearProgressIndicator(
-                      value: warehouse['percentage'] / 100,
+                      value: percentage / 100,
                       backgroundColor: Colors.grey[300],
                       valueColor: const AlwaysStoppedAnimation<Color>(
                         Color(0xFF4CAF50),

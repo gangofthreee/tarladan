@@ -1,19 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import '../../config/api_config.dart';
 import 'warehouseman_updateWarehouseInfo_page.dart';
 
 class WarehousemanMyWarehouseDetailPage extends StatefulWidget {
-  final String warehouseName;
-  final int currentAmount;
-  final int capacity;
-  final int percentage;
+  final int depotId;
 
-  const WarehousemanMyWarehouseDetailPage({
-    super.key,
-    required this.warehouseName,
-    required this.currentAmount,
-    required this.capacity,
-    required this.percentage,
-  });
+  const WarehousemanMyWarehouseDetailPage({super.key, required this.depotId});
 
   @override
   State<WarehousemanMyWarehouseDetailPage> createState() =>
@@ -22,6 +16,54 @@ class WarehousemanMyWarehouseDetailPage extends StatefulWidget {
 
 class _WarehousemanMyWarehouseDetailPageState
     extends State<WarehousemanMyWarehouseDetailPage> {
+  Map<String, dynamic>? _depotData;
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDepotDetails();
+  }
+
+  Future<void> _fetchDepotDetails() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse(ApiConfig.getDepotByIdUrl(widget.depotId)),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          _depotData = data;
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _errorMessage = 'Depo detayları yüklenemedi: ${response.statusCode}';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = 'Bağlantı hatası: $e';
+        _isLoading = false;
+      });
+    }
+  }
+
   // Örnek rezervasyon verileri
   final List<Map<String, dynamic>> reservations = [
     {'farmerName': 'Çiftçi A', 'amount': 150, 'image': 'assets/farmer1.jpg'},
@@ -50,223 +92,261 @@ class _WarehousemanMyWarehouseDetailPageState
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Depo Bilgileri Section
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.all(20),
+      body: _isLoading
+          ? const Center(
+              child: CircularProgressIndicator(color: Color(0xFF4CAF50)),
+            )
+          : _errorMessage != null
+          ? Center(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    'Depo Bilgileri',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Adres
-                  _buildInfoCard(
-                    icon: Icons.location_on,
-                    iconColor: const Color(0xFF4CAF50),
-                    title: 'Adres',
-                    subtitle: '123 Main Street, City, State',
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Kapasite
-                  _buildInfoCard(
-                    icon: Icons.warehouse,
-                    iconColor: const Color(0xFF4CAF50),
-                    title: 'Kapasite',
-                    subtitle: '1000 ton',
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Fiyat
-                  _buildInfoCard(
-                    icon: Icons.attach_money,
-                    iconColor: const Color(0xFF4CAF50),
-                    title: 'Fiyat',
-                    subtitle: '\$500/ay',
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // Mevcut Doluluk Section
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Mevcut Doluluk',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '%${widget.percentage} Dolu',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      Text(
-                        '${widget.currentAmount} / ${widget.capacity} ton',
-                        style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Progress Bar
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: LinearProgressIndicator(
-                      value: widget.percentage / 100,
-                      backgroundColor: Colors.grey[300],
-                      valueColor: const AlwaysStoppedAnimation<Color>(
-                        Color(0xFF4CAF50),
-                      ),
-                      minHeight: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // Mevcut Rezervasyonlar Section
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Mevcut Rezervasyonlar',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
+                  Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
+                  const SizedBox(height: 16),
+                  Text(
+                    _errorMessage!,
+                    style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                    textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
-
-                  // Rezervasyon Listesi
-                  ...reservations.map(
-                    (reservation) => _buildReservationCard(reservation),
+                  ElevatedButton.icon(
+                    onPressed: _fetchDepotDetails,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Tekrar Dene'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF4CAF50),
+                    ),
                   ),
                 ],
               ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Alt Butonlar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
+            )
+          : _depotData == null
+          ? const Center(child: Text('Depo bulunamadı'))
+          : SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Düzenle Butonu
-                  Expanded(
-                    child: SizedBox(
-                      height: 55,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  WarehousemanUpdateWarehouseInfoPage(
-                                    warehouseName: widget.warehouseName,
-                                    currentAddress:
-                                        'Gazi Mahallesi, 123. Sokak, No: 45, Daire: 1',
-                                    currentSize: '200',
-                                    currentCapacity: '150',
-                                    currentPrice: '5000',
-                                  ),
+                  // Depo Bilgileri Section
+                  Container(
+                    color: Colors.white,
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Depo Bilgileri',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Adres
+                        _buildInfoCard(
+                          icon: Icons.location_on,
+                          iconColor: const Color(0xFF4CAF50),
+                          title: 'Adres',
+                          subtitle:
+                              _depotData!['address'] ?? 'Adres bilgisi yok',
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // Kapasite
+                        _buildInfoCard(
+                          icon: Icons.warehouse,
+                          iconColor: const Color(0xFF4CAF50),
+                          title: 'Kapasite',
+                          subtitle:
+                              '${(_depotData!['capacityTon'] ?? 0).toStringAsFixed(0)} ton',
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // Fiyat
+                        _buildInfoCard(
+                          icon: Icons.attach_money,
+                          iconColor: const Color(0xFF4CAF50),
+                          title: 'Fiyat',
+                          subtitle:
+                              '${(_depotData!['price'] ?? 0).toStringAsFixed(2)} ₺',
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Mevcut Doluluk Section
+                  Container(
+                    color: Colors.white,
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Mevcut Doluluk',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Kapasite: ${(_depotData!['capacityTon'] ?? 0).toStringAsFixed(0)} ton',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
                             ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF4CAF50),
-                          foregroundColor: Colors.white,
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                            Text(
+                              'Alan: ${(_depotData!['sizeM2'] ?? 0).toStringAsFixed(0)} m²',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
                         ),
-                        child: const Text(
-                          'Düzenle',
+
+                        const SizedBox(height: 12),
+
+                        Text(
+                          'Fiyat: ${(_depotData!['price'] ?? 0).toStringAsFixed(2)} ₺',
                           style: TextStyle(
                             fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[600],
                           ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
 
-                  const SizedBox(width: 12),
+                  const SizedBox(height: 12),
 
-                  // Depoyu Sil Butonu
-                  Expanded(
-                    child: SizedBox(
-                      height: 55,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          _showDeleteDialog();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFE57373),
-                          foregroundColor: Colors.white,
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          'Depoyu Sil',
+                  // Mevcut Rezervasyonlar Section
+                  Container(
+                    color: Colors.white,
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Mevcut Rezervasyonlar',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 22,
                             fontWeight: FontWeight.bold,
+                            color: Colors.black87,
                           ),
                         ),
-                      ),
+                        const SizedBox(height: 16),
+
+                        // Rezervasyon Listesi
+                        ...reservations.map(
+                          (reservation) => _buildReservationCard(reservation),
+                        ),
+                      ],
                     ),
                   ),
+
+                  const SizedBox(height: 20),
+
+                  // Alt Butonlar
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      children: [
+                        // Düzenle Butonu
+                        Expanded(
+                          child: SizedBox(
+                            height: 55,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        WarehousemanUpdateWarehouseInfoPage(
+                                          warehouseName:
+                                              'Depo #${widget.depotId}',
+                                          currentAddress:
+                                              _depotData!['address'] ?? '',
+                                          currentSize:
+                                              (_depotData!['sizeM2'] ?? 0)
+                                                  .toString(),
+                                          currentCapacity:
+                                              (_depotData!['capacityTon'] ?? 0)
+                                                  .toString(),
+                                          currentPrice:
+                                              (_depotData!['price'] ?? 0)
+                                                  .toString(),
+                                        ),
+                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF4CAF50),
+                                foregroundColor: Colors.white,
+                                elevation: 2,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text(
+                                'Düzenle',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(width: 12),
+
+                        // Depoyu Sil Butonu
+                        Expanded(
+                          child: SizedBox(
+                            height: 55,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                _showDeleteDialog();
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFE57373),
+                                foregroundColor: Colors.white,
+                                elevation: 2,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text(
+                                'Depoyu Sil',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 30),
                 ],
               ),
             ),
-
-            const SizedBox(height: 30),
-          ],
-        ),
-      ),
     );
   }
 

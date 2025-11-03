@@ -99,68 +99,58 @@ class _WarehousemanMyWarehousePageState
               child: CircularProgressIndicator(color: Color(0xFF4CAF50)),
             )
           : _errorMessage != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.error_outline,
-                        size: 64,
-                        color: Colors.grey[400],
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        _errorMessage!,
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 16,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton.icon(
-                        onPressed: _fetchDepots,
-                        icon: const Icon(Icons.refresh),
-                        label: const Text('Tekrar Dene'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF4CAF50),
-                        ),
-                      ),
-                    ],
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
+                  const SizedBox(height: 16),
+                  Text(
+                    _errorMessage!,
+                    style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                    textAlign: TextAlign.center,
                   ),
-                )
-              : _depots.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.warehouse_outlined,
-                            size: 64,
-                            color: Colors.grey[400],
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Henüz depo eklemediniz',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : RefreshIndicator(
-                      onRefresh: _fetchDepots,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _depots.length,
-                        itemBuilder: (context, index) {
-                          final depot = _depots[index];
-                          return _buildWarehouseCard(depot);
-                        },
-                      ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: _fetchDepots,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Tekrar Dene'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF4CAF50),
                     ),
+                  ),
+                ],
+              ),
+            )
+          : _depots.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.warehouse_outlined,
+                    size: 64,
+                    color: Colors.grey[400],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Henüz depo eklemediniz',
+                    style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                  ),
+                ],
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: _fetchDepots,
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: _depots.length,
+                itemBuilder: (context, index) {
+                  final depot = _depots[index];
+                  return _buildWarehouseCard(depot);
+                },
+              ),
+            ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [
@@ -210,9 +200,6 @@ class _WarehousemanMyWarehousePageState
     final double sizeM2 = (depot['sizeM2'] ?? 0).toDouble();
     final double capacityTon = (depot['capacityTon'] ?? 0).toDouble();
     final double price = (depot['price'] ?? 0).toDouble();
-    
-    // Şimdilik sabit değerler, ileride dinamik olacak
-    final double currentAmount = 0;
     final int percentage = 0;
 
     return GestureDetector(
@@ -220,12 +207,8 @@ class _WarehousemanMyWarehousePageState
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => WarehousemanMyWarehouseDetailPage(
-              warehouseName: 'Depo #$depotId',
-              currentAmount: currentAmount.toInt(),
-              capacity: (capacityTon * 1000).toInt(), // Ton'dan kg'a çevir
-              percentage: percentage,
-            ),
+            builder: (context) =>
+                WarehousemanMyWarehouseDetailPage(depotId: depotId),
           ),
         );
       },

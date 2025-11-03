@@ -235,13 +235,7 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage>
           context,
           MaterialPageRoute(
             builder: (context) => CustomerViewOrderDetailPage(
-              productName: productName,
-              quantity: quantity,
-              seller: locFrom, // Satıcı bilgisi yok, locFrom kullanıyoruz
-              date: locTo, // Tarih yok, locTo kullanıyoruz
-              status: statusText,
-              statusColor: statusColor,
-              imageUrl: '', // API'de image yok
+              orderId: order['id'] ?? 0,
             ),
           ),
         );

@@ -42,6 +42,8 @@ class ApiConfig {
   static const String getOrdersByCustomerEndpoint = '/api/orders/customer';
   static const String getOrderByIdEndpoint = '/api/orders';
   static const String createTruckEndpoint = '/truck/create';
+  static const String updateTruckEndpoint = '/truck/update';
+  static const String deleteTruckEndpoint = '/truck/delete';
 
   static String get registerUrl => '$baseUrl$registerEndpoint';
   static String get verifyUrl => '$baseUrl$verifyEndpoint';
@@ -73,4 +75,8 @@ class ApiConfig {
   static String getOrderByIdUrl(int orderId) =>
       '$baseUrl$getOrderByIdEndpoint/$orderId';
   static String get createTruckUrl => '$baseUrl$createTruckEndpoint';
+  static String updateTruckUrl(int truckId) =>
+      '$baseUrl$updateTruckEndpoint/$truckId';
+  static String deleteTruckUrl(int truckId) =>
+      '$baseUrl$deleteTruckEndpoint/$truckId';
 }

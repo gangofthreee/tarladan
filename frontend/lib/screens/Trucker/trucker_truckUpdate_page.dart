@@ -64,15 +64,14 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
       });
 
       try {
-        // Multipart request oluştur
+        // UPDATE - PATCH isteği
+        final truckId = widget.truck['id'];
         var request = http.MultipartRequest(
-          'POST',
-          Uri.parse(ApiConfig.createTruckUrl),
+          'PATCH',
+          Uri.parse(ApiConfig.updateTruckUrl(truckId)),
         );
 
         // Form data ekle
-        request.fields['truckerId'] =
-            '1'; // TODO: Gerçek trucker ID'si kullanılmalı
         request.fields['vehicle'] = _modelController.text;
         request.fields['capacityTon'] = _capacityController.text;
         request.fields['plate'] = _plateController.text;
@@ -89,14 +88,14 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Araç başarıyla kaydedildi'),
+                content: Text('Araç bilgileri başarıyla güncellendi'),
                 backgroundColor: Color(0xFF4CAF50),
               ),
             );
             Navigator.pop(context, true); // true dönerek listeyi yenile
           }
         } else {
-          throw Exception('Araç kaydedilemedi: $responseData');
+          throw Exception('Araç güncellenemedi: $responseData');
         }
       } catch (e) {
         if (mounted) {

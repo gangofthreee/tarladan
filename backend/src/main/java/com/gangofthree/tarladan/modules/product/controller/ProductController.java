@@ -26,7 +26,8 @@ public class ProductController {
             @RequestPart("quantity_kg") String quantityKg,
             @RequestPart("price_per_kg") String pricePerKg,
             @RequestPart("min_buy") String minBuy,
-            @RequestPart("photo") MultipartFile photo
+            @RequestPart("photo") MultipartFile photo,
+            @RequestPart("id_depot") String depot_id
     ) {
         AddProductRequest request = new AddProductRequest();
         request.setId(Long.parseLong(id));
@@ -35,6 +36,7 @@ public class ProductController {
         request.setPrice_per_kg(new java.math.BigInteger(pricePerKg));
         request.setMin_buy(new java.math.BigInteger(minBuy));
         request.setPhoto(photo);
+        request.setId_depot(Long.parseLong(depot_id));
 
         Product createdProduct = productService.addProduct(request);
         return ResponseEntity.ok(createdProduct);

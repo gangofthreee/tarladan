@@ -11,7 +11,7 @@ import java.math.BigInteger;
 @AllArgsConstructor
 public class AddProductRequest {
     private Long id;
-    //private Long id_depot;
+    private Long id_depot;
     private String name;
     private BigInteger quantity_kg;
     private BigInteger price_per_kg;

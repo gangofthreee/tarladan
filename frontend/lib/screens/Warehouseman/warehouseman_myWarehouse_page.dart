@@ -203,14 +203,18 @@ class _WarehousemanMyWarehousePageState
     final int percentage = 0;
 
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
+      onTap: () async {
+        final result = await Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) =>
                 WarehousemanMyWarehouseDetailPage(depotId: depotId),
           ),
         );
+        // Eğer güncelleme yapıldıysa listeyi yenile
+        if (result == true) {
+          _fetchDepots();
+        }
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),

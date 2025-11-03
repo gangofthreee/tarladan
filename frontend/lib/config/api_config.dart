@@ -35,6 +35,7 @@ class ApiConfig {
   static const String createDepotEndpoint = '/depot/create';
   static const String getAllDepotsEndpoint = '/depot/all';
   static const String getDepotByIdEndpoint = '/depot';
+  static const String updateDepotEndpoint = '/depot/update';
 
   static String get registerUrl => '$baseUrl$registerEndpoint';
   static String get verifyUrl => '$baseUrl$verifyEndpoint';
@@ -54,4 +55,6 @@ class ApiConfig {
   static String get getAllDepotsUrl => '$baseUrl$getAllDepotsEndpoint';
   static String getDepotByIdUrl(int depotId) =>
       '$baseUrl$getDepotByIdEndpoint/$depotId';
+  static String updateDepotUrl(int depotId) =>
+      '$baseUrl$updateDepotEndpoint/$depotId';
 }

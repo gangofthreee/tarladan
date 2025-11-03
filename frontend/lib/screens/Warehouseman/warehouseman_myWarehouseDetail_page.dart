@@ -19,6 +19,7 @@ class _WarehousemanMyWarehouseDetailPageState
   Map<String, dynamic>? _depotData;
   bool _isLoading = true;
   String? _errorMessage;
+  bool _wasUpdated = false; // Güncelleme yapıldı mı?
 
   @override
   void initState() {
@@ -81,7 +82,7 @@ class _WarehousemanMyWarehouseDetailPageState
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.pop(context, _wasUpdated),
         ),
         title: const Text(
           'Depo Detayları',
@@ -269,12 +270,13 @@ class _WarehousemanMyWarehouseDetailPageState
                           child: SizedBox(
                             height: 55,
                             child: ElevatedButton(
-                              onPressed: () {
-                                Navigator.push(
+                              onPressed: () async {
+                                final result = await Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) =>
                                         WarehousemanUpdateWarehouseInfoPage(
+                                          depotId: widget.depotId,
                                           warehouseName:
                                               'Depo #${widget.depotId}',
                                           currentAddress:
@@ -291,6 +293,13 @@ class _WarehousemanMyWarehouseDetailPageState
                                         ),
                                   ),
                                 );
+                                // Eğer güncelleme yapıldıysa sayfayı yenile
+                                if (result == true) {
+                                  setState(() {
+                                    _wasUpdated = true;
+                                  });
+                                  _fetchDepotDetails();
+                                }
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF4CAF50),

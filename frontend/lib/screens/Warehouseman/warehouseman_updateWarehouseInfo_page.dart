@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import '../../config/api_config.dart';
 
 class WarehousemanUpdateWarehouseInfoPage extends StatefulWidget {
+  final int depotId;
   final String warehouseName;
   final String currentAddress;
   final String currentSize;
@@ -9,6 +13,7 @@ class WarehousemanUpdateWarehouseInfoPage extends StatefulWidget {
 
   const WarehousemanUpdateWarehouseInfoPage({
     super.key,
+    required this.depotId,
     required this.warehouseName,
     this.currentAddress = '',
     this.currentSize = '',
@@ -28,6 +33,7 @@ class _WarehousemanUpdateWarehouseInfoPageState
   late TextEditingController _sizeController;
   late TextEditingController _capacityController;
   late TextEditingController _priceController;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -51,17 +57,57 @@ class _WarehousemanUpdateWarehouseInfoPageState
     Navigator.pop(context);
   }
 
-  void _handleUpdate() {
-    if (_formKey.currentState!.validate()) {
-      // Burada API'ye güncelleme isteği gönderilecek
+  Future<void> _handleUpdate() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await http.put(
+        Uri.parse(ApiConfig.updateDepotUrl(widget.depotId)),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'price': double.parse(_priceController.text),
+          'address': _addressController.text,
+          'capacityTon': double.parse(_capacityController.text),
+        }),
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Depo bilgileri başarıyla güncellendi!'),
+            backgroundColor: Color(0xFF4CAF50),
+            duration: Duration(seconds: 2),
+          ),
+        );
+        Navigator.pop(context, true); // true döndürerek yenilenmesini sağla
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Güncelleme başarısız: ${response.statusCode}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Depo bilgileri güncellendi!'),
-          backgroundColor: Color(0xFF4CAF50),
-          duration: Duration(seconds: 2),
+        SnackBar(
+          content: Text('Bağlantı hatası: $e'),
+          backgroundColor: Colors.red,
         ),
       );
-      Navigator.pop(context);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -332,7 +378,7 @@ class _WarehousemanUpdateWarehouseInfoPageState
                       child: SizedBox(
                         height: 55,
                         child: ElevatedButton(
-                          onPressed: _handleUpdate,
+                          onPressed: _isLoading ? null : _handleUpdate,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF4CAF50),
                             foregroundColor: Colors.white,
@@ -341,13 +387,22 @@ class _WarehousemanUpdateWarehouseInfoPageState
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: const Text(
-                            'Güncelle',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text(
+                                  'Güncelle',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                         ),
                       ),
                     ),

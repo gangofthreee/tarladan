@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import '../../config/api_config.dart';
 
 class WarehousemanCreateWarehousePage extends StatefulWidget {
-  const WarehousemanCreateWarehousePage({super.key});
+  final int depoOwnerId; // Warehouseman ID'si
+  
+  const WarehousemanCreateWarehousePage({
+    super.key, 
+    required this.depoOwnerId,
+  });
 
   @override
   State<WarehousemanCreateWarehousePage> createState() =>
@@ -15,6 +23,7 @@ class _WarehousemanCreateWarehousePageState
   final _sizeController = TextEditingController();
   final _capacityController = TextEditingController();
   final _priceController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -29,17 +38,68 @@ class _WarehousemanCreateWarehousePageState
     Navigator.pop(context);
   }
 
-  void _handleSubmit() {
-    if (_formKey.currentState!.validate()) {
-      // Burada API'ye veri gönderme işlemi yapılacak
+  Future<void> _handleSubmit() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await http.post(
+        Uri.parse(ApiConfig.createDepotUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'depoOwnerId': widget.depoOwnerId,
+          'address': _addressController.text,
+          'sizeM2': double.parse(_sizeController.text),
+          'capacityTon': double.parse(_capacityController.text),
+          'price': double.parse(_priceController.text),
+        }),
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Depo başarıyla eklendi!'),
+            backgroundColor: Color(0xFF4CAF50),
+            duration: Duration(seconds: 2),
+          ),
+        );
+        Navigator.pop(context, true); // true ile geri dön, liste güncellensin
+      } else {
+        final errorMessage = response.body.isNotEmpty 
+            ? json.decode(response.body)['error'] ?? 'Bilinmeyen hata'
+            : 'Hata: ${response.statusCode}';
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Depo başarıyla eklendi!'),
-          backgroundColor: Color(0xFF4CAF50),
-          duration: Duration(seconds: 2),
+        SnackBar(
+          content: Text('Bağlantı hatası: $e'),
+          backgroundColor: Colors.red,
         ),
       );
-      Navigator.pop(context);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -310,7 +370,7 @@ class _WarehousemanCreateWarehousePageState
                       child: SizedBox(
                         height: 55,
                         child: ElevatedButton(
-                          onPressed: _handleSubmit,
+                          onPressed: _isLoading ? null : _handleSubmit,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF4CAF50),
                             foregroundColor: Colors.white,
@@ -319,13 +379,22 @@ class _WarehousemanCreateWarehousePageState
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: const Text(
-                            'Ekle',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text(
+                                  'Ekle',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                         ),
                       ),
                     ),

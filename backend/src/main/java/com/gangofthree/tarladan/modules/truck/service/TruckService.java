@@ -16,4 +16,6 @@ public interface TruckService {
     List<Truck> getTrucksByTruckerId(Long truckerId);
 
     List<Truck> getAllTrucks();
+
+    Truck getTruckById(Long id);
 }

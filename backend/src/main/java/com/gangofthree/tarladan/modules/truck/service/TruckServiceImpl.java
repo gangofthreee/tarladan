@@ -110,12 +110,6 @@ public class TruckServiceImpl implements TruckService {
         return truckRepository.save(existingTruck);
     }
 
-//    private String getFileExtension(String filename) {
-//        if (filename == null) return "";
-//        int dotIndex = filename.lastIndexOf(".");
-//        return dotIndex != -1 ? filename.substring(dotIndex) : "";
-//    }
-
     @Override
     public void deleteTruck(Long id) {
         Truck existingTruck = truckRepository.findById(id)
@@ -148,5 +142,11 @@ public class TruckServiceImpl implements TruckService {
                 .orElseThrow(() -> new EntityNotFoundException("ID " + truckerId + " ile Trucker bulunamadı."));
 
         return truckRepository.findAllByTrucker(trucker);
+    }
+
+    @Override
+    public Truck getTruckById(Long id) {
+        return truckRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("ID " + id + " ile Truck bulunamadı."));
     }
 }

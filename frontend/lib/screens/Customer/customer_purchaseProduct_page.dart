@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import '../../config/api_config.dart';
 import 'customer_selectTruck_page.dart';
 
 class CustomerPurchaseProductPage extends StatefulWidget {
@@ -26,6 +29,7 @@ class _CustomerPurchaseProductPageState
     extends State<CustomerPurchaseProductPage> {
   String _selectedLogistic = 'have_truck';
   String _selectedPayment = 'credit_card';
+  bool _isLoading = false;
 
   final _licensePlateController = TextEditingController();
   final _capacityController = TextEditingController();
@@ -39,7 +43,7 @@ class _CustomerPurchaseProductPageState
     super.dispose();
   }
 
-  void _handleBuyAndPay() {
+  Future<void> _handleBuyAndPay() async {
     if (_selectedLogistic == 'have_truck') {
       if (_licensePlateController.text.isEmpty ||
           _capacityController.text.isEmpty ||
@@ -54,19 +58,63 @@ class _CustomerPurchaseProductPageState
       }
     }
 
-    // Payment processing
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Ödeme işleminiz başarıyla tamamlandı!'),
-        backgroundColor: Color(0xFF4CAF50),
-        duration: Duration(seconds: 2),
-      ),
-    );
-
-    // Navigate back or to success page
-    Future.delayed(const Duration(seconds: 2), () {
-      Navigator.popUntil(context, (route) => route.isFirst);
+    setState(() {
+      _isLoading = true;
     });
+
+    try {
+      final orderData = {
+        'customerId': 1,
+        'productId': 1,
+        'depotId': 2,
+        'truckId': 1,
+        'locFrom': 'Aydın / Merkez',
+        'locTo': 'İzmir / Bornova',
+        'quantityKg': widget.quantity,
+      };
+
+      final response = await http.post(
+        Uri.parse(ApiConfig.createOrderUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(orderData),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Sipariş başarıyla oluşturuldu!'),
+              backgroundColor: Color(0xFF4CAF50),
+              duration: Duration(seconds: 2),
+            ),
+          );
+
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted) {
+              Navigator.popUntil(context, (route) => route.isFirst);
+            }
+          });
+        }
+      } else {
+        throw Exception('Sipariş oluşturulamadı: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Hata: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -323,7 +371,7 @@ class _CustomerPurchaseProductPageState
                 width: double.infinity,
                 height: 55,
                 child: ElevatedButton(
-                  onPressed: _handleBuyAndPay,
+                  onPressed: _isLoading ? null : _handleBuyAndPay,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF4CAF50),
                     foregroundColor: Colors.white,
@@ -332,10 +380,24 @@ class _CustomerPurchaseProductPageState
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
-                    'Satın Al ve Öde',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
+                        )
+                      : const Text(
+                          'Satın Al ve Öde',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
             ],

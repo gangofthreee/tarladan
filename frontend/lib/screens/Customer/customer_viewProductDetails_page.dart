@@ -58,7 +58,7 @@ class _CustomerViewProductDetailsPageState
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          'Product Details',
+          'Ürün Detayları',
           style: TextStyle(
             color: Colors.black,
             fontSize: 20,
@@ -142,11 +142,8 @@ class _CustomerViewProductDetailsPageState
                 child: Row(
                   children: [
                     const Text(
-                      'Available Quantity: ',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.black87,
-                      ),
+                      'Mevcut Miktar: ',
+                      style: TextStyle(fontSize: 16, color: Colors.black87),
                     ),
                     Text(
                       '${widget.availableQuantity} kg',
@@ -167,7 +164,7 @@ class _CustomerViewProductDetailsPageState
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: const Text(
-                'Seller Information',
+                'Satıcı Bilgileri',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -234,7 +231,7 @@ class _CustomerViewProductDetailsPageState
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  '${widget.rating} (${widget.reviewCount} reviews)',
+                                  '${widget.rating} (${widget.reviewCount} değerlendirme)',
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: Colors.grey[600],
@@ -245,10 +242,7 @@ class _CustomerViewProductDetailsPageState
                           ],
                         ),
                       ),
-                      const Icon(
-                        Icons.chevron_right,
-                        color: Colors.grey,
-                      ),
+                      const Icon(Icons.chevron_right, color: Colors.grey),
                     ],
                   ),
                 ),
@@ -261,7 +255,7 @@ class _CustomerViewProductDetailsPageState
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: const Text(
-                'Warehouse Location',
+                'Depo Konumu',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -305,7 +299,7 @@ class _CustomerViewProductDetailsPageState
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Text(
-                            'Map View',
+                            'Harita Görünümü',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -339,11 +333,8 @@ class _CustomerViewProductDetailsPageState
                     ),
                   ),
                   child: const Text(
-                    'Buy Now',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    'Hemen Al',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),

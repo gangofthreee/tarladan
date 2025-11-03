@@ -254,10 +254,7 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
                   const SizedBox(height: 4),
                   Text(
                     '${truck['brand']}, ${truck['capacity']} ton',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 8),
                   Row(
@@ -270,10 +267,7 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
                       const SizedBox(width: 4),
                       Text(
                         '${truck['rating']} (${truck['priceUnit']})',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                     ],
                   ),
@@ -283,10 +277,7 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
 
             // Select Button
             Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 10,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               decoration: BoxDecoration(
                 color: isSelected
                     ? const Color(0xFF4CAF50)

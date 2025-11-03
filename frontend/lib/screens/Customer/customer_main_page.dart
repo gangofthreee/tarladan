@@ -14,12 +14,7 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
   int _cartItemCount = 3;
   String _selectedCategory = 'Sebze';
 
-  final List<String> categories = [
-    'Sebze',
-    'Meyve',
-    'Tahıl',
-    'Diğer',
-  ];
+  final List<String> categories = ['Sebze', 'Meyve', 'Tahıl', 'Diğer'];
 
   final Map<String, String> categoryEmojis = {
     'Sebze': '🥒',
@@ -35,7 +30,8 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
       'farmer': 'Çiftçi Emre',
       'price': 15,
       'unit': '₺/kg',
-      'image': 'https://images.unsplash.com/photo-1546470427-227e4c84d1da?w=400',
+      'image':
+          'https://images.unsplash.com/photo-1546470427-227e4c84d1da?w=400',
       'category': 'Sebze',
     },
     {
@@ -43,7 +39,8 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
       'farmer': 'Çiftçi Ayşe',
       'price': 8,
       'unit': '₺/kg',
-      'image': 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=400',
+      'image':
+          'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=400',
       'category': 'Meyve',
     },
     {
@@ -51,7 +48,8 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
       'farmer': 'Çiftçi Mehmet',
       'price': 5,
       'unit': '₺/kg',
-      'image': 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=400',
+      'image':
+          'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=400',
       'category': 'Tahıl',
     },
     {
@@ -59,7 +57,8 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
       'farmer': 'Çiftçi Fatma',
       'price': 7,
       'unit': '₺/kg',
-      'image': 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400',
+      'image':
+          'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400',
       'category': 'Sebze',
     },
   ];
@@ -68,14 +67,12 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
     setState(() {
       _selectedIndex = index;
     });
-    
+
     if (index == 1) {
       // Navigate to orders page
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => const CustomerViewOrdersPage(),
-        ),
+        MaterialPageRoute(builder: (context) => const CustomerViewOrdersPage()),
       );
     }
   }
@@ -286,16 +283,11 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
             fontWeight: FontWeight.w600,
             fontSize: 12,
           ),
-          unselectedLabelStyle: const TextStyle(
-            fontSize: 12,
-          ),
+          unselectedLabelStyle: const TextStyle(fontSize: 12),
           currentIndex: _selectedIndex,
           onTap: _onItemTapped,
           items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Anasayfa',
-            ),
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Anasayfa'),
             BottomNavigationBarItem(
               icon: Icon(Icons.receipt_long),
               label: 'Siparişler',
@@ -389,10 +381,7 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
                   const SizedBox(height: 4),
                   Text(
                     product['farmer'],
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 8),
                   Text(

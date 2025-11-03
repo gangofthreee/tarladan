@@ -21,7 +21,8 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage>
       'date': '12.08.2023',
       'status': 'Onaylandı',
       'statusColor': Color(0xFF4CAF50),
-      'image': 'https://images.unsplash.com/photo-1546470427-227e4c84d1da?w=400',
+      'image':
+          'https://images.unsplash.com/photo-1546470427-227e4c84d1da?w=400',
     },
     {
       'productName': 'Patates',
@@ -30,7 +31,8 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage>
       'date': '10.08.2023',
       'status': 'Yolda',
       'statusColor': Color(0xFF2196F3),
-      'image': 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400',
+      'image':
+          'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400',
     },
   ];
 
@@ -42,7 +44,8 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage>
       'date': '08.08.2023',
       'status': 'Teslim Edildi',
       'statusColor': Color(0xFF4CAF50),
-      'image': 'https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?w=400',
+      'image':
+          'https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?w=400',
     },
   ];
 
@@ -137,10 +140,7 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage>
             const SizedBox(height: 16),
             Text(
               'Henüz sipariş yok',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 18, color: Colors.grey[600]),
             ),
           ],
         ),

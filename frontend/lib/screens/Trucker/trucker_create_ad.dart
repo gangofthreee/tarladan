@@ -10,7 +10,7 @@ class TruckerCreateAdPage extends StatefulWidget {
 class _TruckerCreateAdPageState extends State<TruckerCreateAdPage> {
   final _formKey = GlobalKey<FormState>();
   final _priceController = TextEditingController();
-  
+
   String? _selectedTruck;
   DateTime? _selectedDateTime;
 
@@ -126,7 +126,7 @@ class _TruckerCreateAdPageState extends State<TruckerCreateAdPage> {
       'Eylül',
       'Ekim',
       'Kasım',
-      'Aralık'
+      'Aralık',
     ];
 
     final day = dateTime.day.toString().padLeft(2, '0');
@@ -181,10 +181,7 @@ class _TruckerCreateAdPageState extends State<TruckerCreateAdPage> {
                       value: _selectedTruck,
                       hint: Text(
                         'Araç seç',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 16,
-                        ),
+                        style: TextStyle(color: Colors.grey[600], fontSize: 16),
                       ),
                       icon: const Icon(Icons.keyboard_arrow_down),
                       items: trucks.map((truck) {

@@ -129,7 +129,8 @@ class _TruckerMainPageState extends State<TruckerMainPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const TruckerTruckSavingPage(),
+                            builder: (context) =>
+                                const TruckerTruckSavingPage(),
                           ),
                         );
                       },
@@ -191,16 +192,11 @@ class _TruckerMainPageState extends State<TruckerMainPage> {
             fontWeight: FontWeight.w600,
             fontSize: 12,
           ),
-          unselectedLabelStyle: const TextStyle(
-            fontSize: 12,
-          ),
+          unselectedLabelStyle: const TextStyle(fontSize: 12),
           currentIndex: _selectedIndex,
           onTap: _onItemTapped,
           items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Anasayfa',
-            ),
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Anasayfa'),
             BottomNavigationBarItem(
               icon: Icon(Icons.local_shipping),
               label: 'İş Teklifleri',
@@ -243,10 +239,7 @@ class _TruckerMainPageState extends State<TruckerMainPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              emoji,
-              style: const TextStyle(fontSize: 48),
-            ),
+            Text(emoji, style: const TextStyle(fontSize: 48)),
             const SizedBox(height: 12),
             Text(
               title,
@@ -289,11 +282,7 @@ class _TruckerMainPageState extends State<TruckerMainPage> {
               color: Colors.grey[200],
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(
-              job['icon'],
-              size: 36,
-              color: Colors.grey[700],
-            ),
+            child: Icon(job['icon'], size: 36, color: Colors.grey[700]),
           ),
 
           const SizedBox(width: 16),
@@ -339,10 +328,7 @@ class _TruckerMainPageState extends State<TruckerMainPage> {
             ),
             child: const Text(
               'Teklif Ver',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
             ),
           ),
         ],

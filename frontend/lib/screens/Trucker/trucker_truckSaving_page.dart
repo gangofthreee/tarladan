@@ -36,9 +36,9 @@ class _TruckerTruckSavingPageState extends State<TruckerTruckSavingPage> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fotoğraf seçme hatası: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Fotoğraf seçme hatası: $e')));
       }
     }
   }
@@ -301,7 +301,9 @@ class _TruckerTruckSavingPageState extends State<TruckerTruckSavingPage> {
                         ElevatedButton(
                           onPressed: _pickImages,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF4CAF50).withOpacity(0.1),
+                            backgroundColor: const Color(
+                              0xFF4CAF50,
+                            ).withOpacity(0.1),
                             foregroundColor: const Color(0xFF4CAF50),
                             elevation: 0,
                             padding: const EdgeInsets.symmetric(
@@ -384,10 +386,7 @@ class _TruckerTruckSavingPageState extends State<TruckerTruckSavingPage> {
                 const SizedBox(height: 8),
                 const Text(
                   'Taban fiyat (₺/km veya ₺/iş)',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.black87,
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.black87),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(

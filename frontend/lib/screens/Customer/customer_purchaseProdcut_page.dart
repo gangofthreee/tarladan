@@ -26,7 +26,7 @@ class _CustomerPurchaseProductPageState
     extends State<CustomerPurchaseProductPage> {
   String _selectedLogistic = 'have_truck';
   String _selectedPayment = 'credit_card';
-  
+
   final _licensePlateController = TextEditingController();
   final _capacityController = TextEditingController();
   final _modelController = TextEditingController();
@@ -84,7 +84,7 @@ class _CustomerPurchaseProductPageState
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          'Purchase',
+          'Satın Alma',
           style: TextStyle(
             color: Colors.black,
             fontSize: 20,
@@ -100,7 +100,7 @@ class _CustomerPurchaseProductPageState
             children: [
               // Order Summary
               const Text(
-                'Order Summary',
+                'Sipariş Özeti',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -141,7 +141,7 @@ class _CustomerPurchaseProductPageState
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Quantity: ${widget.quantity} kg',
+                            'Miktar: ${widget.quantity} kg',
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[600],
@@ -190,7 +190,7 @@ class _CustomerPurchaseProductPageState
 
               // Logistics Section
               const Text(
-                'Logistics',
+                'Lojistik',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -204,7 +204,7 @@ class _CustomerPurchaseProductPageState
               _buildRadioOption(
                 value: 'have_truck',
                 groupValue: _selectedLogistic,
-                title: 'Tırım Var (I have a truck)',
+                title: 'Tırım Var',
                 onChanged: (value) {
                   setState(() {
                     _selectedLogistic = value!;
@@ -217,7 +217,7 @@ class _CustomerPurchaseProductPageState
               _buildRadioOption(
                 value: 'no_truck',
                 groupValue: _selectedLogistic,
-                title: 'Tırım Yok (I don\'t have a truck)',
+                title: 'Tırım Yok',
                 onChanged: (value) {
                   setState(() {
                     _selectedLogistic = value!;
@@ -231,21 +231,21 @@ class _CustomerPurchaseProductPageState
               if (_selectedLogistic == 'have_truck') ...[
                 _buildTextField(
                   controller: _licensePlateController,
-                  label: 'License Plate',
-                  hint: 'Enter license plate',
+                  label: 'Plaka',
+                  hint: 'Plaka giriniz',
                 ),
                 const SizedBox(height: 16),
                 _buildTextField(
                   controller: _capacityController,
-                  label: 'Capacity',
-                  hint: 'Enter capacity',
+                  label: 'Kapasite',
+                  hint: 'Kapasite giriniz',
                   keyboardType: TextInputType.number,
                 ),
                 const SizedBox(height: 16),
                 _buildTextField(
                   controller: _modelController,
                   label: 'Model',
-                  hint: 'Enter model',
+                  hint: 'Model giriniz',
                 ),
                 const SizedBox(height: 20),
               ],
@@ -263,7 +263,7 @@ class _CustomerPurchaseProductPageState
                           builder: (context) => const CustomerSelectTruckPage(),
                         ),
                       );
-                      
+
                       if (selectedTruckId != null && mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
@@ -282,7 +282,7 @@ class _CustomerPurchaseProductPageState
                       ),
                     ),
                     child: const Text(
-                      'Go to Truck List',
+                      'Tır Listesine Git',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -295,7 +295,7 @@ class _CustomerPurchaseProductPageState
 
               // Payment Section
               const Text(
-                'Payment',
+                'Ödeme',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -308,7 +308,7 @@ class _CustomerPurchaseProductPageState
               _buildRadioOption(
                 value: 'credit_card',
                 groupValue: _selectedPayment,
-                title: 'Credit Card',
+                title: 'Kredi Kartı',
                 onChanged: (value) {
                   setState(() {
                     _selectedPayment = value!;
@@ -333,11 +333,8 @@ class _CustomerPurchaseProductPageState
                     ),
                   ),
                   child: const Text(
-                    'Buy and Pay',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    'Satın Al ve Öde',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
@@ -401,9 +398,12 @@ class _CustomerPurchaseProductPageState
                 title,
                 style: TextStyle(
                   fontSize: 16,
-                  color: value == groupValue ? Colors.black87 : Colors.grey[600],
-                  fontWeight:
-                      value == groupValue ? FontWeight.w600 : FontWeight.normal,
+                  color: value == groupValue
+                      ? Colors.black87
+                      : Colors.grey[600],
+                  fontWeight: value == groupValue
+                      ? FontWeight.w600
+                      : FontWeight.normal,
                 ),
               ),
             ),
@@ -449,10 +449,7 @@ class _CustomerPurchaseProductPageState
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Color(0xFF4CAF50),
-                width: 2,
-              ),
+              borderSide: const BorderSide(color: Color(0xFF4CAF50), width: 2),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,

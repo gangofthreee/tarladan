@@ -27,8 +27,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   final roles = [
     {'label': 'Çiftçi', 'icon': Icons.spa, 'value': 'FARMER'},
-    {'label': 'Alıcı', 'icon': Icons.shopping_cart, 'value': 'BUYER'},
-    {'label': 'Tırcı', 'icon': Icons.local_shipping, 'value': 'DRIVER'},
+    {'label': 'Alıcı', 'icon': Icons.shopping_cart, 'value': 'CUSTOMER'},
+    {'label': 'Tırcı', 'icon': Icons.local_shipping, 'value': 'TRUCKER'},
     {'label': 'Depocu', 'icon': Icons.apartment, 'value': 'DEPOT_OWNER'},
   ];
 

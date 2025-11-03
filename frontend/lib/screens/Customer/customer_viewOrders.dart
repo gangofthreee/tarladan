@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import '../../config/api_config.dart';
 import 'customer_viewOrderDetail_page.dart';
 
 class CustomerViewOrdersPage extends StatefulWidget {
@@ -11,8 +14,11 @@ class CustomerViewOrdersPage extends StatefulWidget {
 class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  bool _isLoading = true;
+  List<Map<String, dynamic>> _orders = [];
+  final int _customerId = 1; // TODO: Get from auth/session
 
-  // Örnek sipariş verileri
+  // Örnek sipariş verileri (fallback)
   final List<Map<String, dynamic>> activeOrders = [
     {
       'productName': 'Domates',
@@ -53,6 +59,41 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _fetchOrders();
+  }
+
+  Future<void> _fetchOrders() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse(ApiConfig.getOrdersByCustomerUrl(_customerId)),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> ordersJson = jsonDecode(response.body);
+        setState(() {
+          _orders = ordersJson
+              .map((order) => order as Map<String, dynamic>)
+              .toList();
+          _isLoading = false;
+        });
+      } else {
+        throw Exception('Siparişler yüklenemedi: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   @override
@@ -110,16 +151,24 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage>
 
           // Tab Bar View
           Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                // Active Orders
-                _buildOrderList(activeOrders),
+            child: _isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(color: Color(0xFF4CAF50)),
+                  )
+                : TabBarView(
+                    controller: _tabController,
+                    children: [
+                      // Active Orders - API'den gelen PENDING siparişler
+                      _buildOrderList(
+                        _orders.where((o) => o['status'] == 'PENDING').toList(),
+                      ),
 
-                // Past Orders
-                _buildOrderList(pastOrders),
-              ],
-            ),
+                      // Past Orders - API'den gelen COMPLETED siparişler
+                      _buildOrderList(
+                        _orders.where((o) => o['status'] != 'PENDING').toList(),
+                      ),
+                    ],
+                  ),
           ),
         ],
       ),
@@ -158,19 +207,41 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage>
   }
 
   Widget _buildOrderCard(Map<String, dynamic> order) {
+    // API response formatını parse et
+    final productName = order['productName'] ?? 'Ürün';
+    final quantity = '${order['quantityKg'] ?? 0}kg';
+    final locFrom = order['locFrom'] ?? '';
+    final locTo = order['locTo'] ?? '';
+    final totalPrice = order['totalPrice'] ?? 0;
+    final status = order['status'] ?? 'PENDING';
+
+    // Status'e göre renk ve metin
+    Color statusColor;
+    String statusText;
+    if (status == 'PENDING') {
+      statusColor = const Color(0xFFFFA726);
+      statusText = 'Beklemede';
+    } else if (status == 'COMPLETED') {
+      statusColor = const Color(0xFF4CAF50);
+      statusText = 'Tamamlandı';
+    } else {
+      statusColor = const Color(0xFF2196F3);
+      statusText = status;
+    }
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => CustomerViewOrderDetailPage(
-              productName: order['productName'],
-              quantity: order['quantity'],
-              seller: order['seller'],
-              date: order['date'],
-              status: order['status'],
-              statusColor: order['statusColor'],
-              imageUrl: order['image'],
+              productName: productName,
+              quantity: quantity,
+              seller: locFrom, // Satıcı bilgisi yok, locFrom kullanıyoruz
+              date: locTo, // Tarih yok, locTo kullanıyoruz
+              status: statusText,
+              statusColor: statusColor,
+              imageUrl: '', // API'de image yok
             ),
           ),
         );
@@ -200,19 +271,13 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage>
                 width: 120,
                 height: 160,
                 color: Colors.grey[200],
-                child: Image.network(
-                  order['image'],
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: Colors.grey[300],
-                      child: const Icon(
-                        Icons.image_not_supported,
-                        size: 40,
-                        color: Colors.grey,
-                      ),
-                    );
-                  },
+                child: Container(
+                  color: const Color(0xFF4CAF50).withOpacity(0.1),
+                  child: const Icon(
+                    Icons.shopping_bag_outlined,
+                    size: 50,
+                    color: Color(0xFF4CAF50),
+                  ),
                 ),
               ),
             ),
@@ -225,7 +290,7 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${order['productName']} ${order['quantity']}',
+                      '$productName $quantity',
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -236,18 +301,18 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage>
                     Row(
                       children: [
                         Text(
-                          'Satıcı: ',
+                          'Toplam: ',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.grey[600],
                           ),
                         ),
                         Text(
-                          order['seller'],
+                          '${totalPrice}₺',
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: Colors.black87,
+                            color: Color(0xFF4CAF50),
                           ),
                         ),
                       ],
@@ -255,18 +320,20 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage>
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Text(
-                          'Tarih: ',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                          ),
+                        Icon(
+                          Icons.location_on,
+                          size: 14,
+                          color: Colors.grey[600],
                         ),
-                        Text(
-                          order['date'],
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[700],
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            '$locFrom → $locTo',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey[700],
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -278,24 +345,26 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage>
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: order['statusColor'].withOpacity(0.1),
+                        color: statusColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            Icons.check_circle,
+                            status == 'PENDING'
+                                ? Icons.access_time
+                                : Icons.check_circle,
                             size: 16,
-                            color: order['statusColor'],
+                            color: statusColor,
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            order['status'],
+                            statusText,
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
-                              color: order['statusColor'],
+                              color: statusColor,
                             ),
                           ),
                         ],

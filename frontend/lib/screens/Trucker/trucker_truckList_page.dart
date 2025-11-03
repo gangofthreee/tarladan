@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'trucker_truckUpdate_page.dart';
 import 'trucker_truckSaving_page.dart';
 import '../../config/api_config.dart';
@@ -12,30 +13,63 @@ class TruckerTruckListPage extends StatefulWidget {
 }
 
 class _TruckerTruckListPageState extends State<TruckerTruckListPage> {
-  // Örnek araç verileri
-  final List<Map<String, dynamic>> trucks = [
-    {
-      'id': 1,
-      'model': 'Mercedes-Benz Actros',
-      'plate': '34 ABC 123',
-      'image':
-          'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400',
-    },
-    {
-      'id': 2,
-      'model': 'Volvo FH',
-      'plate': '06 XYZ 456',
-      'image':
-          'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=400',
-    },
-    {
-      'id': 3,
-      'model': 'Scania R-Serisi',
-      'plate': '16 DEF 789',
-      'image':
-          'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400',
-    },
-  ];
+  List<Map<String, dynamic>> trucks = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTruck();
+  }
+
+  Future<void> _loadTruck() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      // Trucker ID 1'e ait tüm truck'ları getir
+      final response = await http.get(
+        Uri.parse(ApiConfig.getTrucksByTruckerUrl(1)),
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> dataList = json.decode(response.body);
+        print('Parsed data: $dataList');
+
+        // API'den gelen truck listesini parse et
+        setState(() {
+          trucks = dataList.map((data) {
+            return {
+              'id': data['id'],
+              'model': data['vehicle'] ?? 'Araç Modeli',
+              'plate': data['plate'] ?? 'Plaka',
+              'capacity': data['capacityTon'],
+              'price': data['basePrice'],
+              'image': data['imageUrl'] != null
+                  ? '${ApiConfig.baseUrl}${data['imageUrl']}'
+                  : 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400',
+            };
+          }).toList();
+          _isLoading = false;
+        });
+        print('Trucks loaded: ${trucks.length}');
+      } else {
+        throw Exception('Araç bilgileri yüklenemedi: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error loading truck: $e');
+      setState(() {
+        _errorMessage = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +96,41 @@ class _TruckerTruckListPageState extends State<TruckerTruckListPage> {
         children: [
           // Truck List
           Expanded(
-            child: trucks.isEmpty
+            child: _isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(color: Color(0xFF4CAF50)),
+                  )
+                : _errorMessage != null
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 80,
+                          color: Colors.red[400],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Hata: $_errorMessage',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey[600],
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: _loadTruck,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF4CAF50),
+                          ),
+                          child: const Text('Tekrar Dene'),
+                        ),
+                      ],
+                    ),
+                  )
+                : trucks.isEmpty
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,

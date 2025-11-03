@@ -1,6 +1,10 @@
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
+import '../../config/api_config.dart';
 
 class TruckerTruckSavingPage extends StatefulWidget {
   const TruckerTruckSavingPage({super.key});
@@ -17,7 +21,9 @@ class _TruckerTruckSavingPageState extends State<TruckerTruckSavingPage> {
   final _priceController = TextEditingController();
 
   final List<File> _selectedImages = [];
+  final List<XFile> _selectedXFiles = [];
   final ImagePicker _picker = ImagePicker();
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -32,7 +38,10 @@ class _TruckerTruckSavingPageState extends State<TruckerTruckSavingPage> {
     try {
       final List<XFile> images = await _picker.pickMultiImage();
       setState(() {
-        _selectedImages.addAll(images.map((image) => File(image.path)));
+        _selectedXFiles.addAll(images);
+        if (!kIsWeb) {
+          _selectedImages.addAll(images.map((image) => File(image.path)));
+        }
       });
     } catch (e) {
       if (mounted) {
@@ -49,9 +58,9 @@ class _TruckerTruckSavingPageState extends State<TruckerTruckSavingPage> {
     });
   }
 
-  void _handleSave() {
+  Future<void> _handleSave() async {
     if (_formKey.currentState!.validate()) {
-      if (_selectedImages.isEmpty) {
+      if (_selectedXFiles.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Lütfen en az bir araç fotoğrafı ekleyin'),
@@ -61,15 +70,67 @@ class _TruckerTruckSavingPageState extends State<TruckerTruckSavingPage> {
         return;
       }
 
-      // API'ye kaydetme işlemi burada yapılacak
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Araç başarıyla kaydedildi!'),
-          backgroundColor: Color(0xFF4CAF50),
-          duration: Duration(seconds: 2),
-        ),
-      );
-      Navigator.pop(context);
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        // Multipart request oluştur (hem web hem mobil için)
+        var request = http.MultipartRequest(
+          'POST',
+          Uri.parse(ApiConfig.createTruckUrl),
+        );
+
+        // Form data ekle
+        request.fields['truckerId'] = '1';
+        request.fields['vehicle'] = _brandModelController.text;
+        request.fields['capacityTon'] = _capacityController.text;
+        request.fields['plate'] = _plateController.text;
+        request.fields['basePrice'] = _priceController.text;
+
+        // Fotoğraf ekle
+        if (_selectedXFiles.isNotEmpty) {
+          final xFile = _selectedXFiles[0];
+          final bytes = await xFile.readAsBytes();
+          request.files.add(
+            http.MultipartFile.fromBytes('photo', bytes, filename: xFile.name),
+          );
+        }
+
+        // İsteği gönder
+        var streamedResponse = await request.send();
+        var response = await http.Response.fromStream(streamedResponse);
+
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Araç başarıyla kaydedildi!'),
+                backgroundColor: Color(0xFF4CAF50),
+                duration: Duration(seconds: 2),
+              ),
+            );
+            Navigator.pop(context, true); // true dönerek listeyi yenile
+          }
+        } else {
+          throw Exception('Araç kaydedilemedi: ${response.body}');
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Hata: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
     }
   }
 
@@ -330,23 +391,41 @@ class _TruckerTruckSavingPageState extends State<TruckerTruckSavingPage> {
                 const SizedBox(height: 20),
 
                 // Seçilen fotoğrafları göster
-                if (_selectedImages.isNotEmpty)
+                if (_selectedXFiles.isNotEmpty)
                   Wrap(
                     spacing: 10,
                     runSpacing: 10,
-                    children: List.generate(_selectedImages.length, (index) {
+                    children: List.generate(_selectedXFiles.length, (index) {
                       return Stack(
                         children: [
-                          Container(
-                            width: 100,
-                            height: 100,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              image: DecorationImage(
-                                image: FileImage(_selectedImages[index]),
-                                fit: BoxFit.cover,
-                              ),
-                            ),
+                          FutureBuilder<Uint8List>(
+                            future: _selectedXFiles[index].readAsBytes(),
+                            builder: (context, snapshot) {
+                              if (snapshot.hasData) {
+                                return Container(
+                                  width: 100,
+                                  height: 100,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12),
+                                    image: DecorationImage(
+                                      image: MemoryImage(snapshot.data!),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                );
+                              }
+                              return Container(
+                                width: 100,
+                                height: 100,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  color: Colors.grey[300],
+                                ),
+                                child: const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              );
+                            },
                           ),
                           Positioned(
                             top: 5,
@@ -435,7 +514,7 @@ class _TruckerTruckSavingPageState extends State<TruckerTruckSavingPage> {
                   width: double.infinity,
                   height: 55,
                   child: ElevatedButton(
-                    onPressed: _handleSave,
+                    onPressed: _isLoading ? null : _handleSave,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF4CAF50),
                       foregroundColor: Colors.white,
@@ -444,13 +523,22 @@ class _TruckerTruckSavingPageState extends State<TruckerTruckSavingPage> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
-                      'Kaydet',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2.5,
+                            ),
+                          )
+                        : const Text(
+                            'Kaydet',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                 ),
 

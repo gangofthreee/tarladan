@@ -18,6 +18,8 @@ class _WarehousemanMyWarehousePageState
   List<dynamic> _depots = [];
   bool _isLoading = true;
   String? _errorMessage;
+  final int _depoOwnerId =
+      1; // Şimdilik test için sabit ID, ileride login'den gelecek
 
   @override
   void initState() {
@@ -33,7 +35,7 @@ class _WarehousemanMyWarehousePageState
 
     try {
       final response = await http.get(
-        Uri.parse(ApiConfig.getAllDepotsUrl),
+        Uri.parse(ApiConfig.getDepotsByOwnerUrl(_depoOwnerId)),
         headers: {'Content-Type': 'application/json'},
       );
 

@@ -451,6 +451,47 @@ class _WarehousemanMyWarehouseDetailPageState
     );
   }
 
+  Future<void> _deleteDepot() async {
+    try {
+      final response = await http.delete(
+        Uri.parse(ApiConfig.deleteDepotUrl(widget.depotId)),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      print('Delete response status: ${response.statusCode}');
+      print('Delete response body: ${response.body}');
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        // Başarılı silme
+        Navigator.pop(context, true); // Detay sayfasından çık ve listeyi yenile
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Depo başarıyla silindi'),
+            backgroundColor: Color(0xFF4CAF50),
+          ),
+        );
+      } else {
+        // Hata durumu
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Depo silinemedi: ${response.statusCode}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Bağlantı hatası: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   void _showDeleteDialog() {
     showDialog(
       context: context,
@@ -476,13 +517,7 @@ class _WarehousemanMyWarehouseDetailPageState
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(context); // Dialog'u kapat
-                Navigator.pop(context); // Detay sayfasından çık
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Depo başarıyla silindi'),
-                    backgroundColor: Color(0xFF4CAF50),
-                  ),
-                );
+                _deleteDepot(); // Silme işlemini çalıştır
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFE57373),

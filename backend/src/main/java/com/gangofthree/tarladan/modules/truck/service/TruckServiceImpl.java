@@ -6,6 +6,7 @@ import com.gangofthree.tarladan.modules.truck.repository.TruckRepository;
 import com.gangofthree.tarladan.modules.truck.dto.AddTruckRequest;
 import com.gangofthree.tarladan.modules.truck.dto.UpdateTruckRequest;
 import com.gangofthree.tarladan.modules.trucker.repository.TruckerRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,6 +15,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -132,5 +134,19 @@ public class TruckServiceImpl implements TruckService {
         }
 
         truckRepository.delete(existingTruck);
+    }
+
+    @Override
+    public List<Truck> getAllTrucks() {
+        return truckRepository.findAll();
+    }
+
+    // --- Belirli Trucker'a Ait Tırları Getirme ---
+    @Override
+    public List<Truck> getTrucksByTruckerId(Long truckerId) {
+        Trucker trucker = truckerRepository.findById(truckerId)
+                .orElseThrow(() -> new EntityNotFoundException("ID " + truckerId + " ile Trucker bulunamadı."));
+
+        return truckRepository.findAllByTrucker(trucker);
     }
 }

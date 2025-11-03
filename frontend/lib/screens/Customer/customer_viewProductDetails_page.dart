@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'customer_purchaseProdcut_page.dart';
+import 'customer_purchaseProduct_page.dart';
 
 class CustomerViewProductDetailsPage extends StatefulWidget {
   final String productName;

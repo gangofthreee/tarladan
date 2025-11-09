@@ -1,28 +1,29 @@
-import 'dart:io';
-import 'package:flutter/foundation.dart';
-
 class ApiConfig {
   static String get baseUrl {
+    // Demo için tüm platformlarda aynı IP kullan
+    return 'http://172.20.10.2:8080';
+    
     // Web platform kontrolü
-    if (kIsWeb) {
-      return 'http://localhost:8080';
-    }
+    // if (kIsWeb) {
+    //   return 'http://localhost:8080';
+    // }
 
     // Android emulator
-    if (Platform.isAndroid) {
-      return 'http://10.0.2.2:8080';
-    }
+    // if (Platform.isAndroid) {
+    //   return 'http://10.0.2.2:8080';
+    // }
 
     // iOS simulator veya macOS
-    if (Platform.isIOS || Platform.isMacOS) {
-      return 'http://localhost:8080';
-    }
+    // if (Platform.isIOS || Platform.isMacOS) {
+    //   return 'http://localhost:8080';
+    // }
 
     // Diğer platformlar (Windows, Linux)
-    return 'http://localhost:8080';
+    // return 'http://localhost:8080';
   }
 
   static const String registerEndpoint = '/api/users/register';
+  static const String loginEndpoint = '/api/users/login';
   static const String verifyEndpoint = '/api/users/verify';
   static const String verifyCodeEndpoint = '/api/verification/verifyCode';
   static const String resendCodeEndpoint = '/api/verification/resendCode';
@@ -47,6 +48,7 @@ class ApiConfig {
   static const String getTrucksByTruckerEndpoint = '/truck/get';
 
   static String get registerUrl => '$baseUrl$registerEndpoint';
+  static String get loginUrl => '$baseUrl$loginEndpoint';
   static String get verifyUrl => '$baseUrl$verifyEndpoint';
   static String get verifyCodeUrl => '$baseUrl$verifyCodeEndpoint';
   static String resendCodeUrl(String email) =>

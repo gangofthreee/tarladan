@@ -1,8 +1,110 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'signup_screen.dart';
+import '../config/api_config.dart';
+import 'Farmer/farmer_main_page.dart';
+import 'Trucker/trucker_main_page.dart';
+import 'Warehouseman/warehouseman_main_page.dart';
+import 'Customer/customer_main_page.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
+
+  Future<void> _login() async {
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      _showError('Lütfen tüm alanları doldurun');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await http.post(
+        Uri.parse(ApiConfig.loginUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'email': _emailController.text.trim(),
+          'password': _passwordController.text,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final String role = data['role'];
+
+        if (!mounted) return;
+
+        // Role'e göre yönlendirme
+        switch (role) {
+          case 'FARMER':
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const FarmerMainPage()),
+            );
+            break;
+          case 'TRUCKER':
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const TruckerMainPage()),
+            );
+            break;
+          case 'CUSTOMER':
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const CustomerMainPage()),
+            );
+            break;
+          case 'DEPOT_OWNER':
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const WarehousemanMainPage()),
+            );
+            break;
+          default:
+            _showError('Bilinmeyen kullanıcı rolü');
+        }
+      } else {
+        _showError('Giriş başarısız. Lütfen bilgilerinizi kontrol edin.');
+      }
+    } catch (e) {
+      _showError('Bir hata oluştu: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,8 +127,10 @@ class LoginPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 40),
                 TextField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
-                    hintText: 'E-posta veya Telefon',
+                    hintText: 'E-posta',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -36,6 +140,7 @@ class LoginPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 TextField(
+                  controller: _passwordController,
                   obscureText: true,
                   decoration: InputDecoration(
                     hintText: 'Parola',
@@ -68,11 +173,20 @@ class LoginPage extends StatelessWidget {
                         borderRadius: BorderRadius.circular(20),
                       ),
                     ),
-                    onPressed: () {},
-                    child: const Text(
-                      'Giriş Yap',
-                      style: TextStyle(fontSize: 18, color: Colors.white),
-                    ),
+                    onPressed: _isLoading ? null : _login,
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Text(
+                            'Giriş Yap',
+                            style: TextStyle(fontSize: 18, color: Colors.white),
+                          ),
                   ),
                 ),
                 const SizedBox(height: 16),

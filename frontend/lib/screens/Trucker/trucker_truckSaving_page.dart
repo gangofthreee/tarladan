@@ -37,24 +37,42 @@ class _TruckerTruckSavingPageState extends State<TruckerTruckSavingPage> {
   Future<void> _pickImages() async {
     try {
       final List<XFile> images = await _picker.pickMultiImage();
-      setState(() {
-        _selectedXFiles.addAll(images);
-        if (!kIsWeb) {
-          _selectedImages.addAll(images.map((image) => File(image.path)));
+      if (images.isNotEmpty) {
+        setState(() {
+          _selectedXFiles.addAll(images);
+          if (!kIsWeb) {
+            _selectedImages.addAll(images.map((image) => File(image.path)));
+          }
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${images.length} fotoğraf seçildi'),
+              backgroundColor: const Color(0xFF4CAF50),
+              duration: const Duration(seconds: 2),
+            ),
+          );
         }
-      });
+      }
     } catch (e) {
+      print('Fotoğraf seçme hatası: $e');
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Fotoğraf seçme hatası: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Fotoğraf seçme hatası: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
 
   void _removeImage(int index) {
     setState(() {
-      _selectedImages.removeAt(index);
+      _selectedXFiles.removeAt(index);
+      if (!kIsWeb && index < _selectedImages.length) {
+        _selectedImages.removeAt(index);
+      }
     });
   }
 

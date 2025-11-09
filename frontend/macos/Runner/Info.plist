@@ -28,5 +28,9 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Araç fotoğraflarını yüklemek için fotoğraf kütüphanenize erişmemiz gerekiyor</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Araç fotoğrafı çekmek için kameraya erişmemiz gerekiyor</string>
 </dict>
 </plist>

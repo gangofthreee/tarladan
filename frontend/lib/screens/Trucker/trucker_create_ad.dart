@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import '../../config/api_config.dart';
 
 class TruckerCreateAdPage extends StatefulWidget {
   const TruckerCreateAdPage({super.key});
@@ -13,18 +16,74 @@ class _TruckerCreateAdPageState extends State<TruckerCreateAdPage> {
 
   String? _selectedTruck;
   DateTime? _selectedDateTime;
+  List<dynamic> _trucks = [];
+  bool _isLoadingTrucks = false;
+  final int _truckerId = 1; // Şimdilik test için sabit ID
 
-  // Örnek kayıtlı araçlar
-  final List<Map<String, String>> trucks = [
-    {'name': 'Volvo FH16 - 34 ABC 123', 'value': 'truck1'},
-    {'name': 'Mercedes Actros - 06 XYZ 456', 'value': 'truck2'},
-    {'name': 'Scania R500 - 35 DEF 789', 'value': 'truck3'},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _fetchTrucks();
+  }
 
   @override
   void dispose() {
     _priceController.dispose();
     super.dispose();
+  }
+
+  Future<void> _fetchTrucks() async {
+    setState(() {
+      _isLoadingTrucks = true;
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse(ApiConfig.getTrucksByTruckerUrl(_truckerId)),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      print('Trucks API Response status: ${response.statusCode}');
+      print('Trucks API Response body: ${response.body}');
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          _trucks = data is List ? data : [data];
+          _isLoadingTrucks = false;
+        });
+      } else {
+        setState(() {
+          _trucks = [];
+          _isLoadingTrucks = false;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Araçlar yüklenemedi: ${response.statusCode}'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('Araç yükleme hatası: $e');
+      if (!mounted) return;
+      setState(() {
+        _trucks = [];
+        _isLoadingTrucks = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Araçlar yüklenirken hata oluştu: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _selectDateTime() async {
@@ -175,34 +234,70 @@ class _TruckerCreateAdPageState extends State<TruckerCreateAdPage> {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: Colors.grey[300]!),
                   ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      isExpanded: true,
-                      value: _selectedTruck,
-                      hint: Text(
-                        'Araç seç',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 16),
-                      ),
-                      icon: const Icon(Icons.keyboard_arrow_down),
-                      items: trucks.map((truck) {
-                        return DropdownMenuItem<String>(
-                          value: truck['value'],
-                          child: Text(
-                            truck['name']!,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Colors.black87,
-                            ),
+                  child: _isLoadingTrucks
+                      ? const Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Color(0xFF4CAF50),
+                                ),
+                              ),
+                              SizedBox(width: 12),
+                              Text(
+                                'Araçlar yükleniyor...',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
                           ),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedTruck = value;
-                        });
-                      },
-                    ),
-                  ),
+                        )
+                      : DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            isExpanded: true,
+                            value: _selectedTruck,
+                            hint: Text(
+                              _trucks.isEmpty
+                                  ? 'Kayıtlı araç bulunamadı'
+                                  : 'Araç seç',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 16,
+                              ),
+                            ),
+                            icon: const Icon(Icons.keyboard_arrow_down),
+                            items: _trucks.map((truck) {
+                              final truckId = truck['id']?.toString() ?? '';
+                              final vehicle = truck['vehicle'] ?? 'Araç';
+                              final plate = truck['plate'] ?? '';
+                              final displayName = '$vehicle - $plate';
+
+                              return DropdownMenuItem<String>(
+                                value: truckId,
+                                child: Text(
+                                  displayName,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: _trucks.isEmpty
+                                ? null
+                                : (value) {
+                                    setState(() {
+                                      _selectedTruck = value;
+                                    });
+                                  },
+                          ),
+                        ),
                 ),
 
                 const SizedBox(height: 20),

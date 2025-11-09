@@ -1,8 +1,15 @@
 class ApiConfig {
   static String get baseUrl {
-    // Demo için tüm platformlarda aynı IP kullan
-    return 'http://172.20.10.2:8080';
-    
+    // macOS için localhost, diğer cihazlar için gerçek IP
+    // Geliştirme sırasında: macOS -> localhost, mobil cihaz -> 192.168.1.98
+    return 'http://localhost:8080';
+
+    // Fiziksel cihaz test için (aynı WiFi'de):
+    // return 'http://192.168.1.98:8080';
+
+    // Eski IP (artık kullanılmıyor):
+    // return 'http://172.20.10.2:8080';
+
     // Web platform kontrolü
     // if (kIsWeb) {
     //   return 'http://localhost:8080';

@@ -20,49 +20,46 @@ public class TruckController {
 
     private final TruckService truckService;
 
+    // Artık client sadece access token gönderiyor; truckerId JWT’den alınacak
     @PostMapping(value = "/create", consumes = {"multipart/form-data"})
-    public ResponseEntity<Truck> createTruck(@ModelAttribute AddTruckRequest request) {
-        Truck createdTruck = truckService.addTruck(request);
+    public ResponseEntity<Truck> createTruck(@ModelAttribute AddTruckRequest request,
+                                             @RequestAttribute("domainId") Long truckerId) {
+        // domainId JwtAuthFilter'da SecurityContext veya request attribute olarak set edilecek
+        Truck createdTruck = truckService.addTruck(request, truckerId);
         return ResponseEntity.ok(createdTruck);
     }
 
     @PatchMapping(value = "/update/{id}", consumes = {"multipart/form-data"})
-    public ResponseEntity<Truck> updateTruck(@PathVariable Long id, @ModelAttribute UpdateTruckRequest request) {
-        Truck updatedTruck = truckService.updateTruck(id, request);
+    public ResponseEntity<Truck> updateTruck(@PathVariable Long id,
+                                             @ModelAttribute UpdateTruckRequest request,
+                                             @RequestAttribute("domainId") Long truckerId) {
+        Truck updatedTruck = truckService.updateTruck(id, request, truckerId);
         return ResponseEntity.ok(updatedTruck);
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> deleteTruck(@PathVariable Long id) {
-        truckService.deleteTruck(id);
+    public ResponseEntity<String> deleteTruck(@PathVariable Long id,
+                                              @RequestAttribute("domainId") Long truckerId) {
+        truckService.deleteTruck(id, truckerId);
         return ResponseEntity.ok("Truck başarıyla silindi.");
     }
 
-    @GetMapping("/get/{id}")
-    public ResponseEntity<List<Truck>> getTrucksByTruckerId(@PathVariable("id") Long truckerId) {
-        try {
-            List<Truck> trucks = truckService.getTrucksByTruckerId(truckerId);
-            return ResponseEntity.ok(trucks);
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-    }
-
-    // 2. Sistemdeki tüm Truck'ları döndüren endpoint
-    @GetMapping("/getAllTrucks")
-    public ResponseEntity<List<Truck>> getAllTrucks() {
-        List<Truck> trucks = truckService.getAllTrucks();
+    @GetMapping("/get")
+    public ResponseEntity<List<Truck>> getMyTrucks(@RequestAttribute("domainId") Long truckerId) {
+        List<Truck> trucks = truckService.getTrucksByTruckerId(truckerId);
         return ResponseEntity.ok(trucks);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Truck> getTruckById(@PathVariable("id") Long id) {
-        try {
-            Truck truck = truckService.getTruckById(id);
-            return ResponseEntity.ok(truck);
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+    @GetMapping("/getAllTrucks")
+    public ResponseEntity<List<Truck>> getAllTrucks() {
+        return ResponseEntity.ok(truckService.getAllTrucks());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Truck> getTruckById(@PathVariable Long id,
+                                              @RequestAttribute("domainId") Long truckerId) {
+        Truck truck = truckService.getTruckByIdAndTrucker(id, truckerId);
+        return ResponseEntity.ok(truck);
+    }
 }
+

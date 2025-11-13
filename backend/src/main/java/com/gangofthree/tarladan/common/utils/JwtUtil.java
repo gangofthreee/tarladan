@@ -90,4 +90,13 @@ public class JwtUtil {
             return true;
         }
     }
+
+    public Long extractDomainId(String token) {
+        Claims claims = extractAllClaims(token);
+        Object domainId = claims.get(DOMAIN_ID);
+        if (domainId == null) {
+            throw new IllegalArgumentException("Token içinde domainId (did) bulunamadı");
+        }
+        return Long.parseLong(domainId.toString());
+    }
 }

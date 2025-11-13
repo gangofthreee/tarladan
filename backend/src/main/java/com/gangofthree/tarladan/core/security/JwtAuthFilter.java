@@ -47,21 +47,20 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         final String jwt = authHeader.substring(7);
         Long userId = null;
         String role = null;
+        Long domainId = null; // ✅ domainId (truckerId, farmerId vb.)
 
         try {
             Claims claims = jwtUtil.extractAllClaims(jwt);
             userId = claims.get(JwtUtil.USER_ID, Long.class);
             role = claims.get(JwtUtil.ROLE, String.class);
+            domainId = claims.get(JwtUtil.DOMAIN_ID, Long.class); // JWT payload’ta domainId olmalı
 
-            // 1️⃣ Access token expired mı?
+            // Access token expired mı?
             if (jwtUtil.isTokenExpired(jwt)) {
-                // 2️⃣ Redis’te bu access token’a bağlı refresh token var mı?
                 String newAccessToken = tokenService.refreshAccessTokenIfValid(jwt, role);
                 if (newAccessToken != null) {
-                    // ✅ Refresh başarılı → response header’a yeni token yaz
                     response.setHeader("X-New-Access-Token", newAccessToken);
 
-                    // SecurityContext’i oluştur ve isteği çalıştır
                     List<SimpleGrantedAuthority> authorities =
                             Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
 
@@ -71,24 +70,26 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
 
+                    // DomainId’yi request attribute olarak set et
+                    request.setAttribute("domainId", domainId);
+
                     filterChain.doFilter(request, response);
                     return;
                 }
 
-                // Refresh token yoksa → oturum süresi bitmiş
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("Session expired, please login again");
                 return;
             }
 
-            // 3️⃣ Token Redis'te aktif mi?
+            // Token Redis'te aktif mi?
             if (!tokenService.isAccessTokenValidInRedis(userId, jwt)) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("Access Token Revoked or Replaced");
                 return;
             }
 
-            // 4️⃣ Security Context oluştur
+            // Security Context oluştur
             if (userId != null && role != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 List<SimpleGrantedAuthority> authorities =
                         Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
@@ -98,6 +99,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+
+                // ✅ DomainId’yi request attribute olarak set et
+                request.setAttribute("domainId", domainId);
             }
 
         } catch (ExpiredJwtException e) {

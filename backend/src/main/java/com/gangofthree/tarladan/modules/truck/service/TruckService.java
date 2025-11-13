@@ -7,15 +7,18 @@ import com.gangofthree.tarladan.modules.truck.dto.UpdateTruckRequest;
 import java.util.List;
 
 public interface TruckService {
-    Truck addTruck(AddTruckRequest addTruckRequest);
 
-    Truck updateTruck(Long id, UpdateTruckRequest updateTruckRequest);
+    Truck addTruck(AddTruckRequest addTruckRequest, Long truckerIdFromToken);
 
-    void deleteTruck(Long id);
+    Truck updateTruck(Long id, UpdateTruckRequest updateTruckRequest, Long truckerIdFromToken);
 
-    List<Truck> getTrucksByTruckerId(Long truckerId);
+    void deleteTruck(Long id, Long truckerIdFromToken);
+
+    List<Truck> getTrucksByTruckerId(Long truckerIdFromToken);
+
+    Truck getTruckByIdAndTrucker(Long id, Long truckerIdFromToken);
 
     List<Truck> getAllTrucks();
-
-    Truck getTruckById(Long id);
 }
+
+

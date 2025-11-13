@@ -1,5 +1,8 @@
 package com.gangofthree.tarladan.modules.user.service;
 
+import com.gangofthree.tarladan.common.dto.TokenResponse;
+import com.gangofthree.tarladan.common.utils.JwtUtil;
+import com.gangofthree.tarladan.core.service.TokenService;
 import com.gangofthree.tarladan.modules.customer.entity.Customer;
 import com.gangofthree.tarladan.modules.customer.repository.CustomerRepository;
 import com.gangofthree.tarladan.modules.trucker.entity.Trucker;
@@ -15,6 +18,7 @@ import com.gangofthree.tarladan.modules.user.repository.UserRepository;
 import com.gangofthree.tarladan.modules.depotOwner.repository.DepotOwnerRepository;
 import com.gangofthree.tarladan.modules.farmer.repository.FarmerRepository;
 import com.gangofthree.tarladan.modules.verification.service.VerificationService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,6 +30,9 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final VerificationService verificationService;
+    private final JwtUtil jwtUtil;
+    private final TokenService tokenService;
+    private final RoleBasedIdService roleBasedIdService;
     private final FarmerRepository farmerRepository;
     private final DepotOwnerRepository depotOwnerRepository;
     private final CustomerRepository customerRepository;
@@ -94,7 +101,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserLoginResponse login(UserLoginRequest request) {
+    @Transactional
+    public TokenResponse login(UserLoginRequest request) {
         // Email’e göre kullanıcıyı bul
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + request.getEmail()));
@@ -109,17 +117,27 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("Email is not verified");
         }
 
-        // Şifre veya hassas bilgileri dönme — sadece frontend’in ihtiyaç duyduğu bilgileri ver
-        return UserLoginResponse.builder()
-                .id(user.getId())
-                .name(user.getName())
-                .surname(user.getSurname())
-                .email(user.getEmail())
-                .phone(user.getPhone())
-                .role(user.getRole())  // FARMER, BUYER, TRUCKER, DEPOT_OWNER
+        // 1. Role bağlı domain ID'yi al (farmerId, truckerId, vb.)
+        Long domainId = roleBasedIdService.getDomainId(user);
+
+        // 2. Access Token üret (2 dakika TTL)
+        String accessToken = jwtUtil.generateAccessToken(user.getId(), user.getRole().name(), domainId);
+
+        // 3. Refresh Token üret (UUID, 1 gün TTL) ve Redis'e kaydet
+        String refreshToken = tokenService.createOrUpdateRefreshToken(user.getId(), domainId, accessToken);
+
+        // 4. Access Token'ı Redis'e kaydet (manuel olarak oturum başlatma)
+        tokenService.saveAccessToken(user.getId(), accessToken);
+
+        // 5. Token'ları ve kullanıcı bilgilerini döndür
+        return TokenResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .userId(user.getId())
+                .role(user.getRole())
+                .roleBasedId(domainId)
+                .message("Login successful. Tokens generated.")
                 .build();
     }
-
-
 }
 

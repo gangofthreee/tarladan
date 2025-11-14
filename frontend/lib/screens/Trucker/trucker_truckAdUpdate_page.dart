@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../widgets/themed_scaffold.dart';
+
 class TruckerTruckUpdatePage extends StatefulWidget {
   final Map<String, dynamic> ad;
 
-  const TruckerTruckUpdatePage({
-    super.key,
-    required this.ad,
-  });
+  const TruckerTruckUpdatePage({super.key, required this.ad});
 
   @override
   State<TruckerTruckUpdatePage> createState() => _TruckerTruckUpdatePageState();
@@ -75,12 +74,9 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
 
   void _handleUpdate() {
     if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('İlan güncellendi'),
-          backgroundColor: Color(0xFF4CAF50),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('İlan güncellendi')));
       Navigator.pop(context);
     }
   }
@@ -104,17 +100,11 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
             onPressed: () {
               Navigator.pop(context); // Close dialog
               Navigator.pop(context); // Go back to list
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('İlan silindi'),
-                  backgroundColor: Colors.red,
-                ),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('İlan silindi')));
             },
-            child: const Text(
-              'Sil',
-              style: TextStyle(color: Colors.red),
-            ),
+            child: const Text('Sil', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -123,23 +113,17 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        backgroundColor: Colors.white,
+    return ThemedScaffold(
+      appBar: ThemedAppBar(
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'İlan Düzenle',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
       ),
       body: SingleChildScrollView(
@@ -151,12 +135,12 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Tır Seç
-                const Text(
+                Text(
                   'Tır Seç',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -201,12 +185,12 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
                 const SizedBox(height: 24),
 
                 // Müsaitlik durumu
-                const Text(
+                Text(
                   'Müsaitlik durumu',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -248,12 +232,12 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
                 const SizedBox(height: 24),
 
                 // Taban fiyat
-                const Text(
+                Text(
                   'Taban fiyat',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -303,7 +287,12 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
                       child: OutlinedButton(
                         onPressed: _handleCancel,
                         style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: Colors.grey[400]!),
+                          foregroundColor: Theme.of(
+                            context,
+                          ).textTheme.bodyLarge?.color,
+                          side: BorderSide(
+                            color: Theme.of(context).dividerColor,
+                          ),
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -314,7 +303,6 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
                           ),
                         ),
                       ),
@@ -354,6 +342,7 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
                     onPressed: _handleDelete,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -365,7 +354,6 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
                       ),
                     ),
                   ),

@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../config/api_config.dart';
 
+import '../../widgets/themed_scaffold.dart';
 class FarmerCreateAd extends StatefulWidget {
   const FarmerCreateAd({super.key});
 
@@ -107,9 +108,7 @@ class _FarmerCreateAdState extends State<FarmerCreateAd> {
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-        behavior: SnackBarBehavior.floating,
+        content: Text(message),        behavior: SnackBarBehavior.floating,
       ),
     );
   }
@@ -117,9 +116,7 @@ class _FarmerCreateAdState extends State<FarmerCreateAd> {
   void _showSuccessSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
+        content: Text(message),        behavior: SnackBarBehavior.floating,
       ),
     );
   }
@@ -135,18 +132,16 @@ class _FarmerCreateAdState extends State<FarmerCreateAd> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
+    return ThemedScaffold(
+            appBar: ThemedAppBar(
+                elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Yeni İlan Aç',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle( fontWeight: FontWeight.bold),
         ),
       ),
       body: Form(
@@ -344,8 +339,7 @@ class _FarmerCreateAdState extends State<FarmerCreateAd> {
                         color: Colors.black,
                       ),
                     ),
-                    const Icon(Icons.location_on, 
-                      color: Colors.green
+                    const Icon(Icons.location_on
                     ),
                   ],
                 ),

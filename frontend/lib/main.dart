@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/signup_screen.dart';
@@ -7,9 +8,15 @@ import 'screens/Farmer/farmer_orders.dart';
 import 'screens/Warehouseman/warehouseman_main_page.dart';
 import 'screens/Trucker/trucker_main_page.dart';
 import 'screens/Customer/customer_main_page.dart';
+import 'config/theme_provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -17,22 +24,27 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Tarladan',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
-        useMaterial3: true,
-      ),
-      home: const LoginPage(), // Login page başlangıç
-      routes: {
-        '/splash': (context) => const SplashScreen(),
-        '/login': (context) => const LoginPage(),
-        '/register': (context) => const RegisterScreen(),
-        '/farmer-main': (context) => const FarmerMainPage(),
-        '/farmer-orders': (context) => const FarmerOrdersScreen(),
-        '/warehouseman-main': (context) => const WarehousemanMainPage(),
-        '/trucker-main': (context) => const TruckerMainPage(),
-        '/customer-main': (context) => const CustomerMainPage(),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return MaterialApp(
+          title: 'Tarladan',
+          theme: themeProvider.lightTheme,
+          darkTheme: themeProvider.darkTheme,
+          themeMode: themeProvider.isDarkMode
+              ? ThemeMode.dark
+              : ThemeMode.light,
+          home: const LoginPage(), // Login page başlangıç
+          routes: {
+            '/splash': (context) => const SplashScreen(),
+            '/login': (context) => const LoginPage(),
+            '/register': (context) => const RegisterScreen(),
+            '/farmer-main': (context) => const FarmerMainPage(),
+            '/farmer-orders': (context) => const FarmerOrdersScreen(),
+            '/warehouseman-main': (context) => const WarehousemanMainPage(),
+            '/trucker-main': (context) => const TruckerMainPage(),
+            '/customer-main': (context) => const CustomerMainPage(),
+          },
+        );
       },
     );
   }

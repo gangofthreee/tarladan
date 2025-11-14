@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import '../../config/api_config.dart';
 
+import '../../widgets/themed_scaffold.dart';
+
 class TruckerTruckUpdatePage extends StatefulWidget {
   final Map<String, dynamic> truck;
 
@@ -51,10 +53,7 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
       // Fotoğraf kontrolü
       if (!_hasImage) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Lütfen araç fotoğrafı yükleyiniz'),
-            backgroundColor: Colors.red,
-          ),
+          const SnackBar(content: Text('Lütfen araç fotoğrafı yükleyiniz')),
         );
         return;
       }
@@ -89,7 +88,6 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Araç bilgileri başarıyla güncellendi'),
-                backgroundColor: Color(0xFF4CAF50),
               ),
             );
             Navigator.pop(context, true); // true dönerek listeyi yenile
@@ -99,12 +97,9 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Hata: ${e.toString()}'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Hata: ${e.toString()}')));
         }
       } finally {
         if (mounted) {
@@ -125,32 +120,23 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
     setState(() {
       _hasImage = true;
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Fotoğraf yüklendi'),
-        backgroundColor: Color(0xFF4CAF50),
-      ),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Fotoğraf yüklendi')));
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
+    return ThemedScaffold(
+      appBar: ThemedAppBar(
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Araç Bilgilerini Düzenle',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         ),
         centerTitle: false,
       ),
@@ -163,12 +149,12 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Araç markası / modeli
-                const Text(
+                Text(
                   'Araç markası / modeli',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: Colors.black87,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -219,12 +205,12 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
                 const SizedBox(height: 20),
 
                 // Plaka
-                const Text(
+                Text(
                   'Plaka',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: Colors.black87,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -275,12 +261,12 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
                 const SizedBox(height: 20),
 
                 // Dorse kapasitesi
-                const Text(
+                Text(
                   'Dorse kapasitesi',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: Colors.black87,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -333,12 +319,12 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
                 const SizedBox(height: 20),
 
                 // Araç Fotoğrafı
-                const Text(
+                Text(
                   'Araç Fotoğrafı',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -381,12 +367,14 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
                         : Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Text(
+                              Text(
                                 'Fotoğraf Yükle',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
+                                  color: Theme.of(
+                                    context,
+                                  ).textTheme.bodyLarge?.color,
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -404,12 +392,12 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
                 const SizedBox(height: 20),
 
                 // Taban fiyat
-                const Text(
+                Text(
                   'Taban fiyat',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
-                    color: Colors.black87,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -477,12 +465,12 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: const Text(
+                        child: Text(
                           'İptal',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: Colors.black87,
+                            color: Theme.of(context).textTheme.bodyLarge?.color,
                           ),
                         ),
                       ),

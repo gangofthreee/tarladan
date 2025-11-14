@@ -3,28 +3,33 @@ import 'farmer_create_ad.dart';
 import 'farmer_all_ads.dart';
 import 'farmer_ad_detail.dart';
 import 'farmer_orders.dart';
+import 'farmer_settings_page.dart';
 
+import '../../widgets/themed_scaffold.dart';
 class FarmerMainPage extends StatelessWidget {
   const FarmerMainPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color(0xFFF5F5F5),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
+    return ThemedScaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: ThemedAppBar(
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
         title: Text(
           'Tarladan',
           style: TextStyle(
-            color: Colors.black,
+            color: Theme.of(context).appBarTheme.foregroundColor,
             fontSize: 24,
             fontWeight: FontWeight.bold,
           ),
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.notifications_outlined, color: Colors.black),
+            icon: Icon(
+              Icons.notifications_outlined,
+              color: Theme.of(context).appBarTheme.foregroundColor,
+            ),
             onPressed: () {},
           ),
         ],
@@ -40,7 +45,7 @@ class FarmerMainPage extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
                 ),
               ),
               const SizedBox(height: 24),
@@ -86,14 +91,14 @@ class FarmerMainPage extends StatelessWidget {
                     ),
                   ),
                   _buildInteractiveActionCard(
-                    'Cüzdanım',
-                    Icons.account_balance_wallet_outlined,
+                    'Ayarlar',
+                    Icons.settings,
                     Color(0xFF00D563),
                     () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Cüzdan sayfası henüz hazır değil'),
-                          backgroundColor: Color(0xFF00D563),
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const FarmerSettingsPage(),
                         ),
                       );
                     },
@@ -150,42 +155,44 @@ class FarmerMainPage extends StatelessWidget {
     Color color,
     VoidCallback onTap,
   ) {
-    return Material(
-      borderRadius: BorderRadius.circular(16),
-      color: Colors.white,
-      child: InkWell(
+    return Builder(
+      builder: (context) => Material(
         borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        splashColor: color.withOpacity(0.3),
-        highlightColor: color.withOpacity(0.1),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: EdgeInsets.all(16),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(icon, size: 48, color: color),
-                const SizedBox(height: 12),
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black,
-                  ),
-                  textAlign: TextAlign.center,
+        color: Theme.of(context).cardColor,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          splashColor: color.withOpacity(0.3),
+          highlightColor: color.withOpacity(0.1),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: Offset(0, 2),
                 ),
               ],
+            ),
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(icon, size: 48, color: color),
+                  const SizedBox(height: 12),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -281,8 +288,7 @@ class FarmerMainPage extends StatelessWidget {
       child: BottomNavigationBar(
         currentIndex: currentIndex,
         type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: Color(0xFF00D563),
+                selectedItemColor: Color(0xFF00D563),
         unselectedItemColor: Colors.grey,
         elevation: 0,
         items: [
@@ -295,10 +301,7 @@ class FarmerMainPage extends StatelessWidget {
             icon: Icon(Icons.inventory_2_outlined),
             label: 'Siparişler',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_balance_wallet_outlined),
-            label: 'Cüzdan',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Ayarlar'),
         ],
         onTap: (index) {
           if (index == 0) {
@@ -316,9 +319,12 @@ class FarmerMainPage extends StatelessWidget {
               ),
             );
           } else if (index == 3) {
-            // Navigate to wallet page (not implemented yet)
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Cüzdan sayfası henüz hazır değil')),
+            // Navigate to settings page
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const FarmerSettingsPage(),
+              ),
             );
           }
         },

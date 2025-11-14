@@ -4,6 +4,7 @@ import 'dart:convert';
 import '../../config/api_config.dart';
 import 'warehouseman_updateWarehouseInfo_page.dart';
 
+import '../../widgets/themed_scaffold.dart';
 class WarehousemanMyWarehouseDetailPage extends StatefulWidget {
   final int depotId;
 
@@ -74,20 +75,18 @@ class _WarehousemanMyWarehouseDetailPageState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
+    return ThemedScaffold(
+            appBar: ThemedAppBar(
+                elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context, _wasUpdated),
         ),
         title: const Text(
           'Depo Detayları',
           style: TextStyle(
-            color: Colors.black,
+            
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
@@ -422,8 +421,7 @@ class _WarehousemanMyWarehouseDetailPageState
           // Avatar
           CircleAvatar(
             radius: 25,
-            backgroundColor: Colors.grey[300],
-            child: const Icon(Icons.person, size: 30, color: Colors.white),
+                        child: const Icon(Icons.person, size: 30, color: Colors.white),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -469,25 +467,20 @@ class _WarehousemanMyWarehouseDetailPageState
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Depo başarıyla silindi'),
-            backgroundColor: Color(0xFF4CAF50),
-          ),
+                      ),
         );
       } else {
         // Hata durumu
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Depo silinemedi: ${response.statusCode}'),
-            backgroundColor: Colors.red,
-          ),
+            content: Text('Depo silinemedi: ${response.statusCode}'),          ),
         );
       }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Bağlantı hatası: $e'),
-          backgroundColor: Colors.red,
-        ),
+          content: Text('Bağlantı hatası: $e'),        ),
       );
     }
   }

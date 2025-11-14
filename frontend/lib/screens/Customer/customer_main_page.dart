@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'customer_viewProductDetails_page.dart';
 import 'customer_viewOrders.dart';
+import 'customer_settings_page.dart';
+
+import '../../widgets/themed_scaffold.dart';
 
 class CustomerMainPage extends StatefulWidget {
   const CustomerMainPage({super.key});
@@ -74,6 +77,12 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
         context,
         MaterialPageRoute(builder: (context) => const CustomerViewOrdersPage()),
       );
+    } else if (index == 3) {
+      // Navigate to settings page
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const CustomerSettingsPage()),
+      );
     }
   }
 
@@ -85,24 +94,24 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
+    return ThemedScaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
             // Header
             Container(
               padding: const EdgeInsets.all(20),
-              color: Colors.white,
+              color: Theme.of(context).cardColor,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Tarladan',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF2C3E50),
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
                     ),
                   ),
                   // Sepet ikonu
@@ -111,13 +120,15 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.grey[100],
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.grey[800]
+                              : Colors.grey[100],
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.shopping_cart_outlined,
                           size: 28,
-                          color: Colors.black87,
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
                         ),
                       ),
                       if (_cartItemCount > 0)
@@ -171,7 +182,7 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
                   decoration: InputDecoration(
                     hintText: 'Ürün ara...',
                     hintStyle: TextStyle(color: Colors.grey[400]),
-                    prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
+                    prefixIcon: const Icon(Icons.search),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -276,7 +287,6 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
         ),
         child: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
           selectedItemColor: const Color(0xFF4CAF50),
           unselectedItemColor: Colors.grey[400],
           selectedLabelStyle: const TextStyle(

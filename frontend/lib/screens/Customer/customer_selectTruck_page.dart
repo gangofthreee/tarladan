@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../widgets/themed_scaffold.dart';
 class CustomerSelectTruckPage extends StatefulWidget {
   const CustomerSelectTruckPage({super.key});
 
@@ -46,9 +47,7 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
     if (_selectedTruckId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Lütfen bir tır seçiniz'),
-          backgroundColor: Colors.orange,
-        ),
+          content: Text('Lütfen bir tır seçiniz'),        ),
       );
       return;
     }
@@ -63,20 +62,18 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
         ? trucks.firstWhere((truck) => truck['id'] == _selectedTruckId)
         : null;
 
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
+    return ThemedScaffold(
+            appBar: ThemedAppBar(
+                elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Tır Seç',
           style: TextStyle(
-            color: Colors.black,
+            
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),

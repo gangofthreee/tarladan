@@ -3,7 +3,9 @@ import 'trucker_truckSaving_page.dart';
 import 'trucker_create_ad.dart';
 import 'trucker_truckList_page.dart';
 import 'trucker_listAds_page.dart';
+import 'trucker_settings_page.dart';
 
+import '../../widgets/themed_scaffold.dart';
 class TruckerMainPage extends StatefulWidget {
   const TruckerMainPage({super.key});
 
@@ -15,9 +17,17 @@ class _TruckerMainPageState extends State<TruckerMainPage> {
   int _selectedIndex = 0;
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    if (index == 3) {
+      // Ayarlar sayfasına git
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const TruckerSettingsPage()),
+      );
+    } else {
+      setState(() {
+        _selectedIndex = index;
+      });
+    }
   }
 
   // Örnek açık iş teklifleri
@@ -36,8 +46,8 @@ class _TruckerMainPageState extends State<TruckerMainPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
+    return ThemedScaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -46,28 +56,30 @@ class _TruckerMainPageState extends State<TruckerMainPage> {
               // Header with notification
               Container(
                 padding: const EdgeInsets.all(20),
-                color: Colors.white,
+                color: Theme.of(context).cardColor,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       'Tarladan',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF2C3E50),
+                        color: Theme.of(context).textTheme.bodyLarge?.color,
                       ),
                     ),
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.grey[100],
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.grey[800]
+                            : Colors.grey[100],
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.notifications_outlined,
                         size: 28,
-                        color: Colors.black87,
+                        color: Theme.of(context).textTheme.bodyLarge?.color,
                       ),
                     ),
                   ],
@@ -84,7 +96,7 @@ class _TruckerMainPageState extends State<TruckerMainPage> {
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    color: Colors.grey[800],
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
               ),
@@ -197,8 +209,7 @@ class _TruckerMainPageState extends State<TruckerMainPage> {
         ),
         child: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
-          selectedItemColor: const Color(0xFF4CAF50),
+                    selectedItemColor: const Color(0xFF4CAF50),
           unselectedItemColor: Colors.grey[400],
           selectedLabelStyle: const TextStyle(
             fontWeight: FontWeight.w600,
@@ -218,8 +229,8 @@ class _TruckerMainPageState extends State<TruckerMainPage> {
               label: 'Siparişler',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.account_balance_wallet),
-              label: 'Cüzdan',
+              icon: Icon(Icons.settings),
+              label: 'Ayarlar',
             ),
           ],
         ),
@@ -237,7 +248,7 @@ class _TruckerMainPageState extends State<TruckerMainPage> {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -256,10 +267,10 @@ class _TruckerMainPageState extends State<TruckerMainPage> {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
               ),
             ),
           ],

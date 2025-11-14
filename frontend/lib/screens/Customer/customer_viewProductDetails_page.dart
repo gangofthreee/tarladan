@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'customer_purchaseProduct_page.dart';
 
+import '../../widgets/themed_scaffold.dart';
 class CustomerViewProductDetailsPage extends StatefulWidget {
   final String productName;
   final String farmerName;
@@ -47,27 +48,25 @@ class _CustomerViewProductDetailsPageState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
+    return ThemedScaffold(
+            appBar: ThemedAppBar(
+                elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Ürün Detayları',
           style: TextStyle(
-            color: Colors.black,
+            
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.share, color: Colors.black),
+            icon: const Icon(Icons.share),
             onPressed: () {
               // Share functionality
             },
@@ -200,8 +199,7 @@ class _CustomerViewProductDetailsPageState
                       // Avatar
                       CircleAvatar(
                         radius: 30,
-                        backgroundColor: Colors.grey[300],
-                        child: const Icon(
+                                                child: const Icon(
                           Icons.person,
                           size: 35,
                           color: Colors.white,
@@ -242,7 +240,7 @@ class _CustomerViewProductDetailsPageState
                           ],
                         ),
                       ),
-                      const Icon(Icons.chevron_right, color: Colors.grey),
+                      const Icon(Icons.chevron_right),
                     ],
                   ),
                 ),

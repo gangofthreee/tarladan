@@ -225,194 +225,203 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
+    return Theme(
+      data: ThemeData.light(),
+      child: Scaffold(
         backgroundColor: Colors.grey[50],
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
-          onPressed: () => Navigator.pop(context),
+        appBar: AppBar(
+          backgroundColor: Colors.grey[50],
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.black87),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: const Text(
+            "Tarladan'a Katıl",
+            style: TextStyle(
+              color: Colors.black87,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          centerTitle: true,
         ),
-        title: const Text(
-          "Tarladan'a Katıl",
-          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              // Form Alanları
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Ad'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Lütfen adınızı girin';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _surnameController,
-                decoration: const InputDecoration(labelText: 'Soyad'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Lütfen soyadınızı girin';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _phoneController,
-                decoration: const InputDecoration(
-                  labelText: 'Telefon',
-                  prefixText: '0',
-                  hintText: '5XX XXX XX XX',
+        body: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              children: [
+                // Form Alanları
+                TextFormField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(labelText: 'Ad'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Lütfen adınızı girin';
+                    }
+                    return null;
+                  },
                 ),
-                keyboardType: TextInputType.phone,
-                maxLength: 10,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Lütfen telefon numaranızı girin';
-                  }
-                  // Sadece rakam kontrolü
-                  if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
-                    return 'Sadece rakam giriniz';
-                  }
-                  // 10 hane kontrolü
-                  if (value.length != 10) {
-                    return 'Telefon numarası 10 haneli olmalıdır';
-                  }
-                  // 5 ile başlamalı (0'dan sonra)
-                  if (!value.startsWith('5')) {
-                    return 'Telefon numarası 5 ile başlamalıdır';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _emailController,
-                decoration: const InputDecoration(labelText: 'E-posta'),
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Lütfen e-posta adresinizi girin';
-                  }
-                  if (!value.contains('@')) {
-                    return 'Geçerli bir e-posta adresi girin';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _passwordController,
-                decoration: const InputDecoration(labelText: 'Parola'),
-                obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Lütfen parola girin';
-                  }
-                  if (value.length < 6) {
-                    return 'Parola en az 6 karakter olmalıdır';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                "Rolünü Seç",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              if (_showRoleError)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.error_outline,
-                        color: Colors.red[700],
-                        size: 18,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        "Lütfen bir rol seçin",
-                        style: TextStyle(color: Colors.red[700], fontSize: 13),
-                      ),
-                    ],
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _surnameController,
+                  decoration: const InputDecoration(labelText: 'Soyad'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Lütfen soyadınızı girin';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _phoneController,
+                  decoration: const InputDecoration(
+                    labelText: 'Telefon',
+                    prefixText: '0',
+                    hintText: '5XX XXX XX XX',
                   ),
+                  keyboardType: TextInputType.phone,
+                  maxLength: 10,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Lütfen telefon numaranızı girin';
+                    }
+                    // Sadece rakam kontrolü
+                    if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
+                      return 'Sadece rakam giriniz';
+                    }
+                    // 10 hane kontrolü
+                    if (value.length != 10) {
+                      return 'Telefon numarası 10 haneli olmalıdır';
+                    }
+                    // 5 ile başlamalı (0'dan sonra)
+                    if (!value.startsWith('5')) {
+                      return 'Telefon numarası 5 ile başlamalıdır';
+                    }
+                    return null;
+                  },
                 ),
-              const SizedBox(height: 16),
-
-              // Rol Seçimi Grid
-              Container(
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: _showRoleError ? Colors.red : Colors.transparent,
-                    width: 2,
-                  ),
-                  borderRadius: BorderRadius.circular(12),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _emailController,
+                  decoration: const InputDecoration(labelText: 'E-posta'),
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Lütfen e-posta adresinizi girin';
+                    }
+                    if (!value.contains('@')) {
+                      return 'Geçerli bir e-posta adresi girin';
+                    }
+                    return null;
+                  },
                 ),
-                padding: const EdgeInsets.all(8),
-                child: Wrap(
-                  alignment: WrapAlignment.spaceAround,
-                  spacing: 20,
-                  runSpacing: 20,
-                  children: roles
-                      .map(
-                        (r) => buildRoleCard(
-                          r['label'] as String,
-                          r['icon'] as IconData,
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _passwordController,
+                  decoration: const InputDecoration(labelText: 'Parola'),
+                  obscureText: true,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Lütfen parola girin';
+                    }
+                    if (value.length < 6) {
+                      return 'Parola en az 6 karakter olmalıdır';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  "Rolünü Seç",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                if (_showRoleError)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          color: Colors.red[700],
+                          size: 18,
                         ),
-                      )
-                      .toList(),
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              // Kayıt Ol Butonu
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _register,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                        const SizedBox(width: 6),
+                        Text(
+                          "Lütfen bir rol seçin",
+                          style: TextStyle(
+                            color: Colors.red[700],
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
+                const SizedBox(height: 16),
+
+                // Rol Seçimi Grid
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: _showRoleError ? Colors.red : Colors.transparent,
+                      width: 2,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.all(8),
+                  child: Wrap(
+                    alignment: WrapAlignment.spaceAround,
+                    spacing: 20,
+                    runSpacing: 20,
+                    children: roles
+                        .map(
+                          (r) => buildRoleCard(
+                            r['label'] as String,
+                            r['icon'] as IconData,
                           ),
                         )
-                      : const Text(
-                          "Kayıt Ol",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
+                        .toList(),
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+                const SizedBox(height: 32),
+
+                // Kayıt Ol Butonu
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _register,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Text(
+                            "Kayıt Ol",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                  ),
+                ),
+              ],
+            ), // ListView
+          ), // Form
+        ), // Padding (body of Scaffold)
+      ), // Scaffold (child of Theme)
+    ); // Theme
   }
 }

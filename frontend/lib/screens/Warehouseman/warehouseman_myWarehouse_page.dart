@@ -3,7 +3,9 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../config/api_config.dart';
 import 'warehouseman_myWarehouseDetail_page.dart';
+import 'warehouseman_settings_page.dart';
 
+import '../../widgets/themed_scaffold.dart';
 class WarehousemanMyWarehousePage extends StatefulWidget {
   const WarehousemanMyWarehousePage({super.key});
 
@@ -66,31 +68,37 @@ class _WarehousemanMyWarehousePageState
   }
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-
     if (index == 0) {
       Navigator.pop(context);
+    } else if (index == 3) {
+      // Ayarlar sayfasına git
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const WarehousemanSettingsPage(),
+        ),
+      );
+    } else {
+      setState(() {
+        _selectedIndex = index;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
+    return ThemedScaffold(
+            appBar: ThemedAppBar(
+                elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Depolarım',
           style: TextStyle(
-            color: Colors.black,
+            
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
@@ -166,8 +174,7 @@ class _WarehousemanMyWarehousePageState
         ),
         child: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
-          selectedItemColor: const Color(0xFF4CAF50),
+                    selectedItemColor: const Color(0xFF4CAF50),
           unselectedItemColor: Colors.grey[400],
           selectedLabelStyle: const TextStyle(
             fontWeight: FontWeight.w600,
@@ -317,8 +324,7 @@ class _WarehousemanMyWarehousePageState
                     borderRadius: BorderRadius.circular(10),
                     child: LinearProgressIndicator(
                       value: percentage / 100,
-                      backgroundColor: Colors.grey[300],
-                      valueColor: const AlwaysStoppedAnimation<Color>(
+                                            valueColor: const AlwaysStoppedAnimation<Color>(
                         Color(0xFF4CAF50),
                       ),
                       minHeight: 8,

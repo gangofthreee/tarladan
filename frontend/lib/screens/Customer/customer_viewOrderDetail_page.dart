@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../config/api_config.dart';
 
+import '../../widgets/themed_scaffold.dart';
 class CustomerViewOrderDetailPage extends StatefulWidget {
   final int orderId;
 
@@ -60,27 +61,24 @@ class _CustomerViewOrderDetailPageState
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Arama başlatılıyor...'),
-        backgroundColor: Color(0xFF4CAF50),
-      ),
+              ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
+    return ThemedScaffold(
+            appBar: ThemedAppBar(
+                elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Sipariş Detayı',
           style: TextStyle(
-            color: Colors.black,
+            
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),

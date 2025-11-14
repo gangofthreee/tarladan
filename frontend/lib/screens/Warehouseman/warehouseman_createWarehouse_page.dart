@@ -3,13 +3,12 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../config/api_config.dart';
 
+import '../../widgets/themed_scaffold.dart';
+
 class WarehousemanCreateWarehousePage extends StatefulWidget {
   final int depoOwnerId; // Warehouseman ID'si
-  
-  const WarehousemanCreateWarehousePage({
-    super.key, 
-    required this.depoOwnerId,
-  });
+
+  const WarehousemanCreateWarehousePage({super.key, required this.depoOwnerId});
 
   @override
   State<WarehousemanCreateWarehousePage> createState() =>
@@ -69,31 +68,24 @@ class _WarehousemanCreateWarehousePageState
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Depo başarıyla eklendi!'),
-            backgroundColor: Color(0xFF4CAF50),
             duration: Duration(seconds: 2),
           ),
         );
         Navigator.pop(context, true); // true ile geri dön, liste güncellensin
       } else {
-        final errorMessage = response.body.isNotEmpty 
+        final errorMessage = response.body.isNotEmpty
             ? json.decode(response.body)['error'] ?? 'Bilinmeyen hata'
             : 'Hata: ${response.statusCode}';
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: Colors.red,
-          ),
-        );
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(errorMessage)));
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Bağlantı hatası: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Bağlantı hatası: $e')));
     } finally {
       if (mounted) {
         setState(() {
@@ -105,23 +97,17 @@ class _WarehousemanCreateWarehousePageState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        backgroundColor: Colors.white,
+    return ThemedScaffold(
+      appBar: ThemedAppBar(
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Depo Ekle',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
       ),
       body: SingleChildScrollView(
@@ -133,12 +119,12 @@ class _WarehousemanCreateWarehousePageState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Adres Field
-                const Text(
+                Text(
                   'Adres',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -180,12 +166,12 @@ class _WarehousemanCreateWarehousePageState
                 const SizedBox(height: 20),
 
                 // Boyut Field
-                const Text(
+                Text(
                   'Boyut (m²)',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -231,12 +217,12 @@ class _WarehousemanCreateWarehousePageState
                 const SizedBox(height: 20),
 
                 // Kapasite Field
-                const Text(
+                Text(
                   'Kapasite (ton)',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -279,15 +265,15 @@ class _WarehousemanCreateWarehousePageState
                   },
                 ),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 30),
 
                 // Fiyat Field
-                const Text(
+                Text(
                   'Fiyat (₺)',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -342,12 +328,13 @@ class _WarehousemanCreateWarehousePageState
                         child: OutlinedButton(
                           onPressed: _handleCancel,
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.black87,
+                            foregroundColor: Theme.of(
+                              context,
+                            ).textTheme.bodyLarge?.color,
                             side: BorderSide(
-                              color: Colors.grey[300]!,
+                              color: Theme.of(context).dividerColor,
                               width: 1.5,
                             ),
-                            backgroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'warehouseman_myWarehouse_page.dart';
 import 'warehouseman_createWarehouse_page.dart';
+import 'warehouseman_settings_page.dart';
 
+import '../../widgets/themed_scaffold.dart';
 class WarehousemanMainPage extends StatefulWidget {
   const WarehousemanMainPage({super.key});
 
@@ -13,15 +15,25 @@ class _WarehousemanMainPageState extends State<WarehousemanMainPage> {
   int _selectedIndex = 0;
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    if (index == 3) {
+      // Ayarlar sayfasına git
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const WarehousemanSettingsPage(),
+        ),
+      );
+    } else {
+      setState(() {
+        _selectedIndex = index;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
+    return ThemedScaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -29,8 +41,8 @@ class _WarehousemanMainPageState extends State<WarehousemanMainPage> {
             // Header
             Container(
               padding: const EdgeInsets.all(20),
-              color: Colors.white,
-              child: const Column(
+              color: Theme.of(context).cardColor,
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
@@ -38,7 +50,7 @@ class _WarehousemanMainPageState extends State<WarehousemanMainPage> {
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF2C3E50),
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
                     ),
                   ),
                 ],
@@ -55,7 +67,7 @@ class _WarehousemanMainPageState extends State<WarehousemanMainPage> {
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey[800],
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
                 ),
               ),
             ),
@@ -125,8 +137,7 @@ class _WarehousemanMainPageState extends State<WarehousemanMainPage> {
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.grey[700],
                         side: BorderSide(color: Colors.grey[400]!, width: 1.5),
-                        backgroundColor: Colors.white,
-                        elevation: 1,
+                                                elevation: 1,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -173,8 +184,7 @@ class _WarehousemanMainPageState extends State<WarehousemanMainPage> {
         ),
         child: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
-          selectedItemColor: const Color(0xFF4CAF50),
+                    selectedItemColor: const Color(0xFF4CAF50),
           unselectedItemColor: Colors.grey[400],
           selectedLabelStyle: const TextStyle(
             fontWeight: FontWeight.w600,

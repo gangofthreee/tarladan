@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../config/api_config.dart';
+import '../../widgets/themed_scaffold.dart';
 import 'farmer_ad_detail.dart';
 import 'farmer_orders.dart';
+import 'farmer_settings_page.dart';
 
 class FarmerAllAds extends StatefulWidget {
   const FarmerAllAds({super.key});
@@ -64,18 +66,15 @@ class _FarmerAllAdsState extends State<FarmerAllAds> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color(0xFFF5F5F5),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
+    return ThemedScaffold(
+      appBar: ThemedAppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
+        title: const Text(
           'İlanlarım',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
       body: Column(
@@ -263,21 +262,17 @@ class _FarmerAllAdsState extends State<FarmerAllAds> {
                             '${ApiConfig.baseUrl}$imagePath',
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
-                              return Icon(
+                              return const Icon(
                                 Icons.image_not_supported,
-                                color: Colors.white.withOpacity(0.7),
                                 size: 40,
+                                color: Colors.grey,
                               );
                             },
                           );
                         },
                       ),
                     )
-                  : Icon(
-                      Icons.inventory_2,
-                      color: Colors.white.withOpacity(0.7),
-                      size: 40,
-                    ),
+                  : const Icon(Icons.inventory_2, size: 40, color: Colors.grey),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -376,7 +371,7 @@ class _FarmerAllAdsState extends State<FarmerAllAds> {
                 color: imageColor,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: Colors.white.withOpacity(0.7), size: 40),
+              child: Icon(icon, size: 40, color: Colors.grey),
             ),
             SizedBox(width: 16),
             Expanded(
@@ -432,7 +427,6 @@ class _FarmerAllAdsState extends State<FarmerAllAds> {
       child: BottomNavigationBar(
         currentIndex: currentIndex,
         type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
         selectedItemColor: Color(0xFF00D563),
         unselectedItemColor: Colors.grey,
         elevation: 0,
@@ -450,9 +444,12 @@ class _FarmerAllAdsState extends State<FarmerAllAds> {
               ),
             );
           } else if (index == 3) {
-            // Navigate to wallet page (not implemented yet)
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Cüzdan sayfası henüz hazır değil')),
+            // Navigate to settings page
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const FarmerSettingsPage(),
+              ),
             );
           }
         },
@@ -466,10 +463,7 @@ class _FarmerAllAdsState extends State<FarmerAllAds> {
             icon: Icon(Icons.inventory_2_outlined),
             label: 'Siparişler',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_balance_wallet_outlined),
-            label: 'Cüzdan',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Ayarlar'),
         ],
       ),
     );

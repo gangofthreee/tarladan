@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../widgets/themed_scaffold.dart';
+import 'farmer_settings_page.dart';
 
 class FarmerOrdersScreen extends StatefulWidget {
   const FarmerOrdersScreen({super.key});
@@ -13,22 +15,15 @@ class _FarmerOrdersScreenState extends State<FarmerOrdersScreen> {
   @override
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color(0xFFF5F5F5),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
+    return ThemedScaffold(
+      appBar: ThemedAppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
+        title: const Text(
           'Siparişlerim',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
         ),
       ),
       body: Column(
@@ -281,7 +276,6 @@ class _FarmerOrdersScreenState extends State<FarmerOrdersScreen> {
       child: BottomNavigationBar(
         currentIndex: currentIndex,
         type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
         selectedItemColor: Color(0xFF00D563),
         unselectedItemColor: Colors.grey,
         elevation: 0,
@@ -295,9 +289,12 @@ class _FarmerOrdersScreenState extends State<FarmerOrdersScreen> {
           } else if (index == 2) {
             // Already on orders page, do nothing
           } else if (index == 3) {
-            // Navigate to wallet page (not implemented yet)
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Cüzdan sayfası henüz hazır değil')),
+            // Navigate to settings page
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const FarmerSettingsPage(),
+              ),
             );
           }
         },
@@ -311,10 +308,7 @@ class _FarmerOrdersScreenState extends State<FarmerOrdersScreen> {
             icon: Icon(Icons.inventory_2_outlined),
             label: 'Siparişler',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_balance_wallet_outlined),
-            label: 'Cüzdan',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Ayarlar'),
         ],
       ),
     );

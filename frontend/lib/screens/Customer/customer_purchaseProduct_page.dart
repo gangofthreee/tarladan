@@ -4,6 +4,7 @@ import 'dart:convert';
 import '../../config/api_config.dart';
 import 'customer_selectTruck_page.dart';
 
+import '../../widgets/themed_scaffold.dart';
 class CustomerPurchaseProductPage extends StatefulWidget {
   final String productName;
   final String imageUrl;
@@ -50,9 +51,7 @@ class _CustomerPurchaseProductPageState
           _modelController.text.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Lütfen tüm araç bilgilerini doldurun'),
-            backgroundColor: Colors.orange,
-          ),
+            content: Text('Lütfen tüm araç bilgilerini doldurun'),          ),
         );
         return;
       }
@@ -84,8 +83,7 @@ class _CustomerPurchaseProductPageState
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Sipariş başarıyla oluşturuldu!'),
-              backgroundColor: Color(0xFF4CAF50),
-              duration: Duration(seconds: 2),
+                            duration: Duration(seconds: 2),
             ),
           );
 
@@ -102,9 +100,7 @@ class _CustomerPurchaseProductPageState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Hata: $e'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
+            content: Text('Hata: $e'),            duration: const Duration(seconds: 3),
           ),
         );
       }
@@ -121,20 +117,18 @@ class _CustomerPurchaseProductPageState
   Widget build(BuildContext context) {
     final totalPrice = widget.price * widget.quantity;
 
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
+    return ThemedScaffold(
+            appBar: ThemedAppBar(
+                elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Satın Alma',
           style: TextStyle(
-            color: Colors.black,
+            
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),

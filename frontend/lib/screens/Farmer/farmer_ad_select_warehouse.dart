@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 
+import '../../widgets/themed_scaffold.dart';
 class FarmerAdSelectWarehouse extends StatelessWidget {
   const FarmerAdSelectWarehouse({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
+    return ThemedScaffold(
+      appBar: ThemedAppBar(
+                elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Depo Seç',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle( fontWeight: FontWeight.bold),
         ),
       ),
       body: Padding(
@@ -129,7 +129,6 @@ class FarmerAdSelectWarehouse extends StatelessWidget {
                 ),
                 child: const Icon(
                   Icons.warehouse,
-                  color: Colors.white,
                   size: 30,
                 ),
               ),
@@ -140,7 +139,7 @@ class FarmerAdSelectWarehouse extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.star, color: Colors.amber, size: 16),
+                        Icon(Icons.star, size: 16),
                         const SizedBox(width: 4),
                         Text(
                           rating.toString(),

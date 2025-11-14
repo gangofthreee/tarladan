@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 import '../../config/api_config.dart';
 
+import '../../widgets/themed_scaffold.dart';
 class FarmerAdDetail extends StatefulWidget {
   final int productId;
 
@@ -162,9 +163,7 @@ class _FarmerAdDetailState extends State<FarmerAdDetail> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('✅ Ürün başarıyla güncellendi!'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 2),
+              content: Text('✅ Ürün başarıyla güncellendi!'),              duration: Duration(seconds: 2),
             ),
           );
           // Kısa bir gecikme sonrası geri dön
@@ -224,9 +223,7 @@ class _FarmerAdDetailState extends State<FarmerAdDetail> {
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Ürün başarıyla silindi'),
-            backgroundColor: Colors.green,
-          ),
+            content: Text('Ürün başarıyla silindi'),          ),
         );
 
         await Future.delayed(const Duration(milliseconds: 500));
@@ -234,9 +231,7 @@ class _FarmerAdDetailState extends State<FarmerAdDetail> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Silme başarısız: ${response.statusCode}'),
-            backgroundColor: Colors.red,
-          ),
+            content: Text('Silme başarısız: ${response.statusCode}'),          ),
         );
       }
     } catch (e) {
@@ -317,7 +312,7 @@ class _FarmerAdDetailState extends State<FarmerAdDetail> {
               right: 16,
               child: CircleAvatar(
                 backgroundColor: const Color(0xFF1B5E20),
-                child: const Icon(Icons.camera_alt, color: Colors.white),
+                child: const Icon(Icons.camera_alt),
               ),
             ),
         ],
@@ -426,11 +421,10 @@ class _FarmerAdDetailState extends State<FarmerAdDetail> {
       },
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F5F5),
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
+        appBar: ThemedAppBar(
+                    elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black),
+            icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.pop(context, _hasChanges),
           ),
           title: Text(
@@ -443,7 +437,7 @@ class _FarmerAdDetailState extends State<FarmerAdDetail> {
           actions: [
             if (!_isEditMode && _product != null)
               IconButton(
-                icon: const Icon(Icons.edit, color: Colors.black),
+                icon: const Icon(Icons.edit),
                 onPressed: _toggleEditMode,
               ),
             if (_isEditMode)

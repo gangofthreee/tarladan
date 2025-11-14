@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../config/api_config.dart';
 
+import '../../widgets/themed_scaffold.dart';
+
 class TruckerCreateAdPage extends StatefulWidget {
   const TruckerCreateAdPage({super.key});
 
@@ -63,7 +65,6 @@ class _TruckerCreateAdPageState extends State<TruckerCreateAdPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Araçlar yüklenemedi: ${response.statusCode}'),
-              backgroundColor: Colors.orange,
             ),
           );
         }
@@ -77,10 +78,7 @@ class _TruckerCreateAdPageState extends State<TruckerCreateAdPage> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Araçlar yüklenirken hata oluştu: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Araçlar yüklenirken hata oluştu: $e')),
         );
       }
     }
@@ -142,20 +140,14 @@ class _TruckerCreateAdPageState extends State<TruckerCreateAdPage> {
     if (_formKey.currentState!.validate()) {
       if (_selectedTruck == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Lütfen bir araç seçiniz'),
-            backgroundColor: Colors.orange,
-          ),
+          const SnackBar(content: Text('Lütfen bir araç seçiniz')),
         );
         return;
       }
 
       if (_selectedDateTime == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Lütfen tarih ve saat seçiniz'),
-            backgroundColor: Colors.orange,
-          ),
+          const SnackBar(content: Text('Lütfen tarih ve saat seçiniz')),
         );
         return;
       }
@@ -164,7 +156,6 @@ class _TruckerCreateAdPageState extends State<TruckerCreateAdPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('İlan başarıyla yayınlandı!'),
-          backgroundColor: Color(0xFF4CAF50),
           duration: Duration(seconds: 2),
         ),
       );
@@ -199,23 +190,17 @@ class _TruckerCreateAdPageState extends State<TruckerCreateAdPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        backgroundColor: Colors.white,
+    return ThemedScaffold(
+      appBar: ThemedAppBar(
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'İlan Aç',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
       ),
       body: SingleChildScrollView(
@@ -326,11 +311,7 @@ class _TruckerCreateAdPageState extends State<TruckerCreateAdPage> {
                             fontSize: 16,
                           ),
                         ),
-                        Icon(
-                          Icons.calendar_today,
-                          color: Colors.grey[600],
-                          size: 20,
-                        ),
+                        const Icon(Icons.calendar_today, size: 20),
                       ],
                     ),
                   ),

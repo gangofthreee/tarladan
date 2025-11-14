@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'trucker_truckAdUpdate_page.dart';
 
+import '../../widgets/themed_scaffold.dart';
 class TruckerListAdsPage extends StatefulWidget {
   const TruckerListAdsPage({super.key});
 
@@ -22,20 +23,18 @@ class _TruckerListAdsPageState extends State<TruckerListAdsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
+    return ThemedScaffold(
+            appBar: ThemedAppBar(
+                elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'İlanlarım',
           style: TextStyle(
-            color: Colors.black,
+            
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
@@ -163,8 +162,7 @@ class _TruckerListAdsPageState extends State<TruckerListAdsPage> {
   void _showEditOptions(Map<String, dynamic> ad) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
+            shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
@@ -196,7 +194,7 @@ class _TruckerListAdsPageState extends State<TruckerListAdsPage> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.delete, color: Colors.red),
+                leading: const Icon(Icons.delete),
                 title: const Text(
                   'İlanı Sil',
                   style: TextStyle(color: Colors.red),
@@ -235,9 +233,7 @@ class _TruckerListAdsPageState extends State<TruckerListAdsPage> {
               });
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('İlan başarıyla silindi'),
-                  backgroundColor: Colors.red,
-                ),
+                  content: Text('İlan başarıyla silindi'),                ),
               );
             },
             child: const Text('Sil', style: TextStyle(color: Colors.red)),

@@ -53,6 +53,7 @@ class ApiConfig {
   static const String updateTruckEndpoint = '/truck/update';
   static const String deleteTruckEndpoint = '/truck/delete';
   static const String getTrucksByTruckerEndpoint = '/truck/get';
+  static const String getAllTrucksEndpoint = '/truck/getAllTrucks';
 
   static String get registerUrl => '$baseUrl$registerEndpoint';
   static String get loginUrl => '$baseUrl$loginEndpoint';
@@ -91,4 +92,5 @@ class ApiConfig {
       '$baseUrl$deleteTruckEndpoint/$truckId';
   static String getTrucksByTruckerUrl(int truckerId) =>
       '$baseUrl$getTrucksByTruckerEndpoint/$truckerId';
+  static String get getAllTrucksUrl => '$baseUrl$getAllTrucksEndpoint';
 }

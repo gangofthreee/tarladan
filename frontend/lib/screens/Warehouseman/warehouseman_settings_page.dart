@@ -4,6 +4,7 @@ import '../login_screen.dart';
 import '../../config/theme_provider.dart';
 
 import '../../widgets/themed_scaffold.dart';
+
 class WarehousemanSettingsPage extends StatefulWidget {
   const WarehousemanSettingsPage({super.key});
 
@@ -180,9 +181,7 @@ class _WarehousemanSettingsPageState extends State<WarehousemanSettingsPage> {
                       color: Colors.orange.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(
-                      Icons.notifications,
-                    ),
+                    child: const Icon(Icons.notifications),
                   ),
                   title: Text(
                     'Bildirimler',
@@ -296,7 +295,9 @@ class _WarehousemanSettingsPageState extends State<WarehousemanSettingsPage> {
             height: 50,
             child: ElevatedButton(
               onPressed: _showLogoutDialog,
-              style: ElevatedButton.styleFrom(                foregroundColor: Colors.white,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),

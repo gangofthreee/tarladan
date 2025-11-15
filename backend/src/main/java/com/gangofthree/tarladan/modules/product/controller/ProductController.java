@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 
@@ -21,26 +22,26 @@ public class ProductController {
 
     @PostMapping(value = "/create", consumes = {"multipart/form-data"})
     public ResponseEntity<Product> createProduct(
-            @RequestPart("id") String id,
             @RequestPart("name") String name,
             @RequestPart("quantity_kg") String quantityKg,
             @RequestPart("price_per_kg") String pricePerKg,
             @RequestPart("min_buy") String minBuy,
             @RequestPart("photo") MultipartFile photo,
-            @RequestPart("id_depot") String depot_id
+            @RequestPart("id_depot") String depotId,
+            @RequestAttribute("domainId") Long farmerId  // JWT’den geliyor
     ) {
         AddProductRequest request = new AddProductRequest();
-        request.setId(Long.parseLong(id));
         request.setName(name);
-        request.setQuantity_kg(new java.math.BigInteger(quantityKg));
-        request.setPrice_per_kg(new java.math.BigInteger(pricePerKg));
-        request.setMin_buy(new java.math.BigInteger(minBuy));
+        request.setQuantity_kg(new BigInteger(quantityKg));
+        request.setPrice_per_kg(new BigInteger(pricePerKg));
+        request.setMin_buy(new BigInteger(minBuy));
         request.setPhoto(photo);
-        request.setId_depot(Long.parseLong(depot_id));
+        request.setId_depot(Long.parseLong(depotId));
 
-        Product createdProduct = productService.addProduct(request);
+        Product createdProduct = productService.addProduct(request, farmerId);
         return ResponseEntity.ok(createdProduct);
     }
+
 
     @PatchMapping(value = "/update/{id}", consumes = {"multipart/form-data"})
     public ResponseEntity<Product> updateProduct(
@@ -49,17 +50,19 @@ public class ProductController {
             @RequestPart(value = "quantity_kg", required = false) String quantityKg,
             @RequestPart(value = "price_per_kg", required = false) String pricePerKg,
             @RequestPart(value = "min_buy", required = false) String minBuy,
-            @RequestPart(value = "photo", required = false) MultipartFile photo
+            @RequestPart(value = "photo", required = false) MultipartFile photo,
+            @RequestAttribute("domainId") Long farmerId  // JWT’den geliyor
     ) {
-        Product updatedProduct = productService.updateProductWithMultipart(id, name, quantityKg, pricePerKg, minBuy, photo);
+        Product updatedProduct = productService.updateProductWithMultipart(id, name, quantityKg, pricePerKg, minBuy, photo, farmerId);
         return ResponseEntity.ok(updatedProduct);
     }
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Product> deleteProduct(
-            @PathVariable Long id
+            @PathVariable Long id,
+            @RequestAttribute("domainId") Long farmerId  // JWT’den geliyor
     ){
-        Product deletedProduct = productService.deleteProduct(id);
+        Product deletedProduct = productService.deleteProduct(id, farmerId);
         return ResponseEntity.ok(deletedProduct);
     }
 

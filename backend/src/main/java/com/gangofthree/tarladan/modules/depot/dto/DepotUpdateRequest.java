@@ -13,4 +13,3 @@ public class DepotUpdateRequest {
     private Double capacityTon;
     private Double price;
 }
-

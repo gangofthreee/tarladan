@@ -17,4 +17,3 @@ public class DepotResponse {
     private Double price;
     private Long depotOwnerId;
 }
-

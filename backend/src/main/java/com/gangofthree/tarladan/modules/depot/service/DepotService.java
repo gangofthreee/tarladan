@@ -7,12 +7,17 @@ import com.gangofthree.tarladan.modules.depot.dto.DepotUpdateRequest;
 import java.util.List;
 
 public interface DepotService {
-    DepotResponse createDepot(DepotCreateRequest request);
+
+    DepotResponse createDepot(DepotCreateRequest request, Long depotOwnerId);
+
     List<DepotResponse> getAllDepots();
+
     DepotResponse getDepotById(Long id);
-    DepotResponse updateDepot(Long id, DepotUpdateRequest request);
-    void deleteDepot(Long id);
+
+    // JWT'den gelen depotOwnerId ile yetki kontrolü yapılacak
+    DepotResponse updateDepot(Long id, DepotUpdateRequest request, Long depotOwnerId);
+
+    void deleteDepot(Long id, Long depotOwnerId);
+
     List<DepotResponse> getDepotsByDepotOwner(Long depotOwnerId);
-
 }
-

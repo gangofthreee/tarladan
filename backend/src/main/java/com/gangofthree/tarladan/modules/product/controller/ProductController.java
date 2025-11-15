@@ -72,11 +72,12 @@ public class ProductController {
         return ResponseEntity.ok(product);
     }
 
-    @GetMapping("/getFarmerProduct/{id}")
-    public ResponseEntity<List<Product>> getFarmerProducts(@PathVariable("id") Long farmerId) {
+    @GetMapping("/my-products")
+    public ResponseEntity<List<Product>> getMyProducts(@RequestAttribute("domainId") Long farmerId) {
         List<Product> products = productService.getProductsByFarmerId(farmerId);
         return ResponseEntity.ok(products);
     }
+
 
 
 

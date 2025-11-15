@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import '../../config/api_config.dart';
 
 import '../../widgets/themed_scaffold.dart';
+
 class CustomerSelectTruckPage extends StatefulWidget {
   const CustomerSelectTruckPage({super.key});
 
@@ -11,49 +15,74 @@ class CustomerSelectTruckPage extends StatefulWidget {
 
 class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
   String? _selectedTruckId;
+  List<Map<String, dynamic>> trucks = [];
+  bool _isLoading = true;
+  String? _errorMessage;
 
-  // Örnek tır verileri
-  final List<Map<String, dynamic>> trucks = [
-    {
-      'id': 'truck1',
-      'driverName': 'Ahmet Yılmaz',
-      'brand': 'Volvo',
-      'capacity': 20,
-      'rating': 4.8,
-      'priceUnit': '₺/km',
-      'icon': '🚛',
-    },
-    {
-      'id': 'truck2',
-      'driverName': 'Mehmet Demir',
-      'brand': 'Mercedes',
-      'capacity': 18,
-      'rating': 4.5,
-      'priceUnit': '₺/sefer',
-      'icon': '🚚',
-    },
-    {
-      'id': 'truck3',
-      'driverName': 'Ayşe Kaya',
-      'brand': 'Scania',
-      'capacity': 22,
-      'rating': 4.9,
-      'priceUnit': '₺/km',
-      'icon': '🚛',
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _fetchAllTrucks();
+  }
+
+  Future<void> _fetchAllTrucks() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse(ApiConfig.getAllTrucksUrl),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+
+        setState(() {
+          trucks = data.map((truck) {
+            return {
+              'id': truck['id'].toString(),
+              'truckId': truck['id'],
+              'driverName': truck['trucker']?['user']?['name'] ?? 'Bilinmiyor',
+              'driverSurname': truck['trucker']?['user']?['surname'] ?? '',
+              'brand': truck['vehicle'] ?? 'Araç Bilgisi Yok',
+              'capacity': truck['capacityTon'] ?? 0,
+              'rating': truck['basePrice']?.toDouble() ?? 0.0,
+              'priceUnit': '₺',
+              'plate': truck['plate'] ?? '',
+              'icon': '🚛',
+            };
+          }).toList();
+          _isLoading = false;
+        });
+      } else {
+        throw Exception('Tırlar yüklenemedi: ${response.statusCode}');
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Hata: $e';
+        _isLoading = false;
+      });
+    }
+  }
 
   void _handleConfirm() {
     if (_selectedTruckId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Lütfen bir tır seçiniz'),        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Lütfen bir tır seçiniz')));
       return;
     }
 
-    // Return selected truck to previous page
-    Navigator.pop(context, _selectedTruckId);
+    // Find selected truck and return its actual ID
+    final selectedTruck = trucks.firstWhere(
+      (truck) => truck['id'] == _selectedTruckId,
+    );
+
+    // Return actual truck ID from database
+    Navigator.pop(context, selectedTruck['truckId']);
   }
 
   @override
@@ -63,8 +92,8 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
         : null;
 
     return ThemedScaffold(
-            appBar: ThemedAppBar(
-                elevation: 0,
+      appBar: ThemedAppBar(
+        elevation: 0,
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -72,26 +101,74 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
         ),
         title: const Text(
           'Tır Seç',
-          style: TextStyle(
-            
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
       ),
       body: Column(
         children: [
           // Truck List
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(20),
-              itemCount: trucks.length,
-              itemBuilder: (context, index) {
-                final truck = trucks[index];
-                final isSelected = truck['id'] == _selectedTruckId;
-                return _buildTruckCard(truck, isSelected);
-              },
-            ),
+            child: _isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(color: Color(0xFF4CAF50)),
+                  )
+                : _errorMessage != null
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: Colors.red,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          _errorMessage!,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.red,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: _fetchAllTrucks,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF4CAF50),
+                          ),
+                          child: const Text('Tekrar Dene'),
+                        ),
+                      ],
+                    ),
+                  )
+                : trucks.isEmpty
+                ? const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.local_shipping_outlined,
+                          size: 64,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          'Henüz tır bulunamadı',
+                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(20),
+                    itemCount: trucks.length,
+                    itemBuilder: (context, index) {
+                      final truck = trucks[index];
+                      final isSelected = truck['id'] == _selectedTruckId;
+                      return _buildTruckCard(truck, isSelected);
+                    },
+                  ),
           ),
 
           // Bottom Selected Truck and Confirm Button
@@ -133,7 +210,7 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          selectedTruck['driverName'],
+                          '${selectedTruck['driverName']} ${selectedTruck['driverSurname']}',
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -141,7 +218,14 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
                           ),
                         ),
                         Text(
-                          '${selectedTruck['brand']}, ${selectedTruck['capacity']} ton',
+                          '${selectedTruck['brand']} - ${selectedTruck['plate']}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        Text(
+                          '${selectedTruck['capacity']} ton',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.grey[600],
@@ -241,7 +325,7 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    truck['driverName'],
+                    '${truck['driverName']} ${truck['driverSurname']}',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -250,20 +334,25 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${truck['brand']}, ${truck['capacity']} ton',
+                    '${truck['brand']} - ${truck['plate']}',
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Kapasite: ${truck['capacity']} ton',
                     style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 8),
                   Row(
                     children: [
                       const Icon(
-                        Icons.star,
-                        color: Color(0xFFFFC107),
+                        Icons.attach_money,
+                        color: Color(0xFF4CAF50),
                         size: 18,
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        '${truck['rating']} (${truck['priceUnit']})',
+                        'Taban Fiyat: ${truck['rating']} ${truck['priceUnit']}',
                         style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                     ],

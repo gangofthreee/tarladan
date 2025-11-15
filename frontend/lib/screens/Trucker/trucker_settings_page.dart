@@ -4,6 +4,7 @@ import '../login_screen.dart';
 import '../../config/theme_provider.dart';
 
 import '../../widgets/themed_scaffold.dart';
+
 class TruckerSettingsPage extends StatefulWidget {
   const TruckerSettingsPage({super.key});
 
@@ -166,9 +167,7 @@ class _TruckerSettingsPageState extends State<TruckerSettingsPage> {
                       color: Colors.orange.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(
-                      Icons.notifications,
-                    ),
+                    child: const Icon(Icons.notifications),
                   ),
                   title: const Text(
                     'Bildirimler',
@@ -261,7 +260,9 @@ class _TruckerSettingsPageState extends State<TruckerSettingsPage> {
             height: 50,
             child: ElevatedButton(
               onPressed: _showLogoutDialog,
-              style: ElevatedButton.styleFrom(                foregroundColor: Colors.white,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),

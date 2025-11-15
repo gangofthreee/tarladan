@@ -6,10 +6,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class DepotCreateRequest {
-    private Long depoOwnerId;
     private String address;
     private Double sizeM2;
     private Double capacityTon;
     private Double price;
 }
-

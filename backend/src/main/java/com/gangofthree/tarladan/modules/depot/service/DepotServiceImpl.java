@@ -21,12 +21,10 @@ public class DepotServiceImpl implements DepotService {
     private final DepotOwnerRepository depotOwnerRepository;
 
     @Override
-    public DepotResponse createDepot(DepotCreateRequest request) {
-        // DepotOwner kontrolü
-        DepotOwner depotOwner = depotOwnerRepository.findById(request.getDepoOwnerId())
-                .orElseThrow(() -> new IllegalArgumentException("Depot owner not found with id: " + request.getDepoOwnerId()));
+    public DepotResponse createDepot(DepotCreateRequest request, Long depotOwnerId) {
+        DepotOwner depotOwner = depotOwnerRepository.findById(depotOwnerId)
+                .orElseThrow(() -> new IllegalArgumentException("Depot owner not found with id: " + depotOwnerId));
 
-        // Yeni Depot oluştur
         Depot depot = Depot.builder()
                 .depotOwner(depotOwner)
                 .address(request.getAddress())
@@ -37,77 +35,59 @@ public class DepotServiceImpl implements DepotService {
 
         Depot savedDepot = depotRepository.save(depot);
 
-        // Response döndür
-        return DepotResponse.builder()
-                .id(savedDepot.getId())
-                .address(savedDepot.getAddress())
-                .sizeM2(savedDepot.getSizeM2())
-                .capacityTon(savedDepot.getCapacityTon())
-                .price(savedDepot.getPrice())
-                .depotOwnerId(savedDepot.getDepotOwner().getId())
-                .build();
+        return convertToResponse(savedDepot);
     }
 
+    @Override
     public List<DepotResponse> getAllDepots() {
         List<Depot> depots = depotRepository.findAll();
-
-        return depots.stream()
-                .map(depot -> DepotResponse.builder()
-                        .id(depot.getId())
-                        .depotOwnerId(depot.getDepotOwner().getId())
-                        .address(depot.getAddress())
-                        .sizeM2(depot.getSizeM2())
-                        .capacityTon(depot.getCapacityTon())
-                        .price(depot.getPrice())
-                        .build())
-                .collect(Collectors.toList());
+        return depots.stream().map(this::convertToResponse).collect(Collectors.toList());
     }
 
     @Override
     public DepotResponse getDepotById(Long id) {
         Depot depot = depotRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Depot not found with id: " + id));
-
         return convertToResponse(depot);
     }
 
     @Override
-    public DepotResponse updateDepot(Long id, DepotUpdateRequest request) {
+    public DepotResponse updateDepot(Long id, DepotUpdateRequest request, Long depotOwnerId) {
         Depot depot = depotRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Depot not found with id: " + id));
 
-        // Kısmi güncelleme (null değilse güncelle)
-        if (request.getAddress() != null) {
-            depot.setAddress(request.getAddress());
+        // JWT'den gelen owner id ile depot owner id eşleşiyor mu kontrolü
+        if (!depot.getDepotOwner().getId().equals(depotOwnerId)) {
+            throw new SecurityException("You are not authorized to update this depot.");
         }
-        if (request.getSizeM2() != null) {
-            depot.setSizeM2(request.getSizeM2());
-        }
-        if (request.getCapacityTon() != null) {
-            depot.setCapacityTon(request.getCapacityTon());
-        }
-        if (request.getPrice() != null) {
-            depot.setPrice(request.getPrice());
-        }
+
+        if (request.getAddress() != null) depot.setAddress(request.getAddress());
+        if (request.getSizeM2() != null) depot.setSizeM2(request.getSizeM2());
+        if (request.getCapacityTon() != null) depot.setCapacityTon(request.getCapacityTon());
+        if (request.getPrice() != null) depot.setPrice(request.getPrice());
 
         Depot updatedDepot = depotRepository.save(depot);
         return convertToResponse(updatedDepot);
     }
 
+
     @Override
-    public void deleteDepot(Long id) {
+    public void deleteDepot(Long id, Long depotOwnerId) {
         Depot depot = depotRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Depot not found with id: " + id));
+
+        if (!depot.getDepotOwner().getId().equals(depotOwnerId)) {
+            throw new SecurityException("You are not authorized to delete this depot.");
+        }
+
         depotRepository.delete(depot);
     }
+
 
     @Override
     public List<DepotResponse> getDepotsByDepotOwner(Long depotOwnerId) {
         List<Depot> depots = depotRepository.findAllByDepotOwner_Id(depotOwnerId);
-
-        return depots.stream()
-                .map(this::convertToResponse)
-                .collect(Collectors.toList());
+        return depots.stream().map(this::convertToResponse).collect(Collectors.toList());
     }
 
     private DepotResponse convertToResponse(Depot depot) {
@@ -121,4 +101,3 @@ public class DepotServiceImpl implements DepotService {
                 .build();
     }
 }
-

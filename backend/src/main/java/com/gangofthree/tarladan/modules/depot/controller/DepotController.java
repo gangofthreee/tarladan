@@ -17,9 +17,13 @@ public class DepotController {
 
     private final DepotService depotService;
 
+    // JWT'den depot owner ID alınıyor
     @PostMapping("/create")
-    public ResponseEntity<DepotResponse> createDepot(@RequestBody DepotCreateRequest request) {
-        DepotResponse response = depotService.createDepot(request);
+    public ResponseEntity<DepotResponse> createDepot(
+            @RequestBody DepotCreateRequest request,
+            @RequestAttribute("domainId") Long depotOwnerId
+    ) {
+        DepotResponse response = depotService.createDepot(request, depotOwnerId);
         return ResponseEntity.ok(response);
     }
 
@@ -38,21 +42,26 @@ public class DepotController {
     @PutMapping("/update/{id}")
     public ResponseEntity<DepotResponse> updateDepot(
             @PathVariable Long id,
-            @RequestBody DepotUpdateRequest request
+            @RequestBody DepotUpdateRequest request,
+            @RequestAttribute("domainId") Long depotOwnerId
     ) {
-        DepotResponse updatedDepot = depotService.updateDepot(id, request);
+        DepotResponse updatedDepot = depotService.updateDepot(id, request, depotOwnerId);
         return ResponseEntity.ok(updatedDepot);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteDepot(@PathVariable Long id) {
-        depotService.deleteDepot(id);
+    public ResponseEntity<String> deleteDepot(
+            @PathVariable Long id,
+            @RequestAttribute("domainId") Long depotOwnerId
+    ) {
+        depotService.deleteDepot(id, depotOwnerId);
         return ResponseEntity.ok("Depot with id " + id + " has been deleted successfully.");
     }
 
-    @GetMapping("/owner/{depotOwnerId}")
-    public ResponseEntity<List<DepotResponse>> getDepotsByDepotOwner(@PathVariable Long depotOwnerId) {
-        return ResponseEntity.ok(depotService.getDepotsByDepotOwner(depotOwnerId));
+    // JWT kullanarak kendi depolarını listeleme
+    @GetMapping("/my-depots")
+    public ResponseEntity<List<DepotResponse>> getMyDepots(@RequestAttribute("domainId") Long depotOwnerId) {
+        List<DepotResponse> depots = depotService.getDepotsByDepotOwner(depotOwnerId);
+        return ResponseEntity.ok(depots);
     }
 }
-

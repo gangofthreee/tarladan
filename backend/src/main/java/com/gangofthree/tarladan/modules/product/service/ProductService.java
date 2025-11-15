@@ -9,16 +9,17 @@ import java.util.Map;
 
 
 public interface ProductService {
-    Product addProduct(AddProductRequest addProductRequest);
+    Product addProduct(AddProductRequest addProductRequest, Long farmerId);
 
-    Product updateProduct(Long id, Map<String, Object> updates);
-    
-    Product updateProductWithMultipart(Long id, String name, String quantityKg, String pricePerKg, String minBuy, MultipartFile photo);
+    Product updateProduct(Long id, Map<String, Object> updates, Long farmerId);
 
-    Product deleteProduct(Long id);
+    Product updateProductWithMultipart(Long id, String name, String quantityKg, String pricePerKg, String minBuy, MultipartFile photo, Long farmerId);
+
+    Product deleteProduct(Long id, Long farmerId);
 
     Product getProduct(Long id);
 
     List<Product> getProductsByFarmerId(Long farmerId);
 }
+
 

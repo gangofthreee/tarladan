@@ -1,5 +1,7 @@
 package com.gangofthree.tarladan.modules.product.service;
 
+import com.gangofthree.tarladan.modules.depot.entity.Depot;
+import com.gangofthree.tarladan.modules.depot.repository.DepotRepository;
 import com.gangofthree.tarladan.modules.product.dto.AddProductRequest;
 import com.gangofthree.tarladan.modules.farmer.entity.Farmer;
 import com.gangofthree.tarladan.modules.product.entity.Product;
@@ -9,12 +11,12 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -24,24 +26,29 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final FarmerRepository farmerRepository;
+    private final DepotRepository depotRepository;
 
     @Override
-    public Product addProduct(AddProductRequest addProductRequest) {
-
+    public Product addProduct(AddProductRequest addProductRequest, Long farmerId) {
         try {
-            // Farmer'ı requestten gelen id ile getir
-            Farmer farmer = farmerRepository.findById(addProductRequest.getId())
-                    .orElseThrow(() -> new RuntimeException("Farmer not found with id: " + addProductRequest.getId()));
+            // Farmer'ı JWT domainId ile getir
+            Farmer farmer = farmerRepository.findById(farmerId)
+                    .orElseThrow(() -> new RuntimeException("Farmer not found with id: " + farmerId));
+
+            // Depot kontrolü
+            Depot depot = depotRepository.findById(addProductRequest.getId_depot())
+                    .orElseThrow(() -> new SecurityException("Depot not found with id: " + addProductRequest.getId_depot()));
 
             // Fotoğrafı kaydet
             MultipartFile photo = addProductRequest.getPhoto();
-            String uploadDir = "/app/uploads/productPhotos"; // Docker volume path
-            String fileName  = "productPhoto_" + addProductRequest.getId();
+            String uploadDir = "/app/uploads/productPhotos";
+            String fileName = "productPhoto_" + System.currentTimeMillis() + "_" + farmerId;
             Path filePath = Paths.get(uploadDir, fileName);
 
-            // Klasör yoksa oluştur
             Files.createDirectories(filePath.getParent());
-            photo.transferTo(filePath.toFile());
+            if (photo != null && !photo.isEmpty()) {
+                photo.transferTo(filePath.toFile());
+            }
 
             // Product entity oluştur
             Product product = new Product();
@@ -50,25 +57,26 @@ public class ProductServiceImpl implements ProductService {
             product.setPrice_per_kg(addProductRequest.getPrice_per_kg());
             product.setMin_buy(addProductRequest.getMin_buy());
             product.setFarmer(farmer);
-            //product.setCreated_ad(LocalDateTime.now());
-
+            product.setDepot(depot);  // -> artık depo entity de set ediliyor
             product.setImage_path("/app/uploads/" + fileName);
 
-            // DB'ye kaydet
             return productRepository.save(product);
 
         } catch (IOException e) {
             throw new RuntimeException("Fotoğraf yükleme sırasında hata oluştu", e);
         }
-
     }
 
-    @Override
-    public Product updateProduct(Long id, Map<String, Object> updates) {
 
-        //product'i getir
+    @Override
+    public Product updateProduct(Long id, Map<String, Object> updates, Long farmerId) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id));
+
+        // JWT domainId kontrolü
+        if (!product.getFarmer().getId().equals(farmerId)) {
+            throw new SecurityException("You are not authorized to modify this product.");
+        }
 
         updates.forEach((key, value) -> {
             switch (key) {
@@ -85,12 +93,16 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Product updateProductWithMultipart(Long id, String name, String quantityKg, String pricePerKg, String minBuy, MultipartFile photo) {
+    public Product updateProductWithMultipart(Long id, String name, String quantityKg, String pricePerKg, String minBuy, MultipartFile photo, Long farmerId) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id));
 
+        // JWT domainId kontrolü
+        if (!product.getFarmer().getId().equals(farmerId)) {
+            throw new SecurityException("You are not authorized to modify this product.");
+        }
+
         try {
-            // Alanları güncelle
             if (name != null && !name.isEmpty()) {
                 product.setName(name);
             }
@@ -104,9 +116,8 @@ public class ProductServiceImpl implements ProductService {
                 product.setMin_buy(new BigInteger(minBuy));
             }
 
-            // Eğer yeni fotoğraf gönderildiyse
             if (photo != null && !photo.isEmpty()) {
-                String uploadDir = "/app/uploads";
+                String uploadDir = "/app/uploads/productPhotos";
                 String fileName = System.currentTimeMillis() + "_" + photo.getOriginalFilename();
                 Path filePath = Paths.get(uploadDir, fileName);
 
@@ -123,9 +134,14 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Product deleteProduct(Long id) {
+    public Product deleteProduct(Long id, Long farmerId) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id));
+
+        // JWT domainId kontrolü
+        if (!product.getFarmer().getId().equals(farmerId)) {
+            throw new SecurityException("You are not authorized to delete this product.");
+        }
 
         productRepository.delete(product);
         return product;
@@ -133,9 +149,8 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Product getProduct(Long id) {
-        Product product = productRepository.findById(id)
+        return productRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id));
-        return product;
     }
 
     @Override

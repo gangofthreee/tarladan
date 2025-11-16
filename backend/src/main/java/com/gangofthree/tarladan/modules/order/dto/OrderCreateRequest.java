@@ -4,7 +4,6 @@ import lombok.Data;
 
 @Data
 public class OrderCreateRequest {
-    private Long customerId;
     private Long productId;
     private Long depotId;
     private Long truckId;
@@ -12,4 +11,5 @@ public class OrderCreateRequest {
     private String locTo;
     private Integer quantityKg;
 }
+
 

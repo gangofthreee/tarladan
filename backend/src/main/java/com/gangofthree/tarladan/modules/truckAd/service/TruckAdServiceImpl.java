@@ -26,34 +26,33 @@ public class TruckAdServiceImpl implements TruckAdService {
     private final TruckRepository truckRepository;
 
     @Override
-    public TruckAd createAd(AddTruckAdRequest request){
-        Trucker trucker = truckerRepository.findById(request.getTruckerId())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "ID'si " + request.getTruckerId() + " olan Tırcı (Trucker) bulunamadı."));
+    public TruckAd createAd(AddTruckAdRequest request, Long truckerId) {
+
+        Trucker trucker = truckerRepository.findById(truckerId)
+                .orElseThrow(() -> new EntityNotFoundException("Trucker bulunamadı: " + truckerId));
 
         Truck truck = truckRepository.findById(request.getTruckId())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "ID'si " + request.getTruckId() + " olan Kamyon (Truck) bulunamadı."));
+                .orElseThrow(() -> new EntityNotFoundException("Kamyon bulunamadı: " + request.getTruckId()));
 
-        if (!truck.getTrucker().getId().equals(trucker.getId())) {
-            throw new IllegalStateException("Seçilen kamyon, ilanı açan tırcıya ait değil.");
+        if (!truck.getTrucker().getId().equals(truckerId)) {
+            throw new IllegalStateException("Bu kamyon size ait olmadığı için ilan oluşturamazsınız.");
         }
 
         if (request.getStartDate().isAfter(request.getEndDate())) {
-            throw new IllegalArgumentException("Başlangıç tarihi, bitiş tarihinden sonra olamaz.");
+            throw new IllegalArgumentException("Başlangıç tarihi bitiş tarihinden sonra olamaz.");
         }
 
         TruckAd truckAd = TruckAd.builder()
-                .trucker(trucker) // Bulunan Tırcı Entity'sini set ediyoruz
-                .truck(truck)     // Bulunan Kamyon Entity'sini set ediyoruz
+                .trucker(trucker)
+                .truck(truck)
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
                 .pricePerKm(request.getPricePerKm())
                 .build();
 
         return truckAdRepository.save(truckAd);
-
     }
+
 
     @Override
     public List<TruckAdResponse> getAvailableTruckAds(GetTruckAdsRequest request) {
@@ -92,36 +91,47 @@ public class TruckAdServiceImpl implements TruckAdService {
     }
 
     @Override
-    public TruckAdResponse updateTruckAd(Long adId, UpdateTruckAdRequest request) {
+    public TruckAdResponse updateTruckAd(Long adId, UpdateTruckAdRequest request, Long truckerId) {
 
-        TruckAd existingAd = truckAdRepository.findById(adId)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "ID'si " + adId + " olan Kamyon İlanı bulunamadı."));
+        TruckAd ad = truckAdRepository.findById(adId)
+                .orElseThrow(() -> new EntityNotFoundException("İlan bulunamadı: " + adId));
 
-        if (request.getStartDate() != null) {
-            existingAd.setStartDate(request.getStartDate());
+        if (!ad.getTrucker().getId().equals(truckerId)) {
+            throw new SecurityException("Bu ilan size ait değil, güncelleyemezsiniz!");
         }
 
-        if (request.getEndDate() != null) {
-            existingAd.setEndDate(request.getEndDate());
+        if (request.getStartDate() != null) ad.setStartDate(request.getStartDate());
+        if (request.getEndDate() != null) ad.setEndDate(request.getEndDate());
+        if (request.getPricePerKm() != null) ad.setPricePerKm(request.getPricePerKm());
+
+        TruckAd updated = truckAdRepository.save(ad);
+        return convertToResponseDto(updated);
+    }
+
+
+    @Override
+    public void deleteTruckAd(Long adId, Long truckerId) {
+
+        TruckAd ad = truckAdRepository.findById(adId)
+                .orElseThrow(() -> new EntityNotFoundException("Silinecek ilan bulunamadı: " + adId));
+
+        if (!ad.getTrucker().getId().equals(truckerId)) {
+            throw new SecurityException("Bu ilan size ait değil, silemezsiniz!");
         }
 
-        if (request.getPricePerKm() != null) {
-            existingAd.setPricePerKm(request.getPricePerKm());
-        }
-
-        TruckAd updatedAd = truckAdRepository.save(existingAd);
-
-        //Sonucu Response DTO'ya dönüştür
-        return convertToResponseDto(updatedAd);
+        truckAdRepository.delete(ad);
     }
 
     @Override
-    public void deleteTruckAd(Long adId) {
-        if (!truckAdRepository.existsById(adId)) {
-            throw new EntityNotFoundException(
-                    "ID'si " + adId + " olan silinecek Kamyon İlanı bulunamadı.");
-        }
-        truckAdRepository.deleteById(adId);
+    public List<TruckAdResponse> getMyTruckAds(Long truckerId) {
+        // Truckere ait bütün ilanları çek
+        List<TruckAd> ads = truckAdRepository.findByTruckerId(truckerId);
+
+        // Response DTO'ya dönüştür
+        return ads.stream()
+                .map(this::convertToResponseDto)
+                .collect(Collectors.toList());
     }
+
+
 }

@@ -14,4 +14,7 @@ public interface TruckAdRepository extends JpaRepository<TruckAd, Long> {
     List<TruckAd> findActiveAdsByAvailability(
             @Param("searchStartDate") LocalDate searchStartDate,
             @Param("searchEndDate") LocalDate searchEndDate);
+
+    List<TruckAd> findByTruckerId(Long truckerId);
+
 }

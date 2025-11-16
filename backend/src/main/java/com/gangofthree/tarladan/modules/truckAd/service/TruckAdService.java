@@ -9,11 +9,16 @@ import com.gangofthree.tarladan.modules.truckAd.dto.UpdateTruckAdRequest;
 import java.util.List;
 
 public interface TruckAdService {
-    TruckAd createAd(AddTruckAdRequest addTruckAdRequest);
+
+    TruckAd createAd(AddTruckAdRequest request, Long truckerId);
 
     List<TruckAdResponse> getAvailableTruckAds(GetTruckAdsRequest request);
 
-    TruckAdResponse updateTruckAd(Long adId, UpdateTruckAdRequest request);
+    TruckAdResponse updateTruckAd(Long adId, UpdateTruckAdRequest request, Long truckerId);
 
-    void deleteTruckAd(Long adId);
+    void deleteTruckAd(Long adId, Long truckerId);
+
+    List<TruckAdResponse> getMyTruckAds(Long truckerId);
+
 }
+

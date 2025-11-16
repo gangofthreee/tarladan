@@ -2,6 +2,7 @@ package com.gangofthree.tarladan.core.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -51,25 +52,44 @@ public class SecurityConfig {
                 // 5. Yetkilendirme Kuralları:
                 .authorizeHttpRequests(auth -> auth
                         // Public Endpoints: Kayıt, Giriş, Token Yenileme
-                        .requestMatchers("/api/users/register", "/api/users/login", "/api/users/refresh", "/api/verification/**").permitAll()
+                                .requestMatchers("/api/users/register", "/api/users/login", "/api/users/refresh", "/api/verification/**").permitAll()
 
-                        // Örnek Rol Bazlı Korumalı Endpointler
-                        // NOT: /modules/farmer altındaki endpointler için FARMER rolü gerekli
-                        .requestMatchers("/farmer/**").hasRole("FARMER")
-                        .requestMatchers("/product/**").hasRole("FARMER")
+                                // FARMER endpoints
+                                .requestMatchers(HttpMethod.GET, "/farmer/**").hasAnyRole("FARMER", "CUSTOMER")
+                                .requestMatchers(HttpMethod.POST, "/farmer/**").hasRole("FARMER")
+                                .requestMatchers(HttpMethod.PUT, "/farmer/**").hasRole("FARMER")
+                                .requestMatchers(HttpMethod.DELETE, "/farmer/**").hasRole("FARMER")
 
-                        .requestMatchers("/customer/**").hasRole("CUSTOMER")
-                        .requestMatchers("/order/**").hasRole("CUSTOMER")
+                                // PRODUCT endpoints (FARMER yönetir, GET erişimi CUSTOMER görebilir)
+                                .requestMatchers(HttpMethod.GET, "/product/**").hasAnyRole("FARMER", "CUSTOMER")
+                                .requestMatchers(HttpMethod.POST, "/product/**").hasRole("FARMER")
+                                .requestMatchers(HttpMethod.PUT, "/product/**").hasRole("FARMER")
+                                .requestMatchers(HttpMethod.DELETE, "/product/**").hasRole("FARMER")
 
-                        .requestMatchers("/trucker/**").hasRole("TRUCKER")
-                        .requestMatchers("/truck/**").hasRole("TRUCKER")
-                        .requestMatchers("/truckAd/**").hasRole("TRUCKER")
+                                // CUSTOMER endpoints
+                                .requestMatchers("/customer/**").hasRole("CUSTOMER")
+                                .requestMatchers("/order/**").hasRole("CUSTOMER")
 
-                        .requestMatchers("/depot-owner/**").hasRole("DEPOT_OWNER")
-                        .requestMatchers("/depot/**").hasRole("DEPOT_OWNER")
+                                // TRUCKER endpoints
+                                .requestMatchers(HttpMethod.GET, "/truck/**").hasAnyRole("TRUCKER", "CUSTOMER")
+                                .requestMatchers(HttpMethod.POST, "/truck/**").hasRole("TRUCKER")
+                                .requestMatchers(HttpMethod.PUT, "/truck/**").hasRole("TRUCKER")
+                                .requestMatchers(HttpMethod.DELETE, "/truck/**").hasRole("TRUCKER")
 
-                        // Kalan tüm istekler kimlik doğrulaması gerektirir
-                        .anyRequest().authenticated()
+                                .requestMatchers(HttpMethod.GET, "/truckAd/**").hasAnyRole("TRUCKER", "CUSTOMER")
+                                .requestMatchers(HttpMethod.POST, "/truckAd/**").hasRole("TRUCKER")
+                                .requestMatchers(HttpMethod.PUT, "/truckAd/**").hasRole("TRUCKER")
+                                .requestMatchers(HttpMethod.DELETE, "/truckAd/**").hasRole("TRUCKER")
+
+                                // DEPOT endpoints
+                                .requestMatchers(HttpMethod.GET, "/depot/**").hasAnyRole("DEPOT_OWNER", "FARMER", "CUSTOMER")
+                                .requestMatchers(HttpMethod.POST, "/depot/**").hasRole("DEPOT_OWNER")
+                                .requestMatchers(HttpMethod.PUT, "/depot/**").hasRole("DEPOT_OWNER")
+                                .requestMatchers(HttpMethod.DELETE, "/depot/**").hasRole("DEPOT_OWNER")
+
+                                // Kalan tüm istekler kimlik doğrulaması gerektirir
+                                .anyRequest().authenticated()
+
                 )
 
                 // 6. JWT filtresini UsernamePasswordAuthenticationFilter'dan önce ekler.

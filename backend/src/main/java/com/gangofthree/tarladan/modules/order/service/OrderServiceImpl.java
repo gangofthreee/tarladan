@@ -35,20 +35,22 @@ public class OrderServiceImpl implements OrderService {
     private final ShipmentRepository shipmentRepository;
 
     @Override
-    public OrderResponse createOrder(OrderCreateRequest req) {
-        Customer customer = customerRepository.findById(req.getCustomerId())
+    public OrderResponse createOrder(OrderCreateRequest req, Long customerId) {
+
+        Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new EntityNotFoundException("Customer not found"));
+
         Product product = productRepository.findById(req.getProductId())
                 .orElseThrow(() -> new EntityNotFoundException("Product not found"));
+
         Depot depot = depotRepository.findById(req.getDepotId())
                 .orElseThrow(() -> new EntityNotFoundException("Depot not found"));
+
         Truck truck = truckRepository.findById(req.getTruckId())
                 .orElseThrow(() -> new EntityNotFoundException("Truck not found"));
 
-        // 🧮 Fiyat Hesaplama
-        BigInteger pricePerKg = product.getPrice_per_kg();
-        BigInteger totalPrice = pricePerKg.multiply(BigInteger.valueOf(req.getQuantityKg()));
-
+        BigInteger totalPrice = product.getPrice_per_kg()
+                .multiply(BigInteger.valueOf(req.getQuantityKg()));
 
         Shipment shipment = Shipment.builder()
                 .truck(truck)
@@ -70,22 +72,19 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         orderRepository.save(order);
-
         return mapToResponse(order);
     }
 
     @Override
-    public List<OrderResponse> getAllOrders() {
-        return orderRepository.findAll()
-                .stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public OrderResponse getOrderById(Long id) {
+    public OrderResponse getOrderByIdForCustomer(Long id, Long customerId) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Order not found"));
+
+        // 🔥 Sadece kendi siparişini görebilir
+        if (!order.getCustomer().getId().equals(customerId)) {
+            throw new SecurityException("Bu sipariş size ait değil!");
+        }
+
         return mapToResponse(order);
     }
 
@@ -98,11 +97,21 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public List<OrderResponse> getAllOrders() {
+        return orderRepository.findAll()
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public OrderResponse updateStatus(Long id, OrderStatus status) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Order not found"));
+
         order.setStatus(status);
         orderRepository.save(order);
+
         return mapToResponse(order);
     }
 
@@ -111,11 +120,10 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.deleteById(id);
     }
 
-    // 🔁 Entity → DTO dönüştürücü yardımcı metot
     private OrderResponse mapToResponse(Order order) {
         return OrderResponse.builder()
                 .id(order.getId())
-                .customerName(order.getCustomer().getUser().getName()) // ✅ customer → user → name
+                .customerName(order.getCustomer().getUser().getName())
                 .productName(order.getProduct().getName())
                 .depotName(order.getDepot().getAddress())
                 .truckPlate(order.getShipment().getTruck().getPlate())
@@ -127,5 +135,5 @@ public class OrderServiceImpl implements OrderService {
                 .status(order.getStatus())
                 .build();
     }
-
 }
+

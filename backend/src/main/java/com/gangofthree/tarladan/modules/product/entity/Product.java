@@ -9,6 +9,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.math.*;
 
 @Entity
@@ -25,12 +26,12 @@ public class Product {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name="farmer_id", referencedColumnName = "id") 
-	private Farmer farmer;
+    @JoinColumn(name = "farmer_id", referencedColumnName = "id")
+    private Farmer farmer;
 
     @ManyToOne
-    @JoinColumn(name="depot_id", referencedColumnName = "id")
-	private Depot depot;
+    @JoinColumn(name = "depot_id", referencedColumnName = "id")
+    private Depot depot;
 
     @NotBlank(message = "Name cannot be empty")
     private String name;

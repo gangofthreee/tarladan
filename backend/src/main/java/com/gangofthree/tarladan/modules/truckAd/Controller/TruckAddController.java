@@ -20,39 +20,51 @@ public class TruckAddController {
 
     private final TruckAdService truckAdService;
 
-    @PostMapping(value = "/create")
-    public ResponseEntity<TruckAd> createAd(@RequestBody AddTruckAdRequest request) {
-        TruckAd newAd = truckAdService.createAd(request);
+    @PostMapping("/create")
+    public ResponseEntity<TruckAd> createAd(
+            @RequestAttribute("domainId") Long truckerId,
+            @RequestBody AddTruckAdRequest request) {
+
+        TruckAd newAd = truckAdService.createAd(request, truckerId);
         return ResponseEntity.ok(newAd);
     }
 
     @GetMapping
-    public ResponseEntity<?> getAvailableTruckAds(
-            @ModelAttribute GetTruckAdsRequest request) {
-
+    public ResponseEntity<?> getAvailableTruckAds(@ModelAttribute GetTruckAdsRequest request) {
         List<TruckAdResponse> availableAds = truckAdService.getAvailableTruckAds(request);
 
         if (availableAds.isEmpty()) {
-            String message = "Belirtilen tarihlerde uygun kamyon yok.";
-            return ResponseEntity.ok(message);
+            return ResponseEntity.ok("Belirtilen tarihlerde uygun kamyon yok.");
         }
-
         return ResponseEntity.ok(availableAds);
     }
 
     @PatchMapping("/update/{adId}")
     public ResponseEntity<TruckAdResponse> updateTruckAd(
             @PathVariable Long adId,
+            @RequestAttribute("domainId") Long truckerId,
             @RequestBody UpdateTruckAdRequest request) {
 
-        TruckAdResponse updatedAd = truckAdService.updateTruckAd(adId, request);
+        TruckAdResponse updatedAd = truckAdService.updateTruckAd(adId, request, truckerId);
         return ResponseEntity.ok(updatedAd);
     }
 
     @DeleteMapping("/delete/{adId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT) // Başarılı silme sonrası 204 No Content döndürür
-    public void deleteTruckAd(@PathVariable Long adId) {
-        truckAdService.deleteTruckAd(adId);
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteTruckAd(
+            @PathVariable Long adId,
+            @RequestAttribute("domainId") Long truckerId) {
+
+        truckAdService.deleteTruckAd(adId, truckerId);
+    }
+
+    @GetMapping("/my-ads")
+    public ResponseEntity<List<TruckAdResponse>> getMyAds(
+            @RequestAttribute("domainId") Long truckerId
+    ) {
+        List<TruckAdResponse> myAds = truckAdService.getMyTruckAds(truckerId);
+        return ResponseEntity.ok(myAds);
     }
 
 }
+

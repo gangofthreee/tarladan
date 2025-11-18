@@ -4,8 +4,10 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../config/api_config.dart';
+import '../../services/token_service.dart';
 
 import '../../widgets/themed_scaffold.dart';
+
 class FarmerCreateAd extends StatefulWidget {
   const FarmerCreateAd({super.key});
 
@@ -19,7 +21,7 @@ class _FarmerCreateAdState extends State<FarmerCreateAd> {
   TextEditingController amountController = TextEditingController();
   TextEditingController priceController = TextEditingController();
   TextEditingController minBuyController = TextEditingController();
-  
+
   XFile? _selectedImage;
   final ImagePicker _picker = ImagePicker();
   bool _isLoading = false;
@@ -64,8 +66,11 @@ class _FarmerCreateAdState extends State<FarmerCreateAd> {
         Uri.parse(ApiConfig.createProductUrl),
       );
 
+      // Authorization header ekle
+      final authHeaders = await TokenService.getAuthHeadersForMultipart();
+      request.headers.addAll(authHeaders);
+
       // Form-data alanları
-      request.fields['id'] = '1';
       request.fields['name'] = productController.text.trim();
       request.fields['quantity_kg'] = amountController.text.trim();
       request.fields['price_per_kg'] = priceController.text.trim();
@@ -84,6 +89,9 @@ class _FarmerCreateAdState extends State<FarmerCreateAd> {
 
       var streamedResponse = await request.send();
       var response = await http.Response.fromStream(streamedResponse);
+
+      // Yeni token varsa güncelle
+      await TokenService.checkAndUpdateToken(response);
 
       if (!mounted) return;
 
@@ -107,17 +115,13 @@ class _FarmerCreateAdState extends State<FarmerCreateAd> {
 
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),        behavior: SnackBarBehavior.floating,
-      ),
+      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
     );
   }
 
   void _showSuccessSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),        behavior: SnackBarBehavior.floating,
-      ),
+      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
     );
   }
 
@@ -133,15 +137,15 @@ class _FarmerCreateAdState extends State<FarmerCreateAd> {
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
-            appBar: ThemedAppBar(
-                elevation: 0,
+      appBar: ThemedAppBar(
+        elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Yeni İlan Aç',
-          style: TextStyle( fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
       body: Form(
@@ -211,7 +215,9 @@ class _FarmerCreateAdState extends State<FarmerCreateAd> {
               const SizedBox(height: 8),
               TextFormField(
                 controller: priceController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: const Color(0xFFF5F5F5),
@@ -276,7 +282,9 @@ class _FarmerCreateAdState extends State<FarmerCreateAd> {
                     color: const Color(0xFFF5F5F5),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: _selectedImage == null ? Colors.grey.shade300 : Colors.green,
+                      color: _selectedImage == null
+                          ? Colors.grey.shade300
+                          : Colors.green,
                       width: 2,
                     ),
                   ),
@@ -284,9 +292,10 @@ class _FarmerCreateAdState extends State<FarmerCreateAd> {
                       ? Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.add_photo_alternate, 
-                              size: 50, 
-                              color: Colors.grey[600]
+                            Icon(
+                              Icons.add_photo_alternate,
+                              size: 50,
+                              color: Colors.grey[600],
                             ),
                             const SizedBox(height: 8),
                             Text(
@@ -325,22 +334,16 @@ class _FarmerCreateAdState extends State<FarmerCreateAd> {
                 decoration: BoxDecoration(
                   color: const Color(0xFFF5F5F5),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: Colors.green,
-                    width: 1,
-                  ),
+                  border: Border.all(color: Colors.green, width: 1),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       'Depo #$_selectedDepotId (Varsayılan)',
-                      style: const TextStyle(
-                        color: Colors.black,
-                      ),
+                      style: const TextStyle(color: Colors.black),
                     ),
-                    const Icon(Icons.location_on
-                    ),
+                    const Icon(Icons.location_on),
                   ],
                 ),
               ),
@@ -363,7 +366,9 @@ class _FarmerCreateAdState extends State<FarmerCreateAd> {
                           width: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
                           ),
                         )
                       : const Text(

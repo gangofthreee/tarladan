@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../config/api_config.dart';
+import '../../services/token_service.dart';
 
 import '../../widgets/themed_scaffold.dart';
+
 class WarehousemanUpdateWarehouseInfoPage extends StatefulWidget {
   final int depotId;
   final String warehouseName;
@@ -66,9 +68,10 @@ class _WarehousemanUpdateWarehouseInfoPageState
     });
 
     try {
+      final authHeaders = await TokenService.getAuthHeaders();
       final response = await http.put(
         Uri.parse(ApiConfig.updateDepotUrl(widget.depotId)),
-        headers: {'Content-Type': 'application/json'},
+        headers: authHeaders,
         body: json.encode({
           'price': double.parse(_priceController.text),
           'address': _addressController.text,
@@ -76,28 +79,30 @@ class _WarehousemanUpdateWarehouseInfoPageState
         }),
       );
 
+      await TokenService.checkAndUpdateToken(response);
+
       if (!mounted) return;
 
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Depo bilgileri başarıyla güncellendi!'),
-                        duration: Duration(seconds: 2),
+            duration: Duration(seconds: 2),
           ),
         );
         Navigator.pop(context, true); // true döndürerek yenilenmesini sağla
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Güncelleme başarısız: ${response.statusCode}'),          ),
+            content: Text('Güncelleme başarısız: ${response.statusCode}'),
+          ),
         );
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Bağlantı hatası: $e'),        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Bağlantı hatası: $e')));
     } finally {
       if (mounted) {
         setState(() {
@@ -110,8 +115,8 @@ class _WarehousemanUpdateWarehouseInfoPageState
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
-            appBar: ThemedAppBar(
-                elevation: 0,
+      appBar: ThemedAppBar(
+        elevation: 0,
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -119,11 +124,7 @@ class _WarehousemanUpdateWarehouseInfoPageState
         ),
         title: const Text(
           'Depo Bilgilerini Güncelle',
-          style: TextStyle(
-            
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
       ),
       body: SingleChildScrollView(
@@ -349,7 +350,7 @@ class _WarehousemanUpdateWarehouseInfoPageState
                               color: Colors.grey[300]!,
                               width: 1.5,
                             ),
-                                                        shape: RoundedRectangleBorder(
+                            shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),

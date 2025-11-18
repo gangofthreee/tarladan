@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../config/api_config.dart';
+import '../../services/token_service.dart';
 import 'warehouseman_myWarehouseDetail_page.dart';
 import 'warehouseman_settings_page.dart';
 
 import '../../widgets/themed_scaffold.dart';
+
 class WarehousemanMyWarehousePage extends StatefulWidget {
   const WarehousemanMyWarehousePage({super.key});
 
@@ -20,8 +22,6 @@ class _WarehousemanMyWarehousePageState
   List<dynamic> _depots = [];
   bool _isLoading = true;
   String? _errorMessage;
-  final int _depoOwnerId =
-      1; // Şimdilik test için sabit ID, ileride login'den gelecek
 
   @override
   void initState() {
@@ -36,10 +36,13 @@ class _WarehousemanMyWarehousePageState
     });
 
     try {
+      final authHeaders = await TokenService.getAuthHeaders();
       final response = await http.get(
-        Uri.parse(ApiConfig.getDepotsByOwnerUrl(_depoOwnerId)),
-        headers: {'Content-Type': 'application/json'},
+        Uri.parse(ApiConfig.getDepotsByOwnerUrl),
+        headers: authHeaders,
       );
+
+      await TokenService.checkAndUpdateToken(response);
 
       print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
@@ -88,8 +91,8 @@ class _WarehousemanMyWarehousePageState
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
-            appBar: ThemedAppBar(
-                elevation: 0,
+      appBar: ThemedAppBar(
+        elevation: 0,
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -97,11 +100,7 @@ class _WarehousemanMyWarehousePageState
         ),
         title: const Text(
           'Depolarım',
-          style: TextStyle(
-            
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
       ),
       body: _isLoading
@@ -174,7 +173,7 @@ class _WarehousemanMyWarehousePageState
         ),
         child: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
-                    selectedItemColor: const Color(0xFF4CAF50),
+          selectedItemColor: const Color(0xFF4CAF50),
           unselectedItemColor: Colors.grey[400],
           selectedLabelStyle: const TextStyle(
             fontWeight: FontWeight.w600,
@@ -324,7 +323,7 @@ class _WarehousemanMyWarehousePageState
                     borderRadius: BorderRadius.circular(10),
                     child: LinearProgressIndicator(
                       value: percentage / 100,
-                                            valueColor: const AlwaysStoppedAnimation<Color>(
+                      valueColor: const AlwaysStoppedAnimation<Color>(
                         Color(0xFF4CAF50),
                       ),
                       minHeight: 8,

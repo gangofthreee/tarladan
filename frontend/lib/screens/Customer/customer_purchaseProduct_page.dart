@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../config/api_config.dart';
+import '../../services/token_service.dart';
 import 'customer_selectTruck_page.dart';
 
 import '../../widgets/themed_scaffold.dart';
+
 class CustomerPurchaseProductPage extends StatefulWidget {
   final String productName;
   final String imageUrl;
@@ -50,8 +52,7 @@ class _CustomerPurchaseProductPageState
           _capacityController.text.isEmpty ||
           _modelController.text.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Lütfen tüm araç bilgilerini doldurun'),          ),
+          const SnackBar(content: Text('Lütfen tüm araç bilgilerini doldurun')),
         );
         return;
       }
@@ -63,7 +64,6 @@ class _CustomerPurchaseProductPageState
 
     try {
       final orderData = {
-        'customerId': 1,
         'productId': 1,
         'depotId': 2,
         'truckId': 1,
@@ -72,18 +72,21 @@ class _CustomerPurchaseProductPageState
         'quantityKg': widget.quantity,
       };
 
+      final authHeaders = await TokenService.getAuthHeaders();
       final response = await http.post(
         Uri.parse(ApiConfig.createOrderUrl),
-        headers: {'Content-Type': 'application/json'},
+        headers: authHeaders,
         body: jsonEncode(orderData),
       );
+
+      await TokenService.checkAndUpdateToken(response);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Sipariş başarıyla oluşturuldu!'),
-                            duration: Duration(seconds: 2),
+              duration: Duration(seconds: 2),
             ),
           );
 
@@ -100,7 +103,8 @@ class _CustomerPurchaseProductPageState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Hata: $e'),            duration: const Duration(seconds: 3),
+            content: Text('Hata: $e'),
+            duration: const Duration(seconds: 3),
           ),
         );
       }
@@ -118,8 +122,8 @@ class _CustomerPurchaseProductPageState
     final totalPrice = widget.price * widget.quantity;
 
     return ThemedScaffold(
-            appBar: ThemedAppBar(
-                elevation: 0,
+      appBar: ThemedAppBar(
+        elevation: 0,
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -127,11 +131,7 @@ class _CustomerPurchaseProductPageState
         ),
         title: const Text(
           'Satın Alma',
-          style: TextStyle(
-            
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
       ),
       body: SingleChildScrollView(

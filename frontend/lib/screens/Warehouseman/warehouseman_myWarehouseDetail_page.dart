@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../config/api_config.dart';
+import '../../services/token_service.dart';
 import 'warehouseman_updateWarehouseInfo_page.dart';
 
 import '../../widgets/themed_scaffold.dart';
+
 class WarehousemanMyWarehouseDetailPage extends StatefulWidget {
   final int depotId;
 
@@ -35,13 +37,16 @@ class _WarehousemanMyWarehouseDetailPageState
     });
 
     try {
+      final authHeaders = await TokenService.getAuthHeaders();
       final response = await http.get(
         Uri.parse(ApiConfig.getDepotByIdUrl(widget.depotId)),
-        headers: {'Content-Type': 'application/json'},
+        headers: authHeaders,
       );
 
       print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
+
+      await TokenService.checkAndUpdateToken(response);
 
       if (!mounted) return;
 
@@ -76,8 +81,8 @@ class _WarehousemanMyWarehouseDetailPageState
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
-            appBar: ThemedAppBar(
-                elevation: 0,
+      appBar: ThemedAppBar(
+        elevation: 0,
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -85,11 +90,7 @@ class _WarehousemanMyWarehouseDetailPageState
         ),
         title: const Text(
           'Depo Detayları',
-          style: TextStyle(
-            
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
       ),
       body: _isLoading
@@ -421,7 +422,7 @@ class _WarehousemanMyWarehouseDetailPageState
           // Avatar
           CircleAvatar(
             radius: 25,
-                        child: const Icon(Icons.person, size: 30, color: Colors.white),
+            child: const Icon(Icons.person, size: 30, color: Colors.white),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -451,10 +452,13 @@ class _WarehousemanMyWarehouseDetailPageState
 
   Future<void> _deleteDepot() async {
     try {
+      final authHeaders = await TokenService.getAuthHeaders();
       final response = await http.delete(
         Uri.parse(ApiConfig.deleteDepotUrl(widget.depotId)),
-        headers: {'Content-Type': 'application/json'},
+        headers: authHeaders,
       );
+
+      await TokenService.checkAndUpdateToken(response);
 
       print('Delete response status: ${response.statusCode}');
       print('Delete response body: ${response.body}');
@@ -464,24 +468,20 @@ class _WarehousemanMyWarehouseDetailPageState
       if (response.statusCode == 200) {
         // Başarılı silme
         Navigator.pop(context, true); // Detay sayfasından çık ve listeyi yenile
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Depo başarıyla silindi'),
-                      ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Depo başarıyla silindi')));
       } else {
         // Hata durumu
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Depo silinemedi: ${response.statusCode}'),          ),
+          SnackBar(content: Text('Depo silinemedi: ${response.statusCode}')),
         );
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Bağlantı hatası: $e'),        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Bağlantı hatası: $e')));
     }
   }
 

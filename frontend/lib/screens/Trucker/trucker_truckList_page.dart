@@ -4,8 +4,10 @@ import 'dart:convert';
 import 'trucker_truckUpdate_page.dart';
 import 'trucker_truckSaving_page.dart';
 import '../../config/api_config.dart';
+import '../../services/token_service.dart';
 
 import '../../widgets/themed_scaffold.dart';
+
 class TruckerTruckListPage extends StatefulWidget {
   const TruckerTruckListPage({super.key});
 
@@ -31,13 +33,18 @@ class _TruckerTruckListPageState extends State<TruckerTruckListPage> {
     });
 
     try {
-      // Trucker ID 1'e ait tüm truck'ları getir
+      // Trucker'a ait tüm truck'ları getir (JWT'den ID alınacak)
+      final authHeaders = await TokenService.getAuthHeaders();
       final response = await http.get(
-        Uri.parse(ApiConfig.getTrucksByTruckerUrl(1)),
+        Uri.parse(ApiConfig.getTrucksByTruckerUrl),
+        headers: authHeaders,
       );
 
       print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
+
+      // Yeni token varsa güncelle
+      await TokenService.checkAndUpdateToken(response);
 
       if (response.statusCode == 200) {
         final List<dynamic> dataList = json.decode(response.body);
@@ -75,8 +82,8 @@ class _TruckerTruckListPageState extends State<TruckerTruckListPage> {
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
-            appBar: ThemedAppBar(
-                elevation: 0,
+      appBar: ThemedAppBar(
+        elevation: 0,
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -84,11 +91,7 @@ class _TruckerTruckListPageState extends State<TruckerTruckListPage> {
         ),
         title: const Text(
           'Araçlarım',
-          style: TextStyle(
-            
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
       ),
       body: Column(
@@ -163,13 +166,17 @@ class _TruckerTruckListPageState extends State<TruckerTruckListPage> {
       ),
       // Floating Action Button - Yeni Araç Ekle
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
+        onPressed: () async {
+          final result = await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => const TruckerTruckSavingPage(),
             ),
           );
+          // Yeni araç eklendiyse listeyi yenile
+          if (result == true) {
+            _loadTruck();
+          }
         },
         backgroundColor: const Color(0xFF4CAF50),
         icon: const Icon(Icons.add),
@@ -280,14 +287,18 @@ class _TruckerTruckListPageState extends State<TruckerTruckListPage> {
                       // Düzenle Button
                       Expanded(
                         child: InkWell(
-                          onTap: () {
-                            Navigator.push(
+                          onTap: () async {
+                            final result = await Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) =>
                                     TruckerTruckUpdatePage(truck: truck),
                               ),
                             );
+                            // Güncelleme yapıldıysa listeyi yenile
+                            if (result == true) {
+                              _loadTruck();
+                            }
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(
@@ -303,7 +314,6 @@ class _TruckerTruckListPageState extends State<TruckerTruckListPage> {
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
-                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 const Icon(
                                   Icons.edit,
@@ -311,12 +321,15 @@ class _TruckerTruckListPageState extends State<TruckerTruckListPage> {
                                   color: Color(0xFF4CAF50),
                                 ),
                                 const SizedBox(width: 4),
-                                Text(
-                                  'Düzenle',
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF4CAF50),
+                                const Flexible(
+                                  child: Text(
+                                    'Düzenle',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF4CAF50),
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                               ],
@@ -342,7 +355,6 @@ class _TruckerTruckListPageState extends State<TruckerTruckListPage> {
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
-                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 const Icon(
                                   Icons.delete,
@@ -350,12 +362,15 @@ class _TruckerTruckListPageState extends State<TruckerTruckListPage> {
                                   color: Colors.red,
                                 ),
                                 const SizedBox(width: 4),
-                                Text(
-                                  'Aracı Sil',
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.red,
+                                const Flexible(
+                                  child: Text(
+                                    'Aracı Sil',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.red,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                               ],
@@ -371,60 +386,6 @@ class _TruckerTruckListPageState extends State<TruckerTruckListPage> {
           ),
         ],
       ),
-    );
-  }
-
-  void _showEditOptions(Map<String, dynamic> truck) {
-    showModalBottomSheet(
-      context: context,
-            shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 12),
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 20),
-              ListTile(
-                leading: const Icon(Icons.edit, color: Color(0xFF4CAF50)),
-                title: const Text('Araç Bilgilerini Düzenle'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          TruckerTruckUpdatePage(truck: truck),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.delete),
-                title: const Text(
-                  'Aracı Sil',
-                  style: TextStyle(color: Colors.red),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  _confirmDelete(truck);
-                },
-              ),
-              const SizedBox(height: 20),
-            ],
-          ),
-        );
-      },
     );
   }
 
@@ -456,9 +417,13 @@ class _TruckerTruckListPageState extends State<TruckerTruckListPage> {
   Future<void> _deleteTruck(Map<String, dynamic> truck) async {
     try {
       final truckId = truck['id'];
+      final authHeaders = await TokenService.getAuthHeaders();
       final response = await http.delete(
         Uri.parse(ApiConfig.deleteTruckUrl(truckId)),
+        headers: authHeaders,
       );
+
+      await TokenService.checkAndUpdateToken(response);
 
       if (response.statusCode == 200) {
         setState(() {
@@ -466,8 +431,7 @@ class _TruckerTruckListPageState extends State<TruckerTruckListPage> {
         });
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Araç başarıyla silindi'),            ),
+            const SnackBar(content: Text('Araç başarıyla silindi')),
           );
         }
       } else {
@@ -475,42 +439,10 @@ class _TruckerTruckListPageState extends State<TruckerTruckListPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Hata: ${e.toString()}'),          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Hata: ${e.toString()}')));
       }
     }
-  }
-
-  void _confirmDelete(Map<String, dynamic> truck) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Aracı Sil'),
-        content: Text(
-          '${truck['model']} aracını silmek istediğinizden emin misiniz?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('İptal'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              setState(() {
-                trucks.remove(truck);
-              });
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Araç başarıyla silindi'),                ),
-              );
-            },
-            child: const Text('Sil', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
   }
 }

@@ -4,7 +4,9 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
+import 'package:image/image.dart' as img;
 import '../../config/api_config.dart';
+import '../../services/token_service.dart';
 
 import '../../widgets/themed_scaffold.dart';
 
@@ -24,8 +26,29 @@ class _TruckerTruckSavingPageState extends State<TruckerTruckSavingPage> {
 
   final List<File> _selectedImages = [];
   final List<XFile> _selectedXFiles = [];
+  final List<Uint8List> _compressedImages = []; // Sıkıştırılmış görüntüler
   final ImagePicker _picker = ImagePicker();
   bool _isLoading = false;
+
+  // Fotoğrafı sıkıştır ve yeniden boyutlandır
+  Future<Uint8List> _compressImage(Uint8List imageBytes) async {
+    // Görüntüyü decode et
+    img.Image? image = img.decodeImage(imageBytes);
+    if (image == null) return imageBytes;
+
+    // Maksimum boyut 1200px (yüksek kalite için)
+    int maxSize = 1200;
+    if (image.width > maxSize || image.height > maxSize) {
+      image = img.copyResize(
+        image,
+        width: image.width > image.height ? maxSize : null,
+        height: image.height >= image.width ? maxSize : null,
+      );
+    }
+
+    // JPEG formatında sıkıştır (kalite: 85)
+    return Uint8List.fromList(img.encodeJpg(image, quality: 85));
+  }
 
   @override
   void dispose() {
@@ -40,16 +63,24 @@ class _TruckerTruckSavingPageState extends State<TruckerTruckSavingPage> {
     try {
       final List<XFile> images = await _picker.pickMultiImage();
       if (images.isNotEmpty) {
-        setState(() {
-          _selectedXFiles.addAll(images);
-          if (!kIsWeb) {
-            _selectedImages.addAll(images.map((image) => File(image.path)));
-          }
-        });
+        // Fotoğrafları sıkıştır
+        for (var image in images) {
+          final bytes = await image.readAsBytes();
+          final compressedBytes = await _compressImage(bytes);
+
+          setState(() {
+            _selectedXFiles.add(image);
+            _compressedImages.add(compressedBytes);
+            if (!kIsWeb) {
+              _selectedImages.add(File(image.path));
+            }
+          });
+        }
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('${images.length} fotoğraf seçildi'),
+              content: Text('${images.length} fotoğraf sıkıştırıldı ve hazır'),
               backgroundColor: const Color(0xFF4CAF50),
               duration: const Duration(seconds: 2),
             ),
@@ -69,6 +100,7 @@ class _TruckerTruckSavingPageState extends State<TruckerTruckSavingPage> {
   void _removeImage(int index) {
     setState(() {
       _selectedXFiles.removeAt(index);
+      _compressedImages.removeAt(index);
       if (!kIsWeb && index < _selectedImages.length) {
         _selectedImages.removeAt(index);
       }
@@ -97,25 +129,38 @@ class _TruckerTruckSavingPageState extends State<TruckerTruckSavingPage> {
           Uri.parse(ApiConfig.createTruckUrl),
         );
 
+        // Authorization header ekle
+        final authHeaders = await TokenService.getAuthHeadersForMultipart();
+        request.headers.addAll(authHeaders);
+
         // Form data ekle
-        request.fields['truckerId'] = '1';
         request.fields['vehicle'] = _brandModelController.text;
         request.fields['capacityTon'] = _capacityController.text;
         request.fields['plate'] = _plateController.text;
         request.fields['basePrice'] = _priceController.text;
 
-        // Fotoğraf ekle
-        if (_selectedXFiles.isNotEmpty) {
+        // Sıkıştırılmış fotoğrafı ekle
+        if (_compressedImages.isNotEmpty) {
           final xFile = _selectedXFiles[0];
-          final bytes = await xFile.readAsBytes();
+          final compressedBytes = _compressedImages[0];
           request.files.add(
-            http.MultipartFile.fromBytes('photo', bytes, filename: xFile.name),
+            http.MultipartFile.fromBytes(
+              'photo',
+              compressedBytes,
+              filename: xFile.name.replaceAll(
+                RegExp(r'\.(png|PNG|heic|HEIC)$'),
+                '.jpg',
+              ),
+            ),
           );
         }
 
         // İsteği gönder
         var streamedResponse = await request.send();
         var response = await http.Response.fromStream(streamedResponse);
+
+        // Yeni token varsa güncelle
+        await TokenService.checkAndUpdateToken(response);
 
         if (response.statusCode == 200 || response.statusCode == 201) {
           if (mounted) {
@@ -396,42 +441,24 @@ class _TruckerTruckSavingPageState extends State<TruckerTruckSavingPage> {
 
                 const SizedBox(height: 20),
 
-                // Seçilen fotoğrafları göster
-                if (_selectedXFiles.isNotEmpty)
+                // Seçilen fotoğrafları göster (sıkıştırılmış)
+                if (_compressedImages.isNotEmpty)
                   Wrap(
                     spacing: 10,
                     runSpacing: 10,
-                    children: List.generate(_selectedXFiles.length, (index) {
+                    children: List.generate(_compressedImages.length, (index) {
                       return Stack(
                         children: [
-                          FutureBuilder<Uint8List>(
-                            future: _selectedXFiles[index].readAsBytes(),
-                            builder: (context, snapshot) {
-                              if (snapshot.hasData) {
-                                return Container(
-                                  width: 100,
-                                  height: 100,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(12),
-                                    image: DecorationImage(
-                                      image: MemoryImage(snapshot.data!),
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                );
-                              }
-                              return Container(
-                                width: 100,
-                                height: 100,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12),
-                                  color: Colors.grey[300],
-                                ),
-                                child: const Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                              );
-                            },
+                          Container(
+                            width: 100,
+                            height: 100,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              image: DecorationImage(
+                                image: MemoryImage(_compressedImages[index]),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
                           ),
                           Positioned(
                             top: 5,

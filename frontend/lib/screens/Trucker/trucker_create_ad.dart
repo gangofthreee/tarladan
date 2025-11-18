@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../config/api_config.dart';
+import '../../services/token_service.dart';
 
 import '../../widgets/themed_scaffold.dart';
 
@@ -20,7 +21,7 @@ class _TruckerCreateAdPageState extends State<TruckerCreateAdPage> {
   DateTime? _selectedDateTime;
   List<dynamic> _trucks = [];
   bool _isLoadingTrucks = false;
-  final int _truckerId = 1; // Şimdilik test için sabit ID
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -40,13 +41,16 @@ class _TruckerCreateAdPageState extends State<TruckerCreateAdPage> {
     });
 
     try {
+      final authHeaders = await TokenService.getAuthHeaders();
       final response = await http.get(
-        Uri.parse(ApiConfig.getTrucksByTruckerUrl(_truckerId)),
-        headers: {'Content-Type': 'application/json'},
+        Uri.parse(ApiConfig.getTrucksByTruckerUrl),
+        headers: authHeaders,
       );
 
       print('Trucks API Response status: ${response.statusCode}');
       print('Trucks API Response body: ${response.body}');
+
+      await TokenService.checkAndUpdateToken(response);
 
       if (!mounted) return;
 
@@ -136,7 +140,7 @@ class _TruckerCreateAdPageState extends State<TruckerCreateAdPage> {
     }
   }
 
-  void _handlePublish() {
+  void _handlePublish() async {
     if (_formKey.currentState!.validate()) {
       if (_selectedTruck == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -152,14 +156,78 @@ class _TruckerCreateAdPageState extends State<TruckerCreateAdPage> {
         return;
       }
 
-      // API'ye ilan gönderme işlemi burada yapılacak
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('İlan başarıyla yayınlandı!'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-      Navigator.pop(context);
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        final authHeaders = await TokenService.getAuthHeaders();
+
+        // Backend beklediği format: startDate, endDate (LocalDate), truckId, pricePerKm
+        // availableFrom'dan sadece date kısmını al
+        final startDate = DateTime(
+          _selectedDateTime!.year,
+          _selectedDateTime!.month,
+          _selectedDateTime!.day,
+        );
+
+        // Örnek: 30 gün sonrası bitiş tarihi (istersen UI'a ekleyebilirsin)
+        final endDate = startDate.add(const Duration(days: 30));
+
+        final requestBody = {
+          'truckId': int.parse(_selectedTruck!),
+          'startDate':
+              '${startDate.year}-${startDate.month.toString().padLeft(2, '0')}-${startDate.day.toString().padLeft(2, '0')}',
+          'endDate':
+              '${endDate.year}-${endDate.month.toString().padLeft(2, '0')}-${endDate.day.toString().padLeft(2, '0')}',
+          'pricePerKm': double.parse(_priceController.text),
+        };
+
+        print('Creating truck ad with data: $requestBody');
+
+        final response = await http.post(
+          Uri.parse(ApiConfig.createTruckAdUrl),
+          headers: authHeaders,
+          body: json.encode(requestBody),
+        );
+
+        print('Create Ad Response status: ${response.statusCode}');
+        print('Create Ad Response body: ${response.body}');
+
+        // Yeni token varsa güncelle
+        await TokenService.checkAndUpdateToken(response);
+
+        if (!mounted) return;
+
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('İlan başarıyla yayınlandı!'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+          Navigator.pop(context, true); // true ile geri dön ki liste yenilensin
+        } else {
+          final errorMessage = response.body.isNotEmpty
+              ? json.decode(response.body)['error'] ?? 'İlan oluşturulamadı'
+              : 'İlan oluşturulamadı: ${response.statusCode}';
+
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(errorMessage)));
+        }
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Bağlantı hatası: $e')));
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
     }
   }
 
@@ -366,7 +434,7 @@ class _TruckerCreateAdPageState extends State<TruckerCreateAdPage> {
                   width: double.infinity,
                   height: 55,
                   child: ElevatedButton(
-                    onPressed: _handlePublish,
+                    onPressed: _isLoading ? null : _handlePublish,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF4CAF50),
                       foregroundColor: Colors.white,
@@ -375,13 +443,22 @@ class _TruckerCreateAdPageState extends State<TruckerCreateAdPage> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
-                      'İlanı Yayınla',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Text(
+                            'İlanı Yayınla',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                 ),
               ],

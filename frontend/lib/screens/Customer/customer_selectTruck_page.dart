@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../config/api_config.dart';
+import '../../services/token_service.dart';
 
 import '../../widgets/themed_scaffold.dart';
 
@@ -32,10 +33,13 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
     });
 
     try {
+      final authHeaders = await TokenService.getAuthHeaders();
       final response = await http.get(
         Uri.parse(ApiConfig.getAllTrucksUrl),
-        headers: {'Content-Type': 'application/json'},
+        headers: authHeaders,
       );
+
+      await TokenService.checkAndUpdateToken(response);
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);

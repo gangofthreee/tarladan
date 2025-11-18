@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import '../../config/api_config.dart';
+import '../../services/token_service.dart';
 import 'trucker_truckAdUpdate_page.dart';
 
 import '../../widgets/themed_scaffold.dart';
+
 class TruckerListAdsPage extends StatefulWidget {
   const TruckerListAdsPage({super.key});
 
@@ -10,22 +15,72 @@ class TruckerListAdsPage extends StatefulWidget {
 }
 
 class _TruckerListAdsPageState extends State<TruckerListAdsPage> {
-  // Örnek ilan verileri
-  final List<Map<String, dynamic>> ads = [
-    {'truckModel': 'Ford F-150', 'availableFrom': 'July 20, 2024, 10:00 AM'},
-    {
-      'truckModel': 'Chevrolet Silverado',
-      'availableFrom': 'July 21, 2024, 2:00 PM',
-    },
-    {'truckModel': 'Dodge Ram 1500', 'availableFrom': 'July 22, 2024, 9:00 AM'},
-    {'truckModel': 'Toyota Tundra', 'availableFrom': 'July 23, 2024, 4:00 PM'},
-  ];
+  List<Map<String, dynamic>> ads = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchMyAds();
+  }
+
+  Future<void> _fetchMyAds() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final authHeaders = await TokenService.getAuthHeaders();
+      final response = await http.get(
+        Uri.parse(ApiConfig.getTruckerAdsUrl),
+        headers: authHeaders,
+      );
+
+      print('🔄 Fetching my ads...');
+      print('My Ads Response status: ${response.statusCode}');
+      print('My Ads Response body: ${response.body}');
+
+      // Yeni token varsa güncelle
+      await TokenService.checkAndUpdateToken(response);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> dataList = json.decode(response.body);
+        setState(() {
+          ads = dataList.map((data) {
+            return {
+              'id': data['adId'],
+              'truckModel': data['vehicle'] ?? 'Araç Modeli',
+              'plate': data['plate'] ?? '',
+              'startDate': data['startDate'] ?? '',
+              'endDate': data['endDate'] ?? '',
+              'pricePerKm': data['pricePerKm'],
+            };
+          }).toList();
+          _isLoading = false;
+        });
+        print('✅ ${ads.length} ilan yüklendi');
+      } else {
+        setState(() {
+          _errorMessage = 'İlanlar yüklenemedi: ${response.statusCode}';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('❌ İlan yükleme hatası: $e');
+      setState(() {
+        _errorMessage = 'Bağlantı hatası: $e';
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
-            appBar: ThemedAppBar(
-                elevation: 0,
+      appBar: ThemedAppBar(
+        elevation: 0,
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -33,14 +88,32 @@ class _TruckerListAdsPageState extends State<TruckerListAdsPage> {
         ),
         title: const Text(
           'İlanlarım',
-          style: TextStyle(
-            
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
       ),
-      body: ads.isEmpty
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _errorMessage != null
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 80, color: Colors.red[300]),
+                  const SizedBox(height: 16),
+                  Text(
+                    _errorMessage!,
+                    style: TextStyle(fontSize: 16, color: Colors.red[700]),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _fetchMyAds,
+                    child: const Text('Tekrar Dene'),
+                  ),
+                ],
+              ),
+            )
+          : ads.isEmpty
           ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -125,9 +198,14 @@ class _TruckerListAdsPageState extends State<TruckerListAdsPage> {
                     color: Colors.black87,
                   ),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  '${ad['plate']}',
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                ),
                 const SizedBox(height: 6),
                 Text(
-                  'Available from ${ad['availableFrom']}',
+                  '${ad['startDate']} - ${ad['endDate']}',
                   style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                 ),
               ],
@@ -162,7 +240,7 @@ class _TruckerListAdsPageState extends State<TruckerListAdsPage> {
   void _showEditOptions(Map<String, dynamic> ad) {
     showModalBottomSheet(
       context: context,
-            shape: const RoundedRectangleBorder(
+      shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
@@ -183,14 +261,18 @@ class _TruckerListAdsPageState extends State<TruckerListAdsPage> {
               ListTile(
                 leading: const Icon(Icons.edit, color: Color(0xFF4CAF50)),
                 title: const Text('İlan Bilgilerini Düzenle'),
-                onTap: () {
+                onTap: () async {
                   Navigator.pop(context);
-                  Navigator.push(
+                  final result = await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => TruckerTruckUpdatePage(ad: ad),
                     ),
                   );
+                  // Güncelleme yapıldıysa listeyi yenile
+                  if (result == true) {
+                    _fetchMyAds();
+                  }
                 },
               ),
               ListTile(
@@ -232,8 +314,7 @@ class _TruckerListAdsPageState extends State<TruckerListAdsPage> {
                 ads.remove(ad);
               });
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('İlan başarıyla silindi'),                ),
+                const SnackBar(content: Text('İlan başarıyla silindi')),
               );
             },
             child: const Text('Sil', style: TextStyle(color: Colors.red)),

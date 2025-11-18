@@ -5,8 +5,10 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:convert';
 import 'dart:io';
 import '../../config/api_config.dart';
+import '../../services/token_service.dart';
 
 import '../../widgets/themed_scaffold.dart';
+
 class FarmerAdDetail extends StatefulWidget {
   final int productId;
 
@@ -59,9 +61,13 @@ class _FarmerAdDetailState extends State<FarmerAdDetail> {
     });
 
     try {
+      final authHeaders = await TokenService.getAuthHeaders();
       final response = await http.get(
         Uri.parse(ApiConfig.getProductDetailUrl(widget.productId)),
+        headers: authHeaders,
       );
+
+      await TokenService.checkAndUpdateToken(response);
 
       if (response.statusCode == 200) {
         final decodedBody = utf8.decode(response.bodyBytes);
@@ -123,6 +129,10 @@ class _FarmerAdDetailState extends State<FarmerAdDetail> {
         Uri.parse(ApiConfig.updateProductUrl(widget.productId)),
       );
 
+      // Authorization header ekle
+      final authHeaders = await TokenService.getAuthHeadersForMultipart();
+      request.headers.addAll(authHeaders);
+
       print('Updating product ${widget.productId}');
       print('Name: ${_nameController.text}');
       print('Quantity: ${_quantityController.text}');
@@ -156,6 +166,9 @@ class _FarmerAdDetailState extends State<FarmerAdDetail> {
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
 
+      // Yeni token varsa güncelle
+      await TokenService.checkAndUpdateToken(response);
+
       print('Update response status: ${response.statusCode}');
       print('Update response body: ${response.body}');
 
@@ -163,7 +176,8 @@ class _FarmerAdDetailState extends State<FarmerAdDetail> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('✅ Ürün başarıyla güncellendi!'),              duration: Duration(seconds: 2),
+              content: Text('✅ Ürün başarıyla güncellendi!'),
+              duration: Duration(seconds: 2),
             ),
           );
           // Kısa bir gecikme sonrası geri dön
@@ -211,9 +225,13 @@ class _FarmerAdDetailState extends State<FarmerAdDetail> {
     });
 
     try {
+      final authHeaders = await TokenService.getAuthHeaders();
       final response = await http.delete(
         Uri.parse(ApiConfig.deleteProductUrl(widget.productId)),
+        headers: authHeaders,
       );
+
+      await TokenService.checkAndUpdateToken(response);
 
       print('Delete response status: ${response.statusCode}');
       print('Delete response body: ${response.body}');
@@ -221,17 +239,15 @@ class _FarmerAdDetailState extends State<FarmerAdDetail> {
       if (!mounted) return;
 
       if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Ürün başarıyla silindi'),          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Ürün başarıyla silindi')));
 
         await Future.delayed(const Duration(milliseconds: 500));
         Navigator.pop(context, true); // true döndürerek liste güncellensin
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Silme başarısız: ${response.statusCode}'),          ),
+          SnackBar(content: Text('Silme başarısız: ${response.statusCode}')),
         );
       }
     } catch (e) {
@@ -422,7 +438,7 @@ class _FarmerAdDetailState extends State<FarmerAdDetail> {
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F5F5),
         appBar: ThemedAppBar(
-                    elevation: 0,
+          elevation: 0,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.pop(context, _hasChanges),

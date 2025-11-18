@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../config/api_config.dart';
+import '../../services/token_service.dart';
 import 'customer_viewOrderDetail_page.dart';
 
 import '../../widgets/themed_scaffold.dart';
+
 class CustomerViewOrdersPage extends StatefulWidget {
   const CustomerViewOrdersPage({super.key});
 
@@ -17,7 +19,6 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage>
   late TabController _tabController;
   bool _isLoading = true;
   List<Map<String, dynamic>> _orders = [];
-  final int _customerId = 1; // TODO: Get from auth/session
 
   // Örnek sipariş verileri (fallback)
   final List<Map<String, dynamic>> activeOrders = [
@@ -69,10 +70,14 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage>
     });
 
     try {
+      final authHeaders = await TokenService.getAuthHeaders();
       final response = await http.get(
-        Uri.parse(ApiConfig.getOrdersByCustomerUrl(_customerId)),
-        headers: {'Content-Type': 'application/json'},
+        Uri.parse(ApiConfig.getOrdersByCustomerUrl),
+        headers: authHeaders,
       );
+
+      // Yeni token varsa güncelle
+      await TokenService.checkAndUpdateToken(response);
 
       if (response.statusCode == 200) {
         final List<dynamic> ordersJson = jsonDecode(response.body);
@@ -106,8 +111,8 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage>
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
-            appBar: ThemedAppBar(
-                elevation: 0,
+      appBar: ThemedAppBar(
+        elevation: 0,
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -115,11 +120,7 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage>
         ),
         title: const Text(
           'Siparişlerim',
-          style: TextStyle(
-            
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
       ),
       body: Column(
@@ -233,9 +234,8 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage>
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => CustomerViewOrderDetailPage(
-              orderId: order['id'] ?? 0,
-            ),
+            builder: (context) =>
+                CustomerViewOrderDetailPage(orderId: order['id'] ?? 0),
           ),
         );
       },

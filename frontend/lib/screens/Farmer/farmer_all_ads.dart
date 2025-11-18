@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../config/api_config.dart';
+import '../../services/token_service.dart';
 import '../../widgets/themed_scaffold.dart';
 import 'farmer_ad_detail.dart';
 import 'farmer_orders.dart';
@@ -18,7 +19,6 @@ class _FarmerAllAdsState extends State<FarmerAllAds> {
   List<dynamic> _products = [];
   bool _isLoading = true;
   String? _errorMessage;
-  final int _farmerId = 1; // Şimdilik test için sabit ID
 
   @override
   void initState() {
@@ -33,13 +33,17 @@ class _FarmerAllAdsState extends State<FarmerAllAds> {
     });
 
     try {
+      final authHeaders = await TokenService.getAuthHeaders();
       final response = await http.get(
-        Uri.parse(ApiConfig.getFarmerProductsUrl(_farmerId)),
-        headers: {'Content-Type': 'application/json'},
+        Uri.parse(ApiConfig.getFarmerProductsUrl),
+        headers: authHeaders,
       );
 
       print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
+
+      // Yeni token varsa güncelle
+      await TokenService.checkAndUpdateToken(response);
 
       if (!mounted) return;
 

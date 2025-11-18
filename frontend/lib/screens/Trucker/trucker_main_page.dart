@@ -6,6 +6,7 @@ import 'trucker_listAds_page.dart';
 import 'trucker_settings_page.dart';
 
 import '../../widgets/themed_scaffold.dart';
+
 class TruckerMainPage extends StatefulWidget {
   const TruckerMainPage({super.key});
 
@@ -131,8 +132,8 @@ class _TruckerMainPageState extends State<TruckerMainPage> {
                       icon: Icons.campaign,
                       emoji: '📢',
                       title: 'İlanlarım',
-                      onTap: () {
-                        Navigator.push(
+                      onTap: () async {
+                        await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => const TruckerListAdsPage(),
@@ -158,8 +159,8 @@ class _TruckerMainPageState extends State<TruckerMainPage> {
                       icon: Icons.add_circle_outline,
                       emoji: '➕',
                       title: 'Yeni İlan Aç',
-                      onTap: () {
-                        Navigator.push(
+                      onTap: () async {
+                        await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => const TruckerCreateAdPage(),
@@ -209,7 +210,7 @@ class _TruckerMainPageState extends State<TruckerMainPage> {
         ),
         child: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
-                    selectedItemColor: const Color(0xFF4CAF50),
+          selectedItemColor: const Color(0xFF4CAF50),
           unselectedItemColor: Colors.grey[400],
           selectedLabelStyle: const TextStyle(
             fontWeight: FontWeight.w600,

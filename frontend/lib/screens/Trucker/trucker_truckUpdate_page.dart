@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import '../../config/api_config.dart';
+import '../../services/token_service.dart';
 
 import '../../widgets/themed_scaffold.dart';
 
@@ -70,6 +71,10 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
           Uri.parse(ApiConfig.updateTruckUrl(truckId)),
         );
 
+        // Authorization header ekle
+        final authHeaders = await TokenService.getAuthHeadersForMultipart();
+        request.headers.addAll(authHeaders);
+
         // Form data ekle
         request.fields['vehicle'] = _modelController.text;
         request.fields['capacityTon'] = _capacityController.text;
@@ -82,6 +87,14 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
         // İsteği gönder
         var response = await request.send();
         var responseData = await response.stream.bytesToString();
+
+        // Response nesnesini oluştur ve token kontrolü yap
+        final httpResponse = http.Response(
+          responseData,
+          response.statusCode,
+          headers: response.headers,
+        );
+        await TokenService.checkAndUpdateToken(httpResponse);
 
         if (response.statusCode == 200 || response.statusCode == 201) {
           if (mounted) {

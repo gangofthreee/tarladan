@@ -36,7 +36,7 @@ class ApiConfig {
   static const String resendCodeEndpoint = '/api/verification/resendCode';
   static const String createProductEndpoint = '/farmer/product/create';
   static const String getFarmerProductsEndpoint =
-      '/farmer/product/getFarmerProduct';
+      '/farmer/product/getFarmerProduct/my-products';
   static const String getProductDetailEndpoint = '/farmer/product/get';
   static const String updateProductEndpoint = '/farmer/product/update';
   static const String deleteProductEndpoint = '/farmer/product/delete';
@@ -44,16 +44,20 @@ class ApiConfig {
   static const String getAllDepotsEndpoint = '/depot/all';
   static const String getDepotByIdEndpoint = '/depot';
   static const String updateDepotEndpoint = '/depot/update';
-  static const String getDepotsByOwnerEndpoint = '/depot/owner';
+  static const String getDepotsByOwnerEndpoint = '/depot/my-depots';
   static const String deleteDepotEndpoint = '/depot';
   static const String createOrderEndpoint = '/api/orders/create';
-  static const String getOrdersByCustomerEndpoint = '/api/orders/customer';
+  static const String getOrdersByCustomerEndpoint =
+      '/api/orders/customer/my-orders';
   static const String getOrderByIdEndpoint = '/api/orders';
   static const String createTruckEndpoint = '/truck/create';
   static const String updateTruckEndpoint = '/truck/update';
   static const String deleteTruckEndpoint = '/truck/delete';
   static const String getTrucksByTruckerEndpoint = '/truck/get';
   static const String getAllTrucksEndpoint = '/truck/getAllTrucks';
+  static const String createTruckAdEndpoint = '/truck/ads/create';
+  static const String getTruckerAdsEndpoint = '/truck/ads/my-ads';
+  static const String updateTruckAdEndpoint = '/truck/ads/update';
 
   static String get registerUrl => '$baseUrl$registerEndpoint';
   static String get loginUrl => '$baseUrl$loginEndpoint';
@@ -62,8 +66,8 @@ class ApiConfig {
   static String resendCodeUrl(String email) =>
       '$baseUrl$resendCodeEndpoint?email=$email';
   static String get createProductUrl => '$baseUrl$createProductEndpoint';
-  static String getFarmerProductsUrl(int farmerId) =>
-      '$baseUrl$getFarmerProductsEndpoint/$farmerId';
+  static String get getFarmerProductsUrl =>
+      '$baseUrl$getFarmerProductsEndpoint';
   static String getProductDetailUrl(int productId) =>
       '$baseUrl$getProductDetailEndpoint/$productId';
   static String updateProductUrl(int productId) =>
@@ -76,13 +80,12 @@ class ApiConfig {
       '$baseUrl$getDepotByIdEndpoint/$depotId';
   static String updateDepotUrl(int depotId) =>
       '$baseUrl$updateDepotEndpoint/$depotId';
-  static String getDepotsByOwnerUrl(int depoOwnerId) =>
-      '$baseUrl$getDepotsByOwnerEndpoint/$depoOwnerId';
+  static String get getDepotsByOwnerUrl => '$baseUrl$getDepotsByOwnerEndpoint';
   static String deleteDepotUrl(int depotId) =>
       '$baseUrl$deleteDepotEndpoint/$depotId';
   static String get createOrderUrl => '$baseUrl$createOrderEndpoint';
-  static String getOrdersByCustomerUrl(int customerId) =>
-      '$baseUrl$getOrdersByCustomerEndpoint/$customerId';
+  static String get getOrdersByCustomerUrl =>
+      '$baseUrl$getOrdersByCustomerEndpoint';
   static String getOrderByIdUrl(int orderId) =>
       '$baseUrl$getOrderByIdEndpoint/$orderId';
   static String get createTruckUrl => '$baseUrl$createTruckEndpoint';
@@ -90,7 +93,11 @@ class ApiConfig {
       '$baseUrl$updateTruckEndpoint/$truckId';
   static String deleteTruckUrl(int truckId) =>
       '$baseUrl$deleteTruckEndpoint/$truckId';
-  static String getTrucksByTruckerUrl(int truckerId) =>
-      '$baseUrl$getTrucksByTruckerEndpoint/$truckerId';
+  static String get getTrucksByTruckerUrl =>
+      '$baseUrl$getTrucksByTruckerEndpoint';
   static String get getAllTrucksUrl => '$baseUrl$getAllTrucksEndpoint';
+  static String get createTruckAdUrl => '$baseUrl$createTruckAdEndpoint';
+  static String get getTruckerAdsUrl => '$baseUrl$getTruckerAdsEndpoint';
+  static String updateTruckAdUrl(int adId) =>
+      '$baseUrl$updateTruckAdEndpoint/$adId';
 }

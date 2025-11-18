@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../config/api_config.dart';
+import '../../services/token_service.dart';
 
 import '../../widgets/themed_scaffold.dart';
 
@@ -47,17 +48,19 @@ class _WarehousemanCreateWarehousePageState
     });
 
     try {
+      final authHeaders = await TokenService.getAuthHeaders();
       final response = await http.post(
         Uri.parse(ApiConfig.createDepotUrl),
-        headers: {'Content-Type': 'application/json'},
+        headers: authHeaders,
         body: json.encode({
-          'depoOwnerId': widget.depoOwnerId,
           'address': _addressController.text,
           'sizeM2': double.parse(_sizeController.text),
           'capacityTon': double.parse(_capacityController.text),
           'price': double.parse(_priceController.text),
         }),
       );
+
+      await TokenService.checkAndUpdateToken(response);
 
       print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');

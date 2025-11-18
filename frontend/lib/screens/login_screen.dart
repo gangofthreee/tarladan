@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'signup_screen.dart';
 import '../config/api_config.dart';
+import '../services/token_service.dart';
 import 'Farmer/farmer_main_page.dart';
 import 'Trucker/trucker_main_page.dart';
 import 'Warehouseman/warehouseman_main_page.dart';
@@ -43,6 +44,14 @@ class _LoginPageState extends State<LoginPage> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final String role = data['role'];
+
+        // JWT token'ları kaydet
+        if (data['accessToken'] != null) {
+          await TokenService.saveAccessToken(data['accessToken']);
+        }
+        if (data['refreshToken'] != null) {
+          await TokenService.saveRefreshToken(data['refreshToken']);
+        }
 
         if (!mounted) return;
 

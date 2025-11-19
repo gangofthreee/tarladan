@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'signup_screen.dart';
+import 'forgot_password_screen.dart';
 import '../../config/api_config.dart';
 import '../../services/token_service.dart';
 import '../Farmer/farmer_main_page.dart';
@@ -165,7 +166,14 @@ class _LoginPageState extends State<LoginPage> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ForgotPasswordScreen(),
+                          ),
+                        );
+                      },
                       child: const Text(
                         'Şifremi Unuttum',
                         style: TextStyle(color: Colors.green),

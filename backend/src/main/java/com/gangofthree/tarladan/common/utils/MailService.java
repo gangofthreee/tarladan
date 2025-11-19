@@ -18,5 +18,14 @@ public class MailService {
         message.setText("Merhaba,\n\nDoğrulama kodunuz: " + code + "\n\nKod 2 dakika geçerlidir.");
         mailSender.send(message);
     }
+
+    public void sendResetCode(String to, String code) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(to);
+        message.setSubject("Tarladan - Password Reset Code");
+        message.setText("Şifre sıfırlama kodunuz: " + code + "\nKod 3 dakika geçerlidir.");
+        mailSender.send(message);
+    }
+
 }
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../login_screen.dart';
+import '../User/login_screen.dart';
 import '../../config/theme_provider.dart';
 
 import '../../widgets/themed_scaffold.dart';

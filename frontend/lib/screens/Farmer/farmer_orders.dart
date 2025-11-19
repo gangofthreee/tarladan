@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../../widgets/themed_scaffold.dart';
+import '../../config/api_config.dart';
+import '../../services/token_service.dart';
 import 'farmer_settings_page.dart';
 
 class FarmerOrdersScreen extends StatefulWidget {
@@ -11,6 +15,53 @@ class FarmerOrdersScreen extends StatefulWidget {
 
 class _FarmerOrdersScreenState extends State<FarmerOrdersScreen> {
   bool showActiveOrders = true;
+  List<dynamic> _orders = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchOrders();
+  }
+
+  Future<void> _fetchOrders() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final authHeaders = await TokenService.getAuthHeaders();
+      final response = await http.get(
+        Uri.parse(ApiConfig.getFarmerOrdersUrl),
+        headers: authHeaders,
+      );
+
+      await TokenService.checkAndUpdateToken(response);
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          _orders = data is List ? data : [data];
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _errorMessage = 'Siparişler yüklenemedi: ${response.statusCode}';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = 'Bağlantı hatası: $e';
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   @override
@@ -30,54 +81,50 @@ class _FarmerOrdersScreenState extends State<FarmerOrdersScreen> {
         children: [
           const SizedBox(height: 16),
           Expanded(
-            child: ListView(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              children: [
-                _buildOrderCard(
-                  productName: 'Tomato 500kg',
-                  buyer: 'Migros',
-                  status: 'Beklemede',
-                  statusColor: Color(0xFFFFF4E6),
-                  statusTextColor: Color(0xFFFF9500),
-                  date: '12.05.2024',
-                  icon: Icons.more_horiz,
-                  iconColor: Colors.grey[400]!,
-                ),
-                SizedBox(height: 12),
-                _buildOrderCard(
-                  productName: 'Potato 1000kg',
-                  buyer: 'Carrefour',
-                  status: 'Onaylandı',
-                  statusColor: Color(0xFFE6F7ED),
-                  statusTextColor: Color(0xFF00D563),
-                  date: '11.05.2024',
-                  icon: Icons.store,
-                  iconColor: Colors.grey[400]!,
-                ),
-                SizedBox(height: 12),
-                _buildOrderCard(
-                  productName: 'Cucumber 300kg',
-                  buyer: 'BIM',
-                  status: 'Yolda',
-                  statusColor: Color(0xFFE3F2FD),
-                  statusTextColor: Color(0xFF2196F3),
-                  date: '10.05.2024',
-                  icon: Icons.local_shipping,
-                  iconColor: Colors.grey[400]!,
-                ),
-                SizedBox(height: 12),
-                _buildOrderCard(
-                  productName: 'Onion 750kg',
-                  buyer: 'A101',
-                  status: 'Teslim Edildi',
-                  statusColor: Color(0xFFF5F5F5),
-                  statusTextColor: Color(0xFF9E9E9E),
-                  date: '09.05.2024',
-                  icon: Icons.check_circle,
-                  iconColor: Colors.grey[400]!,
-                ),
-              ],
-            ),
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _errorMessage != null
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: Colors.grey[400],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(_errorMessage!),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: _fetchOrders,
+                          child: const Text('Tekrar Dene'),
+                        ),
+                      ],
+                    ),
+                  )
+                : _orders.isEmpty
+                ? const Center(child: Text('Henüz sipariş yok'))
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: _orders.length,
+                    itemBuilder: (context, index) {
+                      final order = _orders[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _buildOrderCard(
+                          productName: order['productName'] ?? 'Ürün',
+                          buyer: order['customerName'] ?? 'Müşteri',
+                          status: order['status'] ?? 'Beklemede',
+                          statusColor: const Color(0xFFFFF4E6),
+                          statusTextColor: const Color(0xFFFF9500),
+                          date: order['orderDate'] ?? '',
+                          icon: Icons.more_horiz,
+                          iconColor: Colors.grey[400]!,
+                        ),
+                      );
+                    },
+                  ),
           ),
           Container(
             padding: EdgeInsets.all(16),

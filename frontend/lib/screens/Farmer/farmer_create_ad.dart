@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'dart:convert';
 import '../../config/api_config.dart';
 import '../../services/token_service.dart';
 
@@ -25,7 +26,84 @@ class _FarmerCreateAdState extends State<FarmerCreateAd> {
   XFile? _selectedImage;
   final ImagePicker _picker = ImagePicker();
   bool _isLoading = false;
-  int _selectedDepotId = 1; // Default depo ID
+  List<dynamic> _depots = [];
+  int? _selectedDepotId;
+  bool _isLoadingDepots = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDepots();
+  }
+
+  Future<void> _fetchDepots() async {
+    setState(() {
+      _isLoadingDepots = true;
+    });
+
+    try {
+      final authHeaders = await TokenService.getAuthHeaders();
+      final response = await http.get(
+        Uri.parse(ApiConfig.getAllDepotsUrl),
+        headers: authHeaders,
+      );
+
+      await TokenService.checkAndUpdateToken(response);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          _depots = data is List ? data : [data];
+          _isLoadingDepots = false;
+        });
+      } else {
+        setState(() {
+          _isLoadingDepots = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isLoadingDepots = false;
+      });
+    }
+  }
+
+  void _showDepotSelectionDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Depo Seç'),
+          content: _isLoadingDepots
+              ? const Center(child: CircularProgressIndicator())
+              : _depots.isEmpty
+              ? const Text('Depo bulunamadı')
+              : SizedBox(
+                  width: double.maxFinite,
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: _depots.length,
+                    itemBuilder: (context, index) {
+                      final depot = _depots[index];
+                      return ListTile(
+                        title: Text(depot['address'] ?? 'Depo ${depot['id']}'),
+                        subtitle: Text(
+                          'Kapasite: ${depot['capacityTon'] ?? ''} ton',
+                        ),
+                        onTap: () {
+                          setState(() {
+                            _selectedDepotId = depot['id'];
+                          });
+                          Navigator.pop(context);
+                        },
+                      );
+                    },
+                  ),
+                ),
+        );
+      },
+    );
+  }
 
   Future<void> _pickImage() async {
     try {
@@ -53,6 +131,11 @@ class _FarmerCreateAdState extends State<FarmerCreateAd> {
 
     if (_selectedImage == null) {
       _showErrorSnackBar('Lütfen bir ürün fotoğrafı seçin');
+      return;
+    }
+
+    if (_selectedDepotId == null) {
+      _showErrorSnackBar('Lütfen bir depo seçin');
       return;
     }
 
@@ -329,22 +412,39 @@ class _FarmerCreateAdState extends State<FarmerCreateAd> {
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF5F5F5),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.green, width: 1),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Depo #$_selectedDepotId (Varsayılan)',
-                      style: const TextStyle(color: Colors.black),
-                    ),
-                    const Icon(Icons.location_on),
-                  ],
+              GestureDetector(
+                onTap: _showDepotSelectionDialog,
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F5F5),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.green, width: 1),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _selectedDepotId == null
+                              ? 'Depo seçin'
+                              : _depots.firstWhere(
+                                      (d) => d['id'] == _selectedDepotId,
+                                      orElse: () => {
+                                        'name': 'Depo #$_selectedDepotId',
+                                      },
+                                    )['name'] ??
+                                    'Depo #$_selectedDepotId',
+                          style: TextStyle(
+                            color: _selectedDepotId == null
+                                ? Colors.grey[600]
+                                : Colors.black,
+                          ),
+                        ),
+                      ),
+                      const Icon(Icons.location_on),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 32),

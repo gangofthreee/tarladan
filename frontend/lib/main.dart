@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'screens/splash_screen.dart';
-import 'screens/login_screen.dart';
-import 'screens/signup_screen.dart';
+import 'screens/User/splash_screen.dart';
+import 'screens/User/login_screen.dart';
+import 'screens/User/signup_screen.dart';
 import 'screens/Farmer/farmer_main_page.dart';
 import 'screens/Farmer/farmer_orders.dart';
 import 'screens/Warehouseman/warehouseman_main_page.dart';

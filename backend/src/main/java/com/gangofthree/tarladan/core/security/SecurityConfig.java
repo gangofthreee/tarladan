@@ -52,7 +52,9 @@ public class SecurityConfig {
                 // 5. Yetkilendirme Kuralları:
                 .authorizeHttpRequests(auth -> auth
                         // Public Endpoints: Kayıt, Giriş, Token Yenileme
-                                .requestMatchers("/api/users/register", "/api/users/login", "/api/users/refresh", "/api/verification/**", "/auth/password-reset", "/auth/password-reset/set-password", "/auth/password-reset/confirm-code").permitAll()
+                                .requestMatchers("/api/users/register", "/api/users/login", "/api/users/refresh", "/api/verification/**","/google/auth",
+                                        "/google/verify-status", "/auth/password-reset", "/auth/password-reset/set-password", "/auth/password-reset/confirm-code").permitAll()
+
 
                                 // FARMER endpoints
                                 .requestMatchers(HttpMethod.GET, "/farmer/**").hasAnyRole("FARMER", "CUSTOMER")

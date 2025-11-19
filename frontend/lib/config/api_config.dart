@@ -1,32 +1,27 @@
+import 'dart:io';
+
 class ApiConfig {
   static String get baseUrl {
-    // macOS için localhost, diğer cihazlar için gerçek IP
-    // Geliştirme sırasında: macOS -> localhost, mobil cihaz -> 192.168.1.98
-    return 'http://localhost:8080';
+    // TLS ile nginx reverse proxy kullanılıyor (443 port)
+    // nginx → backend:8080 yönlendirmesi yapıyor
+
+    // Android emulator için özel mapping
+    if (Platform.isAndroid) {
+      // Android emulator'da localhost yerine 10.0.2.2 kullan
+      return 'https://10.0.2.2';
+    }
+
+    // iOS simulator ve macOS için localhost
+    if (Platform.isIOS || Platform.isMacOS) {
+      return 'https://localhost';
+    }
+
+    // Web ve diğer platformlar
+    return 'https://localhost';
 
     // Fiziksel cihaz test için (aynı WiFi'de):
-    // return 'http://192.168.1.98:8080';
-
-    // Eski IP (artık kullanılmıyor):
-    // return 'http://172.20.10.2:8080';
-
-    // Web platform kontrolü
-    // if (kIsWeb) {
-    //   return 'http://localhost:8080';
-    // }
-
-    // Android emulator
-    // if (Platform.isAndroid) {
-    //   return 'http://10.0.2.2:8080';
-    // }
-
-    // iOS simulator veya macOS
-    // if (Platform.isIOS || Platform.isMacOS) {
-    //   return 'http://localhost:8080';
-    // }
-
-    // Diğer platformlar (Windows, Linux)
-    // return 'http://localhost:8080';
+    // Backend çalıştıran makinenin IP'sini kullan
+    // return 'https://192.168.1.98';
   }
 
   static const String registerEndpoint = '/api/users/register';

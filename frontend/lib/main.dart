@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'screens/User/splash_screen.dart';
@@ -10,7 +11,22 @@ import 'screens/Trucker/trucker_main_page.dart';
 import 'screens/Customer/customer_main_page.dart';
 import 'config/theme_provider.dart';
 
+// ⚠️ SADECE GELİŞTİRME İÇİN: Self-signed sertifikaları kabul et
+// Production'da bu kodu KALDIR veya const bool kDebugMode kontrolü ekle
+class DevHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
+  }
+}
+
 void main() {
+  // Development için SSL sertifika doğrulamasını atla
+  // ⚠️ Production build'de bu satırı yoruma al veya kDebugMode kontrolü ekle
+  HttpOverrides.global = DevHttpOverrides();
+
   runApp(
     ChangeNotifierProvider(
       create: (_) => ThemeProvider(),

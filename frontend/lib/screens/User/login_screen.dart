@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'signup_screen.dart';
-import '../config/api_config.dart';
-import '../services/token_service.dart';
-import 'Farmer/farmer_main_page.dart';
-import 'Trucker/trucker_main_page.dart';
-import 'Warehouseman/warehouseman_main_page.dart';
-import 'Customer/customer_main_page.dart';
+import '../../config/api_config.dart';
+import '../../services/token_service.dart';
+import '../Farmer/farmer_main_page.dart';
+import '../Trucker/trucker_main_page.dart';
+import '../Warehouseman/warehouseman_main_page.dart';
+import '../Customer/customer_main_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});

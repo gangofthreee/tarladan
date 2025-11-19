@@ -2,3 +2,6 @@
 .idea/
 
 /backend/.env
+/backend/certs/
+/backend/nginx/
+

@@ -2,7 +2,7 @@ package com.gangofthree.tarladan.modules.order.service;
 
 import com.gangofthree.tarladan.modules.order.dto.OrderCreateRequest;
 import com.gangofthree.tarladan.modules.order.dto.OrderResponse;
-import com.gangofthree.tarladan.common.enums.OrderStatus;
+import com.gangofthree.tarladan.shared.enums.OrderStatus;
 
 import java.util.List;
 

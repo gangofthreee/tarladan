@@ -1,6 +1,6 @@
-package com.gangofthree.tarladan.common.dto;
+package com.gangofthree.tarladan.shared.dto;
 
-import com.gangofthree.tarladan.common.enums.UserRole;
+import com.gangofthree.tarladan.shared.enums.UserRole;
 import lombok.Builder;
 import lombok.Data;
 

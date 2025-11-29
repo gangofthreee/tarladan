@@ -1,19 +1,18 @@
 package com.gangofthree.tarladan.modules.user.service;
 
-import com.gangofthree.tarladan.common.dto.TokenResponse;
-import com.gangofthree.tarladan.common.utils.JwtUtil;
-import com.gangofthree.tarladan.core.service.TokenService;
+import com.gangofthree.tarladan.shared.dto.TokenResponse;
+import com.gangofthree.tarladan.security.jwt.JwtUtil;
+import com.gangofthree.tarladan.security.service.TokenService;
 import com.gangofthree.tarladan.modules.customer.entity.Customer;
 import com.gangofthree.tarladan.modules.customer.repository.CustomerRepository;
 import com.gangofthree.tarladan.modules.trucker.entity.Trucker;
 import com.gangofthree.tarladan.modules.trucker.repository.TruckerRepository;
 import com.gangofthree.tarladan.modules.user.dto.UserLoginRequest;
-import com.gangofthree.tarladan.modules.user.dto.UserLoginResponse;
 import com.gangofthree.tarladan.modules.user.dto.UserRegisterRequest;
 import com.gangofthree.tarladan.modules.depotOwner.entity.DepotOwner;
 import com.gangofthree.tarladan.modules.farmer.entity.Farmer;
 import com.gangofthree.tarladan.modules.user.entity.User;
-import com.gangofthree.tarladan.common.enums.UserRole;
+import com.gangofthree.tarladan.shared.enums.UserRole;
 import com.gangofthree.tarladan.modules.user.repository.UserRepository;
 import com.gangofthree.tarladan.modules.depotOwner.repository.DepotOwnerRepository;
 import com.gangofthree.tarladan.modules.farmer.repository.FarmerRepository;

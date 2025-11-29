@@ -1,4 +1,4 @@
-package com.gangofthree.tarladan.common.utils;
+package com.gangofthree.tarladan.infrastructure.mail;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;

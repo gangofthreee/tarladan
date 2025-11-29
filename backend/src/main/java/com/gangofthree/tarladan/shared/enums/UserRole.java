@@ -1,4 +1,4 @@
-package com.gangofthree.tarladan.common.enums;
+package com.gangofthree.tarladan.shared.enums;
 
 public enum UserRole {
     FARMER,

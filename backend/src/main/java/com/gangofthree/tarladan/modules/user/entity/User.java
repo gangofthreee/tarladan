@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import com.gangofthree.tarladan.common.enums.UserRole;
+import com.gangofthree.tarladan.shared.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 

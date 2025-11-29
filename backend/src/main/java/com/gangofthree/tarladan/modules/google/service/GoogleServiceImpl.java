@@ -1,11 +1,11 @@
 package com.gangofthree.tarladan.modules.google.service;
 
-import com.gangofthree.tarladan.common.dto.GoogleUserResponse;
-import com.gangofthree.tarladan.common.dto.TokenResponse;
-import com.gangofthree.tarladan.common.enums.UserRole;
-import com.gangofthree.tarladan.common.utils.JwtUtil;
-import com.gangofthree.tarladan.common.utils.VerifyGoogleToken;
-import com.gangofthree.tarladan.core.service.TokenService;
+import com.gangofthree.tarladan.shared.dto.GoogleUserResponse;
+import com.gangofthree.tarladan.shared.dto.TokenResponse;
+import com.gangofthree.tarladan.shared.enums.UserRole;
+import com.gangofthree.tarladan.security.jwt.JwtUtil;
+import com.gangofthree.tarladan.security.service.VerifyGoogleToken;
+import com.gangofthree.tarladan.security.service.TokenService;
 import com.gangofthree.tarladan.modules.google.dto.AuthStatusResponse;
 import com.gangofthree.tarladan.modules.google.dto.GoogleAuthRequest;
 import com.gangofthree.tarladan.modules.google.dto.GoogleRegisterRequest;

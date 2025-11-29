@@ -1,4 +1,4 @@
-package com.gangofthree.tarladan.common.dto;
+package com.gangofthree.tarladan.shared.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;

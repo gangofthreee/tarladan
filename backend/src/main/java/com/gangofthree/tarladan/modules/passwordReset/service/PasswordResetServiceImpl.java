@@ -2,8 +2,7 @@ package com.gangofthree.tarladan.modules.passwordReset.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gangofthree.tarladan.common.utils.MailService;
-import com.gangofthree.tarladan.modules.passwordReset.service.PasswordResetService;
+import com.gangofthree.tarladan.infrastructure.mail.MailService;
 import com.gangofthree.tarladan.modules.user.entity.User;
 import com.gangofthree.tarladan.modules.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

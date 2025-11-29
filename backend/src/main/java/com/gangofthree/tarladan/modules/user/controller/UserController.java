@@ -1,10 +1,9 @@
 package com.gangofthree.tarladan.modules.user.controller;
 
-import com.gangofthree.tarladan.common.dto.TokenResponse;
-import com.gangofthree.tarladan.common.utils.JwtUtil;
-import com.gangofthree.tarladan.core.service.TokenService;
+import com.gangofthree.tarladan.shared.dto.TokenResponse;
+import com.gangofthree.tarladan.security.jwt.JwtUtil;
+import com.gangofthree.tarladan.security.service.TokenService;
 import com.gangofthree.tarladan.modules.user.dto.UserLoginRequest;
-import com.gangofthree.tarladan.modules.user.dto.UserLoginResponse;
 import com.gangofthree.tarladan.modules.user.dto.UserRegisterRequest;
 import com.gangofthree.tarladan.modules.user.entity.User;
 import com.gangofthree.tarladan.modules.user.service.UserService;

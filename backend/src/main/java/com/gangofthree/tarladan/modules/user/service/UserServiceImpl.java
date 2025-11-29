@@ -1,5 +1,6 @@
 package com.gangofthree.tarladan.modules.user.service;
 
+import com.gangofthree.tarladan.modules.user.dto.UserProfileResponse;
 import com.gangofthree.tarladan.shared.dto.TokenResponse;
 import com.gangofthree.tarladan.security.jwt.JwtUtil;
 import com.gangofthree.tarladan.security.service.TokenService;
@@ -136,6 +137,20 @@ public class UserServiceImpl implements UserService {
                 .role(user.getRole())
                 .roleBasedId(domainId)
                 .message("Login successful. Tokens generated.")
+                .build();
+    }
+    public UserProfileResponse getUserProfile(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+
+        return UserProfileResponse.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .surname(user.getSurname())
+                .email(user.getEmail())
+                .phone(user.getPhone())
+                .role(user.getRole())
+                .isMailVerified(user.isMailVerified())
                 .build();
     }
 }

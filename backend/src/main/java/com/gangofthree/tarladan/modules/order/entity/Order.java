@@ -1,6 +1,6 @@
 package com.gangofthree.tarladan.modules.order.entity;
 
-import com.gangofthree.tarladan.common.enums.OrderStatus;
+import com.gangofthree.tarladan.shared.enums.OrderStatus;
 import com.gangofthree.tarladan.modules.customer.entity.Customer;
 import com.gangofthree.tarladan.modules.depot.entity.Depot;
 import com.gangofthree.tarladan.modules.product.entity.Product;

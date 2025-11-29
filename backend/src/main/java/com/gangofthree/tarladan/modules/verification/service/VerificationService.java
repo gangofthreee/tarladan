@@ -1,7 +1,7 @@
 package com.gangofthree.tarladan.modules.verification.service;
 
-import com.gangofthree.tarladan.common.utils.MailService;
-import com.gangofthree.tarladan.common.utils.RedisService;
+import com.gangofthree.tarladan.infrastructure.mail.MailService;
+import com.gangofthree.tarladan.infrastructure.redis.RedisService;
 import com.gangofthree.tarladan.modules.user.dto.VerifyCodeRequest;
 import com.gangofthree.tarladan.modules.user.entity.User;
 import com.gangofthree.tarladan.modules.user.repository.UserRepository;

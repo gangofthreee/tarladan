@@ -1,6 +1,5 @@
 package com.gangofthree.tarladan.modules.user.service;
 
-import com.gangofthree.tarladan.common.enums.UserRole;
 import com.gangofthree.tarladan.modules.customer.repository.CustomerRepository;
 import com.gangofthree.tarladan.modules.depotOwner.repository.DepotOwnerRepository;
 import com.gangofthree.tarladan.modules.farmer.repository.FarmerRepository;

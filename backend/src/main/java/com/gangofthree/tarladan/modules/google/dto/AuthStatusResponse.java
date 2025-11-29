@@ -1,6 +1,6 @@
 package com.gangofthree.tarladan.modules.google.dto;
 
-import com.gangofthree.tarladan.common.dto.TokenResponse;
+import com.gangofthree.tarladan.shared.dto.TokenResponse;
 import lombok.*;
 
 @Getter

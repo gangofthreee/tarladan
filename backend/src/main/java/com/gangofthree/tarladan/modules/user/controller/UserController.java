@@ -1,5 +1,6 @@
 package com.gangofthree.tarladan.modules.user.controller;
 
+import com.gangofthree.tarladan.modules.user.dto.UserProfileResponse;
 import com.gangofthree.tarladan.shared.dto.TokenResponse;
 import com.gangofthree.tarladan.security.jwt.JwtUtil;
 import com.gangofthree.tarladan.security.service.TokenService;
@@ -48,6 +49,17 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<UserProfileResponse> getMyProfile() {
+        // 1. Security Context'ten o anki kullanıcının ID'sini çekiyoruz.
+        // JwtAuthFilter'da: new UsernamePasswordAuthenticationToken(userId, ...) yaptığımız için
+        // getPrincipal() bize direkt Long tipinde userId döner.
+        Long userId = (Long) org.springframework.security.core.context.SecurityContextHolder
+                .getContext().getAuthentication().getPrincipal();
+
+        UserProfileResponse response = userService.getUserProfile(userId);
+        return ResponseEntity.ok(response);
+    }
 
 
 }

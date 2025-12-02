@@ -4,10 +4,32 @@ import 'farmer_all_ads.dart';
 import 'farmer_ad_detail.dart';
 import 'farmer_orders.dart';
 import 'farmer_settings_page.dart';
+import '../../services/user_service.dart';
 
 import '../../widgets/themed_scaffold.dart';
-class FarmerMainPage extends StatelessWidget {
+
+class FarmerMainPage extends StatefulWidget {
   const FarmerMainPage({super.key});
+
+  @override
+  State<FarmerMainPage> createState() => _FarmerMainPageState();
+}
+
+class _FarmerMainPageState extends State<FarmerMainPage> {
+  String _userName = 'Çiftçi';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserName();
+  }
+
+  Future<void> _loadUserName() async {
+    final name = await UserService.getUserFirstName();
+    setState(() {
+      _userName = name;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +63,7 @@ class FarmerMainPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Merhaba, Mehmet',
+                'Merhaba, $_userName',
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
@@ -288,7 +310,7 @@ class FarmerMainPage extends StatelessWidget {
       child: BottomNavigationBar(
         currentIndex: currentIndex,
         type: BottomNavigationBarType.fixed,
-                selectedItemColor: Color(0xFF00D563),
+        selectedItemColor: Color(0xFF00D563),
         unselectedItemColor: Colors.grey,
         elevation: 0,
         items: [

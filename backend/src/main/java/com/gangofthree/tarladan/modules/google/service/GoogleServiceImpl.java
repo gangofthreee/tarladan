@@ -67,10 +67,13 @@ public class GoogleServiceImpl implements GoogleService {
         // 1. Access Token üret
         String accessToken = jwtUtil.generateAccessToken(user.getId(), roleString, domainId);
 
-        // 2. Refresh Token üret/güncelle
+        // 2. Access Token'ı Redis'e kaydet (ÖNEMLİ!)
+        tokenService.saveAccessToken(user.getId(), accessToken);
+
+        // 3. Refresh Token üret/güncelle
         String refreshToken = tokenService.createOrUpdateRefreshToken(user.getId(), domainId, accessToken);
 
-        // 3. TokenResponse DTO'sunu oluştur
+        // 4. TokenResponse DTO'sunu oluştur
         return TokenResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)

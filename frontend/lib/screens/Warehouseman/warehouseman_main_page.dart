@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'warehouseman_myWarehouse_page.dart';
 import 'warehouseman_createWarehouse_page.dart';
 import 'warehouseman_settings_page.dart';
+import '../../services/user_service.dart';
 
 import '../../widgets/themed_scaffold.dart';
+
 class WarehousemanMainPage extends StatefulWidget {
   const WarehousemanMainPage({super.key});
 
@@ -13,6 +15,20 @@ class WarehousemanMainPage extends StatefulWidget {
 
 class _WarehousemanMainPageState extends State<WarehousemanMainPage> {
   int _selectedIndex = 0;
+  String _userName = 'Depocui';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserName();
+  }
+
+  Future<void> _loadUserName() async {
+    final name = await UserService.getUserFirstName();
+    setState(() {
+      _userName = name;
+    });
+  }
 
   void _onItemTapped(int index) {
     if (index == 3) {
@@ -63,7 +79,7 @@ class _WarehousemanMainPageState extends State<WarehousemanMainPage> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Text(
-                'Merhaba, Mehmet',
+                'Merhaba, $_userName',
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
@@ -137,7 +153,7 @@ class _WarehousemanMainPageState extends State<WarehousemanMainPage> {
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.grey[700],
                         side: BorderSide(color: Colors.grey[400]!, width: 1.5),
-                                                elevation: 1,
+                        elevation: 1,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -184,7 +200,7 @@ class _WarehousemanMainPageState extends State<WarehousemanMainPage> {
         ),
         child: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
-                    selectedItemColor: const Color(0xFF4CAF50),
+          selectedItemColor: const Color(0xFF4CAF50),
           unselectedItemColor: Colors.grey[400],
           selectedLabelStyle: const TextStyle(
             fontWeight: FontWeight.w600,

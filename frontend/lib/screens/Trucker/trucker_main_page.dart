@@ -4,6 +4,7 @@ import 'trucker_create_ad.dart';
 import 'trucker_truckList_page.dart';
 import 'trucker_listAds_page.dart';
 import 'trucker_settings_page.dart';
+import '../../services/user_service.dart';
 
 import '../../widgets/themed_scaffold.dart';
 
@@ -16,6 +17,20 @@ class TruckerMainPage extends StatefulWidget {
 
 class _TruckerMainPageState extends State<TruckerMainPage> {
   int _selectedIndex = 0;
+  String _userName = 'Nakliyeci';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserName();
+  }
+
+  Future<void> _loadUserName() async {
+    final name = await UserService.getUserFirstName();
+    setState(() {
+      _userName = name;
+    });
+  }
 
   void _onItemTapped(int index) {
     if (index == 3) {
@@ -93,7 +108,7 @@ class _TruckerMainPageState extends State<TruckerMainPage> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Text(
-                  'Merhaba, Ahmet',
+                  'Merhaba, $_userName',
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,

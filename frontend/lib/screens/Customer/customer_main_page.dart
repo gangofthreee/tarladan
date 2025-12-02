@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'customer_viewProductDetails_page.dart';
 import 'customer_viewOrders.dart';
 import 'customer_settings_page.dart';
+import '../../services/user_service.dart';
 
 import '../../widgets/themed_scaffold.dart';
 
@@ -16,6 +17,20 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
   int _selectedIndex = 0;
   int _cartItemCount = 3;
   String _selectedCategory = 'Sebze';
+  String _userName = 'Müşteri';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserName();
+  }
+
+  Future<void> _loadUserName() async {
+    final name = await UserService.getUserFirstName();
+    setState(() {
+      _userName = name;
+    });
+  }
 
   final List<String> categories = ['Sebze', 'Meyve', 'Tahıl', 'Diğer'];
 
@@ -106,13 +121,25 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Tarladan',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).textTheme.bodyLarge?.color,
-                    ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Tarladan',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
+                        ),
+                      ),
+                      Text(
+                        'Merhaba, $_userName',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Theme.of(context).textTheme.bodyMedium?.color,
+                        ),
+                      ),
+                    ],
                   ),
                   // Sepet ikonu
                   Stack(

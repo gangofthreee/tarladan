@@ -53,6 +53,7 @@ class ApiConfig {
   static const String createTruckAdEndpoint = '/truck/ads/create';
   static const String getTruckerAdsEndpoint = '/truck/ads/my-ads';
   static const String updateTruckAdEndpoint = '/truck/ads/update';
+  static const String deleteTruckAdEndpoint = '/truck/ads/delete';
 
   static String get registerUrl => '$baseUrl$registerEndpoint';
   static String get loginUrl => '$baseUrl$loginEndpoint';
@@ -93,7 +94,9 @@ class ApiConfig {
       '$baseUrl$getTrucksByTruckerEndpoint';
   static String get getAllTrucksUrl => '$baseUrl$getAllTrucksEndpoint';
   static String get createTruckAdUrl => '$baseUrl$createTruckAdEndpoint';
-  static String get getTruckerAdsUrl => '$baseUrl$getTruckerAdsEndpoint';
+  static String get getTruckAdsByTruckerUrl => '$baseUrl$getTruckerAdsEndpoint';
   static String updateTruckAdUrl(int adId) =>
       '$baseUrl$updateTruckAdEndpoint/$adId';
+  static String deleteTruckAdUrl(int adId) =>
+      '$baseUrl$deleteTruckAdEndpoint/$adId';
 }

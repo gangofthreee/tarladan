@@ -5,12 +5,11 @@ import 'trucker_truckList_page.dart';
 import 'trucker_listAds_page.dart';
 import 'trucker_settings_page.dart';
 import '../../services/user_service.dart';
-
 import '../../widgets/themed_scaffold.dart';
+import '../../widgets/trucker_widgets.dart';
 
 class TruckerMainPage extends StatefulWidget {
   const TruckerMainPage({super.key});
-
   @override
   State<TruckerMainPage> createState() => _TruckerMainPageState();
 }
@@ -18,36 +17,7 @@ class TruckerMainPage extends StatefulWidget {
 class _TruckerMainPageState extends State<TruckerMainPage> {
   int _selectedIndex = 0;
   String _userName = 'Nakliyeci';
-
-  @override
-  void initState() {
-    super.initState();
-    _loadUserName();
-  }
-
-  Future<void> _loadUserName() async {
-    final name = await UserService.getUserFirstName();
-    setState(() {
-      _userName = name;
-    });
-  }
-
-  void _onItemTapped(int index) {
-    if (index == 3) {
-      // Ayarlar sayfasına git
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const TruckerSettingsPage()),
-      );
-    } else {
-      setState(() {
-        _selectedIndex = index;
-      });
-    }
-  }
-
-  // Örnek açık iş teklifleri
-  final List<Map<String, dynamic>> jobOffers = [
+  final _jobOffers = [
     {
       'route': 'İstanbul - Ankara',
       'price': '1500 TL',
@@ -59,6 +29,55 @@ class _TruckerMainPageState extends State<TruckerMainPage> {
       'icon': Icons.local_shipping,
     },
   ];
+  final _actionCards = <Map<String, dynamic>>[];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserName();
+    _actionCards.addAll([
+      {
+        'icon': Icons.local_shipping,
+        'emoji': '🚛',
+        'title': 'Kayıtlı Araçlarım',
+        'page': const TruckerTruckListPage(),
+      },
+      {
+        'icon': Icons.campaign,
+        'emoji': '📢',
+        'title': 'İlanlarım',
+        'page': const TruckerListAdsPage(),
+      },
+      {
+        'icon': Icons.assignment,
+        'emoji': '📋',
+        'title': 'Tır Kaydet',
+        'page': const TruckerTruckSavingPage(),
+      },
+      {
+        'icon': Icons.add_circle_outline,
+        'emoji': '➕',
+        'title': 'Yeni İlan Aç',
+        'page': const TruckerCreateAdPage(),
+      },
+    ]);
+  }
+
+  Future<void> _loadUserName() async {
+    final name = await UserService.getUserFirstName();
+    setState(() => _userName = name);
+  }
+
+  void _onItemTapped(int index) {
+    if (index == 3) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const TruckerSettingsPage()),
+      );
+    } else {
+      setState(() => _selectedIndex = index);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,59 +86,9 @@ class _TruckerMainPageState extends State<TruckerMainPage> {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header with notification
-              Container(
-                padding: const EdgeInsets.all(20),
-                color: Theme.of(context).cardColor,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Tarladan',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).textTheme.bodyLarge?.color,
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.grey[800]
-                            : Colors.grey[100],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.notifications_outlined,
-                        size: 28,
-                        color: Theme.of(context).textTheme.bodyLarge?.color,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Welcome Message
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Text(
-                  'Merhaba, $_userName',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).textTheme.bodyLarge?.color,
-                  ),
-                ),
-              ),
-
+              TruckerMainHeader(userName: _userName),
               const SizedBox(height: 30),
-
-              // Action Cards Grid
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: GridView.count(
@@ -129,67 +98,24 @@ class _TruckerMainPageState extends State<TruckerMainPage> {
                   mainAxisSpacing: 16,
                   crossAxisSpacing: 16,
                   childAspectRatio: 1.1,
-                  children: [
-                    _buildActionCard(
-                      icon: Icons.local_shipping,
-                      emoji: '🚛',
-                      title: 'Kayıtlı Araçlarım',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const TruckerTruckListPage(),
+                  children: _actionCards
+                      .map(
+                        (card) => TruckerActionCard(
+                          icon: card['icon'],
+                          emoji: card['emoji'],
+                          title: card['title'],
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => card['page'],
+                            ),
                           ),
-                        );
-                      },
-                    ),
-                    _buildActionCard(
-                      icon: Icons.campaign,
-                      emoji: '📢',
-                      title: 'İlanlarım',
-                      onTap: () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const TruckerListAdsPage(),
-                          ),
-                        );
-                      },
-                    ),
-                    _buildActionCard(
-                      icon: Icons.assignment,
-                      emoji: '📋',
-                      title: 'Tır Kaydet',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const TruckerTruckSavingPage(),
-                          ),
-                        );
-                      },
-                    ),
-                    _buildActionCard(
-                      icon: Icons.add_circle_outline,
-                      emoji: '➕',
-                      title: 'Yeni İlan Aç',
-                      onTap: () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const TruckerCreateAdPage(),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
+                        ),
+                      )
+                      .toList(),
                 ),
               ),
-
               const SizedBox(height: 30),
-
-              // Açık İş Teklifleri Section
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Text(
@@ -201,176 +127,16 @@ class _TruckerMainPageState extends State<TruckerMainPage> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 16),
-
-              // Job Offers List
-              ...jobOffers.map((job) => _buildJobOfferCard(job)),
-
+              ..._jobOffers.map((job) => TruckerJobOfferCard(job: job)),
               const SizedBox(height: 30),
             ],
           ),
         ),
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.2),
-              spreadRadius: 1,
-              blurRadius: 10,
-              offset: const Offset(0, -3),
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          selectedItemColor: const Color(0xFF4CAF50),
-          unselectedItemColor: Colors.grey[400],
-          selectedLabelStyle: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 12,
-          ),
-          unselectedLabelStyle: const TextStyle(fontSize: 12),
-          currentIndex: _selectedIndex,
-          onTap: _onItemTapped,
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Anasayfa'),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.local_shipping),
-              label: 'İş Teklifleri',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.assignment),
-              label: 'Siparişler',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.settings),
-              label: 'Ayarlar',
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionCard({
-    required IconData icon,
-    required String emoji,
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              spreadRadius: 1,
-              blurRadius: 5,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(emoji, style: const TextStyle(fontSize: 48)),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).textTheme.bodyLarge?.color,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildJobOfferCard(Map<String, dynamic> job) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Truck Icon
-          Container(
-            width: 70,
-            height: 70,
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(job['icon'], size: 36, color: Colors.grey[700]),
-          ),
-
-          const SizedBox(width: 16),
-
-          // Job Details
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  job['route'],
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  job['price'],
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF4CAF50),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Action Button
-          ElevatedButton(
-            onPressed: () {
-              // Handle bid action
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF4CAF50),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            child: const Text(
-              'Teklif Ver',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
+      bottomNavigationBar: TruckerBottomNav(
+        selectedIndex: _selectedIndex,
+        onTap: _onItemTapped,
       ),
     );
   }

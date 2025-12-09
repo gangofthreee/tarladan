@@ -1,17 +1,30 @@
-# Dev image
-FROM maven:3.9.3-eclipse-temurin-17 AS dev
-
+# ----------------------------
+# 1. AŞAMA: BUILD (Derleme)
+# ----------------------------
+FROM maven:3.9.3-eclipse-temurin-17 AS build
 WORKDIR /app
 
-# pom.xml'i önce kopyala ve dependencyleri offline indir
+# Önce sadece pom.xml'i kopyala ve kütüphaneleri indir (Cache mantığı)
 COPY pom.xml .
 RUN mvn dependency:go-offline -B
 
-# Kaynak kod mount edileceği için kopyalamıyoruz
-# COPY src ./src
+# ŞİMDİ KRİTİK NOKTA: Kaynak kodları içeri kopyalıyoruz!
+COPY src ./src
 
-# Spring Boot uygulamasını run ile başlat
-CMD ["mvn", "spring-boot:run"]
+# Projeyi derle ve .jar dosyasını oluştur (Testleri atla ki hızlı olsun)
+RUN mvn clean package -DskipTests
 
-# fotoğraflar için dizin oluştur
+# ----------------------------
+# 2. AŞAMA: RUNTIME (Çalıştırma)
+# ----------------------------
+FROM eclipse-temurin:17-jdk-jammy
+WORKDIR /app
+
+# İlk aşamada üretilen .jar dosyasını buraya al
+COPY --from=build /app/target/*.jar app.jar
+
+# Fotoğraf yükleme klasörlerini oluştur
 RUN mkdir -p /app/uploads/productPhotos /app/uploads/truckPhotos
+
+# Uygulamayı başlat (mvn run yerine java -jar kullanıyoruz, çok daha hızlıdır)
+ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -20,7 +20,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class GoogleController {
     private final GoogleService googleService;
 
-    //kullanici kayitli mi? kayitliysa girisini yap (token uret, tokenresponse dondur) degil ise false dondur
+    // kullanici kayitli mi? kayitliysa girisini yap (token uret, tokenresponse dondur)
+    // degil ise false dondur
     @PostMapping("/verify-status")
     public ResponseEntity<?> verifyStatus(@Valid @RequestBody GoogleAuthRequest request) {
         try {

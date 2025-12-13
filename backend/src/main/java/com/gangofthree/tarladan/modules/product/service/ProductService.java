@@ -20,6 +20,8 @@ public interface ProductService {
     Product getProduct(Long id);
 
     List<Product> getProductsByFarmerId(Long farmerId);
+
+    List<Product> getAllProducts();
 }
 
 

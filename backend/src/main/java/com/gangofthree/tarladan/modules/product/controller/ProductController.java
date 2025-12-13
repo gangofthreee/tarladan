@@ -8,10 +8,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import com.gangofthree.tarladan.modules.product.dto.ProductResponse; 
+
 
 import java.math.BigInteger;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/farmer/product")
@@ -20,6 +23,7 @@ public class ProductController {
 
     private final ProductService productService;
 
+    @CacheEvict(value = "products", allEntries = true)
     @PostMapping(value = "/create", consumes = {"multipart/form-data"})
     public ResponseEntity<Product> createProduct(
             @RequestPart("name") String name,
@@ -42,7 +46,7 @@ public class ProductController {
         return ResponseEntity.ok(createdProduct);
     }
 
-
+    @CacheEvict(value = "products", allEntries = true)
     @PatchMapping(value = "/update/{id}", consumes = {"multipart/form-data"})
     public ResponseEntity<Product> updateProduct(
             @PathVariable Long id,
@@ -57,6 +61,7 @@ public class ProductController {
         return ResponseEntity.ok(updatedProduct);
     }
 
+    @CacheEvict(value = "products", allEntries = true)
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Product> deleteProduct(
             @PathVariable Long id,
@@ -66,25 +71,26 @@ public class ProductController {
         return ResponseEntity.ok(deletedProduct);
     }
 
+    @Cacheable(value = "products", key = "#id")
     @GetMapping("/get/{id}")
-    public ResponseEntity<Product> getProduct(@PathVariable Long id) {
-        Product product = productService.getProduct(id);
-        return ResponseEntity.ok(product);
+    public ProductResponse getProduct(@PathVariable Long id) {
+        ProductResponse product = productService.getProduct(id);
+        return product;
     }
 
+    @Cacheable(value = "products", key = "'my_products_' + #farmerId")
     @GetMapping("/my-products")
-    public ResponseEntity<List<Product>> getMyProducts(@RequestAttribute("domainId") Long farmerId) {
-        List<Product> products = productService.getProductsByFarmerId(farmerId);
-        return ResponseEntity.ok(products);
+    public List<ProductResponse> getMyProducts(@RequestAttribute("domainId") Long farmerId) {
+        List<ProductResponse> products = productService.getProductsByFarmerId(farmerId);
+        return products;
     }
 
+    @Cacheable(value = "products", key = "'all'")
     @GetMapping("/all_products")
-    public ResponseEntity<List<Product>> getAllProducts() {
-        List<Product> products = productService.getAllProducts();
-        return ResponseEntity.ok(products);
+    public List<ProductResponse> getAllProducts() {
+        List<ProductResponse> products = productService.getAllProducts();
+        return products;
     }
-
-
 
 
 }

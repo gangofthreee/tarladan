@@ -4,12 +4,17 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.NoArgsConstructor; 
+import java.io.Serializable;  
 
 @Getter
 @Setter
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
-public class DepotResponse {
+public class DepotResponse implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private Long id;
     private String address;
     private Double sizeM2;

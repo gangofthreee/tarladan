@@ -7,6 +7,8 @@ import com.gangofthree.tarladan.modules.depot.service.DepotService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 
 import java.util.List;
 
@@ -18,6 +20,7 @@ public class DepotController {
     private final DepotService depotService;
 
     // JWT'den depot owner ID alınıyor
+    @CacheEvict(value = "depots", allEntries = true) //depots onbellegindegi her seyi temizle CREATE, UPDATE, DELETE
     @PostMapping("/create")
     public ResponseEntity<DepotResponse> createDepot(
             @RequestBody DepotCreateRequest request,
@@ -27,18 +30,21 @@ public class DepotController {
         return ResponseEntity.ok(response);
     }
 
+    @Cacheable(value = "depots", key = "'all'")
     @GetMapping("/all")
-    public ResponseEntity<List<DepotResponse>> getAllDepots() {
+    public List<DepotResponse> getAllDepots() {
         List<DepotResponse> depots = depotService.getAllDepots();
-        return ResponseEntity.ok(depots);
+        return depots;
     }
 
+    @Cacheable(value = "depots", key = "#id")
     @GetMapping("/{id}")
-    public ResponseEntity<DepotResponse> getDepotById(@PathVariable Long id) {
+    public DepotResponse getDepotById(@PathVariable Long id) {
         DepotResponse depot = depotService.getDepotById(id);
-        return ResponseEntity.ok(depot);
+        return depot;
     }
 
+    @CacheEvict(value = "depots", allEntries = true)
     @PutMapping("/update/{id}")
     public ResponseEntity<DepotResponse> updateDepot(
             @PathVariable Long id,
@@ -49,6 +55,7 @@ public class DepotController {
         return ResponseEntity.ok(updatedDepot);
     }
 
+    @CacheEvict(value = "depots", allEntries = true)
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteDepot(
             @PathVariable Long id,
@@ -58,10 +65,10 @@ public class DepotController {
         return ResponseEntity.ok("Depot with id " + id + " has been deleted successfully.");
     }
 
-    // JWT kullanarak kendi depolarını listeleme
+    @Cacheable(value = "depots", key = "'my_depots_' + #depotOwnerId")
     @GetMapping("/my-depots")
-    public ResponseEntity<List<DepotResponse>> getMyDepots(@RequestAttribute("domainId") Long depotOwnerId) {
+    public List<DepotResponse> getMyDepots(@RequestAttribute("domainId") Long depotOwnerId) {
         List<DepotResponse> depots = depotService.getDepotsByDepotOwner(depotOwnerId);
-        return ResponseEntity.ok(depots);
+        return depots;
     }
 }

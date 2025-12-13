@@ -10,6 +10,8 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import com.gangofthree.tarladan.modules.truck.dto.TruckResponse; 
+import java.util.stream.Collectors; 
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -25,6 +27,17 @@ public class TruckServiceImpl implements TruckService {
     private final TruckerRepository truckerRepository;
 
     private static final String UPLOAD_DIR = "/app/uploads/truckPhotos/";
+
+    private TruckResponse mapToResponse(Truck truck) {
+        return TruckResponse.builder()
+                .id(truck.getId())
+                .vehicle(truck.getVehicle())
+                .capacityTon(truck.getCapacityTon()) 
+                .imageUrl(truck.getImageUrl())     
+                .basePrice(truck.getBasePrice())    
+                .truckerId(truck.getTrucker() != null ? truck.getTrucker().getId() : null)
+                .build();
+    }
 
     @Override
     public Truck addTruck(AddTruckRequest addTruckRequest, Long truckerId) {
@@ -123,25 +136,29 @@ public class TruckServiceImpl implements TruckService {
     }
 
     @Override
-    public List<Truck> getTrucksByTruckerId(Long truckerId) {
+    public List<TruckResponse> getTrucksByTruckerId(Long truckerId) {
         Trucker trucker = truckerRepository.findById(truckerId)
                 .orElseThrow(() -> new EntityNotFoundException("Trucker bulunamadı."));
-        return truckRepository.findAllByTrucker(trucker);
+        return truckRepository.findAllByTrucker(trucker).stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public List<Truck> getAllTrucks() {
-        return truckRepository.findAll();
+    public List<TruckResponse> getAllTrucks() {
+        return truckRepository.findAll().stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public Truck getTruckByIdAndTrucker(Long id, Long truckerId) {
+    public TruckResponse getTruckByIdAndTrucker(Long id, Long truckerId) {
         Truck truck = truckRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Truck bulunamadı."));
         if (!truck.getTrucker().getId().equals(truckerId)) {
             throw new SecurityException("Bu trucker'a ait olmayan araca erişemezsiniz.");
         }
-        return truck;
+        return mapToResponse(truck);
     }
 
 }

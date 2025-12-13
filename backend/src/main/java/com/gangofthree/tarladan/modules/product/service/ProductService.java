@@ -1,6 +1,7 @@
 package com.gangofthree.tarladan.modules.product.service;
 
 import com.gangofthree.tarladan.modules.product.dto.AddProductRequest;
+import com.gangofthree.tarladan.modules.product.dto.ProductResponse;
 import com.gangofthree.tarladan.modules.product.entity.Product;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,11 +18,11 @@ public interface ProductService {
 
     Product deleteProduct(Long id, Long farmerId);
 
-    Product getProduct(Long id);
+    ProductResponse getProduct(Long id);
 
-    List<Product> getProductsByFarmerId(Long farmerId);
+    List<ProductResponse> getProductsByFarmerId(Long farmerId);
 
-    List<Product> getAllProducts();
+    List<ProductResponse> getAllProducts();
 }
 
 

@@ -11,6 +11,8 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import com.gangofthree.tarladan.modules.product.dto.ProductResponse;
+import java.util.stream.Collectors;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -27,6 +29,20 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final FarmerRepository farmerRepository;
     private final DepotRepository depotRepository;
+
+    // --- Yardımcı Metot: Entity -> DTO Dönüşümü ---
+    private ProductResponse mapToResponse(Product product) {
+        return ProductResponse.builder()
+                .id(product.getId())
+                .name(product.getName())
+                .quantity_kg(product.getQuantity_kg())
+                .price_per_kg(product.getPrice_per_kg())
+                .min_buy(product.getMin_buy())
+                .image_path(product.getImage_path())
+                .depot_id(product.getDepot() != null ? product.getDepot().getId() : null)
+                .farmer_id(product.getFarmer() != null ? product.getFarmer().getId() : null)
+                .build();
+    }
 
     @Override
     public Product addProduct(AddProductRequest addProductRequest, Long farmerId) {
@@ -148,19 +164,26 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Product getProduct(Long id) {
-        return productRepository.findById(id)
+    public ProductResponse getProduct(Long id) {
+        Product product = productRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id));
+        return mapToResponse(product);
     }
 
     @Override
-    public List<Product> getProductsByFarmerId(Long farmerId) {
-        return productRepository.findByFarmerId(farmerId);
+    public List<ProductResponse> getProductsByFarmerId(Long farmerId) {
+        List<Product> products = productRepository.findByFarmerId(farmerId);
+        return products.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
 
     @Override
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
+    public List<ProductResponse> getAllProducts() {
+        List<Product> products = productRepository.findAll();
+        return products.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 }

@@ -9,6 +9,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import com.gangofthree.tarladan.modules.truck.dto.TruckResponse; 
+
 
 import java.util.List;
 
@@ -20,7 +24,7 @@ public class TruckController {
 
     private final TruckService truckService;
 
-    // Artık client sadece access token gönderiyor; truckerId JWT’den alınacak
+    @CacheEvict(value = "trucks", allEntries = true)
     @PostMapping(value = "/create", consumes = {"multipart/form-data"})
     public ResponseEntity<Truck> createTruck(@ModelAttribute AddTruckRequest request,
                                              @RequestAttribute("domainId") Long truckerId) {
@@ -29,6 +33,7 @@ public class TruckController {
         return ResponseEntity.ok(createdTruck);
     }
 
+    @CacheEvict(value = "trucks", allEntries = true)
     @PatchMapping(value = "/update/{id}", consumes = {"multipart/form-data"})
     public ResponseEntity<Truck> updateTruck(@PathVariable Long id,
                                              @ModelAttribute UpdateTruckRequest request,
@@ -37,6 +42,7 @@ public class TruckController {
         return ResponseEntity.ok(updatedTruck);
     }
 
+    @CacheEvict(value = "trucks", allEntries = true)
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteTruck(@PathVariable Long id,
                                               @RequestAttribute("domainId") Long truckerId) {
@@ -44,22 +50,24 @@ public class TruckController {
         return ResponseEntity.ok("Truck başarıyla silindi.");
     }
 
+    @Cacheable(value = "trucks", key = "'my_trucks_' + #truckerId")
     @GetMapping("/get")
-    public ResponseEntity<List<Truck>> getMyTrucks(@RequestAttribute("domainId") Long truckerId) {
-        List<Truck> trucks = truckService.getTrucksByTruckerId(truckerId);
-        return ResponseEntity.ok(trucks);
+    public List<TruckResponse> getMyTrucks(@RequestAttribute("domainId") Long truckerId) {
+        List<TruckResponse> trucks = truckService.getTrucksByTruckerId(truckerId);
+        return trucks;
     }
 
+    @Cacheable(value = "trucks", key = "'all'")
     @GetMapping("/getAllTrucks")
-    public ResponseEntity<List<Truck>> getAllTrucks() {
-        return ResponseEntity.ok(truckService.getAllTrucks());
+    public List<TruckResponse> getAllTrucks() {
+        return truckService.getAllTrucks();
     }
 
+    @Cacheable(value = "trucks", key = "#id")
     @GetMapping("/{id}")
-    public ResponseEntity<Truck> getTruckById(@PathVariable Long id,
+    public TruckResponse getTruckById(@PathVariable Long id,
                                               @RequestAttribute("domainId") Long truckerId) {
-        Truck truck = truckService.getTruckByIdAndTrucker(id, truckerId);
-        return ResponseEntity.ok(truck);
+        TruckResponse truck = truckService.getTruckByIdAndTrucker(id, truckerId);
+        return truck;
     }
 }
-

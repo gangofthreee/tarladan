@@ -157,4 +157,10 @@ public class ProductServiceImpl implements ProductService {
     public List<Product> getProductsByFarmerId(Long farmerId) {
         return productRepository.findByFarmerId(farmerId);
     }
+
+
+    @Override
+    public List<Product> getAllProducts() {
+        return productRepository.findAll();
+    }
 }

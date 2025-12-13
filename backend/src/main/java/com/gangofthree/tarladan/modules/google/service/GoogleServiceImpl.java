@@ -1,5 +1,11 @@
 package com.gangofthree.tarladan.modules.google.service;
 
+import com.gangofthree.tarladan.modules.customer.entity.Customer;
+import com.gangofthree.tarladan.modules.customer.repository.CustomerRepository;
+import com.gangofthree.tarladan.modules.depotOwner.entity.DepotOwner;
+import com.gangofthree.tarladan.modules.farmer.entity.Farmer;
+import com.gangofthree.tarladan.modules.trucker.entity.Trucker;
+import com.gangofthree.tarladan.modules.user.service.RoleBasedIdService;
 import com.gangofthree.tarladan.shared.dto.GoogleUserResponse;
 import com.gangofthree.tarladan.shared.dto.TokenResponse;
 import com.gangofthree.tarladan.shared.enums.UserRole;
@@ -11,6 +17,11 @@ import com.gangofthree.tarladan.modules.google.dto.GoogleAuthRequest;
 import com.gangofthree.tarladan.modules.google.dto.GoogleRegisterRequest;
 import com.gangofthree.tarladan.modules.google.repository.GoogleRepository;
 import com.gangofthree.tarladan.modules.user.entity.User;
+import com.gangofthree.tarladan.modules.user.repository.UserRepository;
+import com.gangofthree.tarladan.modules.depotOwner.repository.DepotOwnerRepository;
+import com.gangofthree.tarladan.modules.farmer.repository.FarmerRepository;
+import com.gangofthree.tarladan.modules.trucker.repository.TruckerRepository;
+
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,24 +38,29 @@ public class GoogleServiceImpl implements GoogleService {
     private final VerifyGoogleToken verifyGoogleToken;
     private final JwtUtil jwtUtil;
     private final TokenService tokenService;
+    private final RoleBasedIdService roleBasedIdService;
+    private final FarmerRepository farmerRepository;
+    private final DepotOwnerRepository depotOwnerRepository;
+    private final CustomerRepository customerRepository;
+    private final TruckerRepository truckerRepository;
 
     @Override
     public AuthStatusResponse verifyStatus(GoogleAuthRequest request) {
         GoogleUserResponse googleUserResponse = verifyGoogleToken.verify(request.getIdToken());
         Optional<User> existingUser = googleRepository.findByEmail(googleUserResponse.getEmail());
         User user;
-        if (existingUser.isPresent()) {
+        if (existingUser.isPresent()) { // kullanici kayitli
             user = existingUser.get();
 
-            if (!user.isGoogleVerified()) {
+            if (!user.isGoogleVerified()) { //isGoogleVerified false ise simdi true yap
                 user.setGoogleVerified(true);
                 user = googleRepository.save(user);
             }
 
-            TokenResponse tokenResponse = createTokenResponse(user);
+            TokenResponse tokenResponse = createTokenResponse(user); //token olustur
             return new AuthStatusResponse(true, tokenResponse);
         }else {
-            return new AuthStatusResponse(false, null);
+            return new AuthStatusResponse(false, null); //kullanici yok, token yok
         }
     }
 
@@ -62,7 +78,8 @@ public class GoogleServiceImpl implements GoogleService {
     private TokenResponse createTokenResponse(User user) {
 
         String roleString = user.getRole().name();
-        Long domainId = 0L; // RoleBasedId için varsayılan değer
+
+        Long domainId = roleBasedIdService.getDomainId(user);// RoleBasedId için varsayılan değer
 
         // 1. Access Token üret
         String accessToken = jwtUtil.generateAccessToken(user.getId(), roleString, domainId);
@@ -87,7 +104,7 @@ public class GoogleServiceImpl implements GoogleService {
     private User registerNewGoogleUser(GoogleUserResponse googleInfo, String desiredRole, String phone) {
         UserRole finalRole;
         try {
-            finalRole = UserRole.valueOf(desiredRole.toUpperCase());
+            finalRole = UserRole.valueOf(desiredRole.toUpperCase());//enum karsilastirma
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("Geçersiz veya desteklenmeyen kullanıcı rolü: " + desiredRole);
         }
@@ -104,6 +121,26 @@ public class GoogleServiceImpl implements GoogleService {
                 .isPhoneVerified(false)
                 .build();
 
-        return googleRepository.save(user);
+        User savedUser =  googleRepository.save(user);
+
+        switch (finalRole) {
+            case FARMER -> {
+                Farmer farmer = Farmer.builder().user(savedUser).build();
+                farmerRepository.save(farmer);
+            }
+            case DEPOT_OWNER -> {
+                DepotOwner depotOwner = DepotOwner.builder().user(savedUser).build();
+                depotOwnerRepository.save(depotOwner);
+            }
+            case CUSTOMER -> {
+                Customer customer = Customer.builder().user(savedUser).build();
+                customerRepository.save(customer);
+            }
+            case TRUCKER -> {
+                Trucker trucker = Trucker.builder().user(savedUser).build();
+                truckerRepository.save(trucker);
+            }
+        }
+        return savedUser;
     }
-}
+    }

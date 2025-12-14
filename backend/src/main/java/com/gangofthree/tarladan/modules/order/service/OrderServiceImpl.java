@@ -1,5 +1,6 @@
 package com.gangofthree.tarladan.modules.order.service;
 
+import com.gangofthree.tarladan.modules.order.event.OrderCreatedEvent;
 import com.gangofthree.tarladan.shared.enums.OrderStatus;
 import com.gangofthree.tarladan.modules.customer.entity.Customer;
 import com.gangofthree.tarladan.modules.customer.repository.CustomerRepository;
@@ -17,6 +18,7 @@ import com.gangofthree.tarladan.modules.truck.entity.Truck;
 import com.gangofthree.tarladan.modules.truck.repository.TruckRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
@@ -33,6 +35,7 @@ public class OrderServiceImpl implements OrderService {
     private final DepotRepository depotRepository;
     private final TruckRepository truckRepository;
     private final ShipmentRepository shipmentRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public OrderResponse createOrder(OrderCreateRequest req, Long customerId) {
@@ -72,6 +75,7 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         orderRepository.save(order);
+        eventPublisher.publishEvent(new OrderCreatedEvent(this, order));
         return mapToResponse(order);
     }
 

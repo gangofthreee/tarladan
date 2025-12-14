@@ -33,7 +33,8 @@ public class TruckServiceImpl implements TruckService {
                 .id(truck.getId())
                 .vehicle(truck.getVehicle())
                 .capacityTon(truck.getCapacityTon()) 
-                .imageUrl(truck.getImageUrl())     
+                .imageUrl(truck.getImageUrl())
+                .plate_number(truck.getPlate())
                 .basePrice(truck.getBasePrice())    
                 .truckerId(truck.getTrucker() != null ? truck.getTrucker().getId() : null)
                 .build();

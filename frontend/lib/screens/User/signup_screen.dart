@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'verification_screen.dart';
@@ -19,18 +20,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
   // Form controllers
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _surnameController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController(
+    text: '0 5',
+  );
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   bool _isLoading = false;
 
   final roles = [
-    {'label': 'Çiftçi', 'icon': Icons.spa, 'value': 'FARMER'},
-    {'label': 'Alıcı', 'icon': Icons.shopping_cart, 'value': 'CUSTOMER'},
-    {'label': 'Tırcı', 'icon': Icons.local_shipping, 'value': 'TRUCKER'},
-    {'label': 'Depocu', 'icon': Icons.apartment, 'value': 'DEPOT_OWNER'},
+    {'label': 'Farmer', 'icon': '🌾', 'value': 'FARMER'},
+    {'label': 'Customer', 'icon': '🛒', 'value': 'CUSTOMER'},
+    {'label': 'Trucker', 'icon': '🚚', 'value': 'TRUCKER'},
+    {'label': 'Warehouse\nOwner', 'icon': '🏭', 'value': 'DEPOT_OWNER'},
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Password değişikliklerini dinle
+    _passwordController.addListener(() {
+      setState(() {});
+    });
+  }
 
   @override
   void dispose() {
@@ -58,7 +70,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Lütfen bir rol seçin"),
+          content: Text("Please select a role"),
           backgroundColor: Colors.red,
         ),
       );
@@ -71,12 +83,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
 
     try {
-      // Telefon numarasını 0 ile birleştir
-      final fullPhoneNumber = '0${_phoneController.text.trim()}';
+      // Get phone number without spaces
+      final fullPhoneNumber = _phoneController.text.replaceAll(' ', '').trim();
 
-      print('API URL: ${ApiConfig.registerUrl}'); // Debug için
+      print('API URL: ${ApiConfig.registerUrl}'); // For debugging
       print(
-        'Gönderilen veri: ${jsonEncode({'name': _nameController.text.trim(), 'surname': _surnameController.text.trim(), 'email': _emailController.text.trim(), 'phone': fullPhoneNumber, 'password': _passwordController.text, 'role': _getRoleValue(selectedRole!)})}',
+        'Sent data: ${jsonEncode({'name': _nameController.text.trim(), 'surname': _surnameController.text.trim(), 'email': _emailController.text.trim(), 'phone': fullPhoneNumber, 'password': _passwordController.text, 'role': _getRoleValue(selectedRole!)})}',
       );
 
       final response = await http
@@ -95,22 +107,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
           .timeout(
             const Duration(seconds: 10),
             onTimeout: () {
-              throw Exception(
-                'Bağlantı zaman aşımına uğradı. Lütfen tekrar deneyin.',
-              );
+              throw Exception('Connection timed out. Please try again.');
             },
           );
 
-      print('Response status: ${response.statusCode}'); // Debug için
-      print('Response body: ${response.body}'); // Debug için
+      print('Response status: ${response.statusCode}'); // For debugging
+      print('Response body: ${response.body}'); // For debugging
 
       if (!mounted) return;
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        // Başarılı kayıt - verification ekranına yönlendir
+        // Successful registration - redirect to verification screen
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text("Kayıt başarılı! E-postanızı kontrol edin."),
+            content: Text("Registration successful! Check your email."),
             backgroundColor: Colors.green,
           ),
         );
@@ -123,26 +133,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         );
       } else {
-        // Hata durumu
-        String errorMessage = 'Kayıt başarısız oldu';
+        // Error case
+        String errorMessage = 'Registration failed';
 
         if (response.body.isNotEmpty) {
           try {
             final errorData = jsonDecode(response.body);
-            // Backend'den gelen error veya message alanını kontrol et
+            // Check error or message field from backend
             if (errorData['error'] != null) {
               errorMessage = errorData['error'];
-              // Email already in use hatası için Türkçe mesaj
+              // Email already in use error message
               if (errorMessage.contains('Email already in use')) {
                 errorMessage =
-                    'Bu e-posta adresi zaten kullanılıyor. Lütfen farklı bir e-posta adresi deneyin.';
+                    'This email address is already in use. Please try a different email address.';
               }
             } else if (errorData['message'] != null) {
               errorMessage = errorData['message'];
             }
           } catch (e) {
-            // JSON parse hatası durumunda default mesaj
-            errorMessage = 'Kayıt başarısız oldu';
+            // Default message in case of JSON parse error
+            errorMessage = 'Registration failed';
           }
         }
 
@@ -157,20 +167,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
     } catch (e) {
       if (!mounted) return;
 
-      print('Hata detayı: $e'); // Debug için
+      print('Error details: $e'); // For debugging
 
-      String errorMessage = 'Bağlantı hatası: ';
+      String errorMessage = 'Connection error: ';
       if (e.toString().contains('Failed host lookup')) {
-        errorMessage +=
-            'Sunucuya ulaşılamadı. Backend çalışıyor mu kontrol edin.';
+        errorMessage += 'Could not reach server. Check if backend is running.';
       } else if (e.toString().contains('Connection refused')) {
         errorMessage +=
-            'Bağlantı reddedildi. Backend uygulaması çalışmıyor olabilir.';
+            'Connection refused. Backend application may not be running.';
       } else if (e.toString().contains('SocketException')) {
         errorMessage +=
-            'Ağ bağlantısı hatası. İnternet bağlantınızı kontrol edin.';
+            'Network connection error. Check your internet connection.';
       } else if (e.toString().contains('timeout')) {
-        errorMessage += 'İstek zaman aşımına uğradı. Lütfen tekrar deneyin.';
+        errorMessage += 'Request timed out. Please try again.';
       } else {
         errorMessage += e.toString();
       }
@@ -191,18 +200,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-  Widget buildRoleCard(String role, IconData icon) {
+  Widget buildRoleCard(String role, String icon) {
     final isSelected = selectedRole == role;
     return GestureDetector(
       onTap: () {
         setState(() {
           selectedRole = role;
-          _showRoleError = false; // Rol seçildiğinde hatayı kaldır
+          _showRoleError = false; // Remove error when role is selected
         });
       },
       child: Container(
-        width: 100,
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
         decoration: BoxDecoration(
           color: isSelected ? Colors.green.shade50 : Colors.transparent,
           border: Border.all(
@@ -214,9 +222,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 40, color: Colors.black87),
+            Text(icon, style: const TextStyle(fontSize: 40)),
             const SizedBox(height: 8),
-            Text(role, style: const TextStyle(fontWeight: FontWeight.w600)),
+            Text(
+              role,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
           ],
         ),
       ),
@@ -237,7 +249,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             onPressed: () => Navigator.pop(context),
           ),
           title: const Text(
-            "Tarladan'a Katıl",
+            "Join Tarladan",
             style: TextStyle(
               color: Colors.black87,
               fontWeight: FontWeight.bold,
@@ -251,13 +263,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
             key: _formKey,
             child: ListView(
               children: [
-                // Form Alanları
+                // Form Fields
                 TextFormField(
                   controller: _nameController,
-                  decoration: const InputDecoration(labelText: 'Ad'),
+                  decoration: const InputDecoration(labelText: 'Name'),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Lütfen adınızı girin';
+                      return 'Please enter your name';
                     }
                     return null;
                   },
@@ -265,10 +277,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _surnameController,
-                  decoration: const InputDecoration(labelText: 'Soyad'),
+                  decoration: const InputDecoration(labelText: 'Surname'),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Lütfen soyadınızı girin';
+                      return 'Please enter your surname';
                     }
                     return null;
                   },
@@ -277,27 +289,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 TextFormField(
                   controller: _phoneController,
                   decoration: const InputDecoration(
-                    labelText: 'Telefon',
-                    prefixText: '0',
-                    hintText: '5XX XXX XX XX',
+                    labelText: 'Phone',
+                    hintText: '0 5XX XXX XX XX',
                   ),
                   keyboardType: TextInputType.phone,
-                  maxLength: 10,
+                  maxLength: 15,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(11),
+                    _SignupPhoneNumberFormatter(),
+                  ],
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Lütfen telefon numaranızı girin';
+                      return 'Please enter your phone number';
                     }
-                    // Sadece rakam kontrolü
-                    if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
-                      return 'Sadece rakam giriniz';
+                    final digitsOnly = value.replaceAll(' ', '');
+                    // Only digits check
+                    if (!RegExp(r'^[0-9]+$').hasMatch(digitsOnly)) {
+                      return 'Only digits allowed';
                     }
-                    // 10 hane kontrolü
-                    if (value.length != 10) {
-                      return 'Telefon numarası 10 haneli olmalıdır';
+                    // Must start with 05
+                    if (!digitsOnly.startsWith('05')) {
+                      return 'Phone number must start with 05';
                     }
-                    // 5 ile başlamalı (0'dan sonra)
-                    if (!value.startsWith('5')) {
-                      return 'Telefon numarası 5 ile başlamalıdır';
+                    // 11 digits check (05 + 9 more)
+                    if (digitsOnly.length != 11) {
+                      return 'Phone number must be 11 digits';
                     }
                     return null;
                   },
@@ -305,14 +322,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _emailController,
-                  decoration: const InputDecoration(labelText: 'E-posta'),
+                  decoration: const InputDecoration(labelText: 'Email'),
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Lütfen e-posta adresinizi girin';
+                      return 'Please enter your email address';
                     }
                     if (!value.contains('@')) {
-                      return 'Geçerli bir e-posta adresi girin';
+                      return 'Enter a valid email address';
                     }
                     return null;
                   },
@@ -320,21 +337,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _passwordController,
-                  decoration: const InputDecoration(labelText: 'Parola'),
+                  decoration: const InputDecoration(labelText: 'Password'),
                   obscureText: true,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Lütfen parola girin';
+                      return 'Please enter password';
                     }
-                    if (value.length < 6) {
-                      return 'Parola en az 6 karakter olmalıdır';
+                    if (value.length < 8) {
+                      return 'En az 8 karakter';
+                    }
+                    if (!RegExp(r'[A-Z]').hasMatch(value)) {
+                      return 'Bir büyük harf (A-Z)';
+                    }
+                    if (!RegExp(r'[0-9]').hasMatch(value)) {
+                      return 'Bir sayı (0-9)';
                     }
                     return null;
                   },
                 ),
+                const SizedBox(height: 8),
+                _PasswordRequirements(password: _passwordController.text),
                 const SizedBox(height: 24),
                 const Text(
-                  "Rolünü Seç",
+                  "Select Role",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 if (_showRoleError)
@@ -349,7 +374,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          "Lütfen bir rol seçin",
+                          "Please select a role",
                           style: TextStyle(
                             color: Colors.red[700],
                             fontSize: 13,
@@ -360,33 +385,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 const SizedBox(height: 16),
 
-                // Rol Seçimi Grid
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: _showRoleError ? Colors.red : Colors.transparent,
-                      width: 2,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: const EdgeInsets.all(8),
-                  child: Wrap(
-                    alignment: WrapAlignment.spaceAround,
-                    spacing: 20,
-                    runSpacing: 20,
-                    children: roles
-                        .map(
-                          (r) => buildRoleCard(
-                            r['label'] as String,
-                            r['icon'] as IconData,
-                          ),
-                        )
-                        .toList(),
-                  ),
+                // Role Selection Grid
+                GridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 1.0,
+                  children: roles
+                      .map(
+                        (r) => buildRoleCard(
+                          r['label'] as String,
+                          r['icon'] as String,
+                        ),
+                      )
+                      .toList(),
                 ),
                 const SizedBox(height: 32),
 
-                // Kayıt Ol Butonu
+                // Register Button
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -408,7 +426,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                           )
                         : const Text(
-                            "Kayıt Ol",
+                            "Register",
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -423,5 +441,119 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ), // Padding (body of Scaffold)
       ), // Scaffold (child of Theme)
     ); // Theme
+  }
+}
+
+class _SignupPhoneNumberFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final text = newValue.text.replaceAll(' ', '');
+
+    // Always start with "05"
+    if (text.isEmpty || text.length < 2) {
+      return const TextEditingValue(
+        text: '0 5',
+        selection: TextSelection.collapsed(offset: 3),
+      );
+    }
+
+    // Must start with 05
+    if (!text.startsWith('05')) {
+      return oldValue;
+    }
+
+    // Maximum 11 digits (0 + 5 + 9 more)
+    if (text.length > 11) {
+      return oldValue;
+    }
+
+    final buffer = StringBuffer();
+
+    // Format: 0 5XX XXX XX XX
+    for (int i = 0; i < text.length; i++) {
+      buffer.write(text[i]);
+
+      // After 1st digit (0) add space
+      if (i == 0) {
+        buffer.write(' ');
+      }
+      // After 4th digit (0 5XX) add space
+      else if (i == 3 && text.length > 4) {
+        buffer.write(' ');
+      }
+      // After 7th digit (0 5XX XXX) add space
+      else if (i == 6 && text.length > 7) {
+        buffer.write(' ');
+      }
+      // After 9th digit (0 5XX XXX XX) add space
+      else if (i == 8 && text.length > 9) {
+        buffer.write(' ');
+      }
+    }
+
+    final formatted = buffer.toString();
+
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
+  }
+}
+
+// Password Requirements Widget
+class _PasswordRequirements extends StatelessWidget {
+  final String password;
+
+  const _PasswordRequirements({required this.password});
+
+  @override
+  Widget build(BuildContext context) {
+    final hasMinLength = password.length >= 8;
+    final hasUpperCase = RegExp(r'[A-Z]').hasMatch(password);
+    final hasNumber = RegExp(r'[0-9]').hasMatch(password);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _RequirementItem(text: 'En az 8 karakter', isMet: hasMinLength),
+        _RequirementItem(text: 'Bir büyük harf (A-Z)', isMet: hasUpperCase),
+        _RequirementItem(text: 'Bir sayı (0-9)', isMet: hasNumber),
+      ],
+    );
+  }
+}
+
+// Individual Requirement Item
+class _RequirementItem extends StatelessWidget {
+  final String text;
+  final bool isMet;
+
+  const _RequirementItem({required this.text, required this.isMet});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          Icon(
+            isMet ? Icons.check_circle : Icons.radio_button_unchecked,
+            size: 16,
+            color: isMet ? Colors.green : Colors.grey,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 12,
+              color: isMet ? Colors.green : Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

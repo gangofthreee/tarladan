@@ -246,24 +246,10 @@ class _WarehousemanMyWarehousePageState
               width: 70,
               height: 70,
               decoration: BoxDecoration(
-                color: Colors.grey[300],
+                color: Colors.grey[800],
                 borderRadius: BorderRadius.circular(12),
-                image: const DecorationImage(
-                  image: NetworkImage('https://via.placeholder.com/70'),
-                  fit: BoxFit.cover,
-                ),
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  color: Colors.grey[800],
-                  child: const Icon(
-                    Icons.warehouse,
-                    size: 40,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
+              child: const Icon(Icons.warehouse, size: 40, color: Colors.white),
             ),
 
             const SizedBox(width: 16),

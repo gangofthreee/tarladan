@@ -43,7 +43,16 @@ class TruckerTruckForm extends StatelessWidget {
           const SizedBox(height: 8),
           TruckerFormField(
             controller: plateController,
-            hintText: 'Örn. 34 ABC 123',
+            hintText: 'Örn. 34ABC123',
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'[0-9A-Za-z]')),
+              TextInputFormatter.withFunction((oldValue, newValue) {
+                return TextEditingValue(
+                  text: newValue.text.toUpperCase(),
+                  selection: newValue.selection,
+                );
+              }),
+            ],
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Lütfen plaka giriniz';
@@ -62,8 +71,12 @@ class TruckerTruckForm extends StatelessWidget {
               if (value == null || value.isEmpty) {
                 return 'Lütfen kapasite giriniz';
               }
-              if (double.tryParse(value) == null) {
+              final capacity = double.tryParse(value);
+              if (capacity == null) {
                 return 'Lütfen geçerli bir sayı giriniz';
+              }
+              if (capacity <= 0) {
+                return 'Kapasite 0\'dan büyük olmalıdır';
               }
               return null;
             },
@@ -79,8 +92,12 @@ class TruckerTruckForm extends StatelessWidget {
               if (value == null || value.isEmpty) {
                 return 'Lütfen taban fiyat giriniz';
               }
-              if (double.tryParse(value) == null) {
+              final price = double.tryParse(value);
+              if (price == null) {
                 return 'Lütfen geçerli bir sayı giriniz';
+              }
+              if (price <= 0) {
+                return 'Fiyat 0\'dan büyük olmalıdır';
               }
               return null;
             },
@@ -433,18 +450,28 @@ class TruckerMainHeader extends StatelessWidget {
                   color: Theme.of(context).textTheme.bodyLarge?.color,
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.grey[800]
-                      : Colors.grey[100],
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.notifications_outlined,
-                  size: 28,
-                  color: Theme.of(context).textTheme.bodyLarge?.color,
+              GestureDetector(
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Gelişme Aşamasında'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey[800]
+                        : Colors.grey[100],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.notifications_outlined,
+                    size: 28,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                  ),
                 ),
               ),
             ],
@@ -483,6 +510,40 @@ class TruckerAdCard extends StatelessWidget {
     required this.onDelete,
   });
 
+  String _formatDateRange(String startDateStr, String endDateStr) {
+    try {
+      final startDate = DateTime.parse(startDateStr);
+      final endDate = DateTime.parse(endDateStr);
+
+      const months = [
+        'Ocak',
+        'Şubat',
+        'Mart',
+        'Nisan',
+        'Mayıs',
+        'Haziran',
+        'Temmuz',
+        'Ağustos',
+        'Eylül',
+        'Ekim',
+        'Kasım',
+        'Aralık',
+      ];
+
+      final startDay = startDate.day;
+      final startMonth = months[startDate.month - 1];
+      final startYear = startDate.year;
+
+      final endDay = endDate.day;
+      final endMonth = months[endDate.month - 1];
+      final endYear = endDate.year;
+
+      return '$startDay $startMonth $startYear - $endDay $endMonth $endYear';
+    } catch (e) {
+      return '$startDateStr - $endDateStr';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -510,7 +571,7 @@ class TruckerAdCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text('Plaka: ${ad['plate']}'),
           Text('Fiyat: ${ad['pricePerKm']} ₺/km'),
-          Text('Tarih: ${ad['startDate']}'),
+          Text('Tarih: ${_formatDateRange(ad['startDate'], ad['endDate'])}'),
           const SizedBox(height: 12),
           Row(
             children: [
@@ -856,15 +917,15 @@ class TruckerFormField extends StatelessWidget {
         suffixIcon: suffix,
         filled: true,
         fillColor: Theme.of(context).brightness == Brightness.dark
-            ? Colors.grey[800]
-            : Colors.grey[100],
+            ? Colors.grey[850]
+            : Colors.grey[50],
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+          borderSide: BorderSide(color: Colors.grey[300]!, width: 1.5),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+          borderSide: BorderSide(color: Colors.grey[300]!, width: 1.5),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -1051,20 +1112,20 @@ class TruckerSectionHeader extends StatelessWidget {
   }
 }
 
-/// Date/Time picker widget with Turkish month names
-class TruckerDateTimePicker extends StatelessWidget {
-  final DateTime? selectedDateTime;
-  final Function(DateTime?) onDateTimeSelected;
-  final String? hintText;
+/// Date Range picker widget for selecting start and end dates
+class TruckerDateRangePicker extends StatelessWidget {
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final Function(DateTime?, DateTime?) onDateRangeSelected;
 
-  const TruckerDateTimePicker({
+  const TruckerDateRangePicker({
     super.key,
-    required this.selectedDateTime,
-    required this.onDateTimeSelected,
-    this.hintText,
+    required this.startDate,
+    required this.endDate,
+    required this.onDateRangeSelected,
   });
 
-  static String formatDateTime(DateTime dateTime) {
+  static String formatDate(DateTime date) {
     const months = [
       'Ocak',
       'Şubat',
@@ -1080,13 +1141,176 @@ class TruckerDateTimePicker extends StatelessWidget {
       'Aralık',
     ];
 
-    final day = dateTime.day.toString().padLeft(2, '0');
-    final month = months[dateTime.month - 1];
-    final year = dateTime.year;
+    final day = date.day.toString().padLeft(2, '0');
+    final month = months[date.month - 1];
+    final year = date.year;
+
+    return '$day $month $year';
+  }
+
+  Future<void> _selectDateRange(BuildContext context) async {
+    final DateTimeRange? pickedRange = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+      initialDateRange: startDate != null && endDate != null
+          ? DateTimeRange(start: startDate!, end: endDate!)
+          : null,
+      builder: (context, child) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return Theme(
+          data: ThemeData.dark().copyWith(
+            colorScheme: ColorScheme.dark(
+              primary: const Color(0xFF98FF98),
+              onPrimary: const Color(0xFF001A00),
+              surface: Colors.grey[850]!,
+              onSurface: Colors.white,
+              primaryContainer: const Color(0xFF4CAF50),
+              onPrimaryContainer: Colors.white,
+              secondaryContainer: const Color(0xFF4CAF50),
+              onSecondaryContainer: Colors.white,
+              tertiaryContainer: const Color(0xFF4CAF50),
+              onTertiaryContainer: Colors.white,
+              surfaceVariant: Colors.grey[800]!,
+              onSurfaceVariant: Colors.white,
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(foregroundColor: Colors.white),
+            ),
+            textTheme: const TextTheme(
+              headlineSmall: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.w400,
+              ),
+              headlineMedium: TextStyle(
+                color: Colors.white,
+                fontSize: 28,
+                fontWeight: FontWeight.w400,
+              ),
+              titleLarge: TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.w400,
+              ),
+              titleMedium: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+              titleSmall: TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+              bodyLarge: TextStyle(color: Colors.white, fontSize: 16),
+              bodyMedium: TextStyle(color: Colors.white70, fontSize: 14),
+              labelLarge: TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+              labelMedium: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            inputDecorationTheme: const InputDecorationTheme(
+              labelStyle: TextStyle(color: Colors.white),
+              hintStyle: TextStyle(color: Colors.white70),
+            ),
+            appBarTheme: AppBarTheme(
+              backgroundColor: Colors.grey[850]!,
+              foregroundColor: Colors.white,
+              iconTheme: const IconThemeData(color: Colors.white),
+              titleTextStyle: const TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            dialogTheme: DialogThemeData(
+              backgroundColor: Colors.grey[850]!,
+              titleTextStyle: const TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (pickedRange != null) {
+      onDateRangeSelected(pickedRange.start, pickedRange.end);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return GestureDetector(
+      onTap: () => _selectDateRange(context),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.grey[850] : Colors.grey[50],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isDark ? Colors.grey[700]! : Colors.grey[300]!,
+            width: 1.5,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                startDate == null || endDate == null
+                    ? 'Başlangıç ve Bitiş Tarihi Seçin'
+                    : '${formatDate(startDate!)} - ${formatDate(endDate!)}',
+                style: TextStyle(
+                  color: startDate == null
+                      ? (isDark ? Colors.grey[500] : Colors.grey[600])
+                      : Theme.of(context).textTheme.bodyLarge?.color,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+            Icon(
+              Icons.calendar_today,
+              size: 20,
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Date/Time picker widget with Turkish month names
+class TruckerDateTimePicker extends StatelessWidget {
+  final DateTime? selectedDateTime;
+  final Function(DateTime?) onDateTimeSelected;
+  final String? hintText;
+
+  const TruckerDateTimePicker({
+    super.key,
+    required this.selectedDateTime,
+    required this.onDateTimeSelected,
+    this.hintText,
+  });
+
+  static String formatDateTime(DateTime dateTime) {
+    final dateStr = TruckerDateRangePicker.formatDate(dateTime);
     final hour = dateTime.hour.toString().padLeft(2, '0');
     final minute = dateTime.minute.toString().padLeft(2, '0');
 
-    return '$day $month $year, $hour:$minute';
+    return '$dateStr, $hour:$minute';
   }
 
   Future<void> _selectDateTime(BuildContext context) async {
@@ -1418,10 +1642,12 @@ class TruckerTruckCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -1434,11 +1660,92 @@ class TruckerTruckCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Truck Image
-          ClipRRect(
-            borderRadius: const BorderRadius.horizontal(
-              left: Radius.circular(16),
+          // Left side - Text info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  truck['model'],
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  truck['plate'],
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: InkWell(
+                        onTap: onEdit,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isDark ? Colors.grey[800] : Colors.grey[200],
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Düzenle',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: Theme.of(
+                                    context,
+                                  ).textTheme.bodyLarge?.color,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Icon(
+                                Icons.edit,
+                                size: 16,
+                                color: Theme.of(context).iconTheme.color,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    InkWell(
+                      onTap: onDelete,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.red[50],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.delete_outline,
+                          size: 20,
+                          color: Colors.red,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
+          ),
+          const SizedBox(width: 16),
+          // Right side - Image
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
             child: Container(
               width: 120,
               height: 120,
@@ -1479,113 +1786,6 @@ class TruckerTruckCard extends StatelessWidget {
                         color: Colors.grey,
                       ),
                     ),
-            ),
-          ),
-          // Truck Info
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    truck['model'],
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    truck['plate'],
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: InkWell(
-                          onTap: onEdit,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: const Color(0xFF4CAF50),
-                                width: 1.5,
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.edit,
-                                  size: 16,
-                                  color: Color(0xFF4CAF50),
-                                ),
-                                SizedBox(width: 4),
-                                Flexible(
-                                  child: Text(
-                                    'Düzenle',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: Color(0xFF4CAF50),
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: InkWell(
-                          onTap: onDelete,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.red, width: 1.5),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.delete, size: 16, color: Colors.red),
-                                SizedBox(width: 4),
-                                Flexible(
-                                  child: Text(
-                                    'Aracı Sil',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.red,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
             ),
           ),
         ],
@@ -1684,10 +1884,11 @@ class TruckerAdForm extends StatelessWidget {
   final List<dynamic> trucks;
   final bool isLoadingTrucks;
   final String? selectedTruck;
-  final DateTime? selectedDateTime;
+  final DateTime? startDate;
+  final DateTime? endDate;
   final TextEditingController priceController;
   final ValueChanged<String?> onTruckChanged;
-  final ValueChanged<DateTime?> onDateTimeSelected;
+  final Function(DateTime?, DateTime?) onDateRangeSelected;
 
   const TruckerAdForm({
     super.key,
@@ -1695,10 +1896,11 @@ class TruckerAdForm extends StatelessWidget {
     required this.trucks,
     required this.isLoadingTrucks,
     required this.selectedTruck,
-    required this.selectedDateTime,
+    required this.startDate,
+    required this.endDate,
     required this.priceController,
     required this.onTruckChanged,
-    required this.onDateTimeSelected,
+    required this.onDateRangeSelected,
   });
 
   @override
@@ -1715,9 +1917,10 @@ class TruckerAdForm extends StatelessWidget {
             onChanged: onTruckChanged,
           ),
           const SizedBox(height: 20),
-          TruckerDateTimePicker(
-            selectedDateTime: selectedDateTime,
-            onDateTimeSelected: onDateTimeSelected,
+          TruckerDateRangePicker(
+            startDate: startDate,
+            endDate: endDate,
+            onDateRangeSelected: onDateRangeSelected,
           ),
           const SizedBox(height: 20),
           TruckerFormField(

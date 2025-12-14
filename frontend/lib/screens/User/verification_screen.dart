@@ -79,13 +79,17 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
       if (!mounted) return;
 
+      print('Verification Response Status: ${response.statusCode}');
+      print('Verification Response Body: ${response.body}');
+
       if (response.statusCode == 200) {
         _timer?.cancel();
         _showSuccessDialog();
-      } else if (response.statusCode == 400 || response.statusCode == 408) {
-        _showErrorSnackBar("Kod geçersiz veya süresi doldu.");
       } else {
-        _showErrorSnackBar("Bir hata oluştu. Lütfen tekrar deneyin.");
+        // Tüm hata durumları için aynı mesaj
+        _showErrorSnackBar(
+          "Doğrulama başarısız! Kod hatalı veya süresi dolmuş.",
+        );
       }
     } catch (e) {
       if (!mounted) return;
@@ -274,37 +278,30 @@ class _VerificationScreenState extends State<VerificationScreen> {
             ),
             const SizedBox(height: 24),
             // Zamanlayıcı göstergesi
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: _isTimerExpired ? Colors.red[50] : Colors.blue[50],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: _isTimerExpired ? Colors.red : Colors.blue,
-                  width: 1,
+            if (!_isTimerExpired)
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.blue, width: 1),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.timer, color: Colors.blue),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Kalan süre: ${_formatTime(_remainingSeconds)}',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    _isTimerExpired ? Icons.timer_off : Icons.timer,
-                    color: _isTimerExpired ? Colors.red : Colors.blue,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    _isTimerExpired
-                        ? 'Süre doldu!'
-                        : 'Kalan süre: ${_formatTime(_remainingSeconds)}',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: _isTimerExpired ? Colors.red : Colors.blue,
-                    ),
-                  ),
-                ],
-              ),
-            ),
             const SizedBox(height: 24),
             TextField(
               controller: _codeController,

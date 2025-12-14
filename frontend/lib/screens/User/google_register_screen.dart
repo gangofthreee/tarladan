@@ -8,17 +8,16 @@ import '../../services/token_service.dart';
 class GoogleRegisterScreen extends StatefulWidget {
   final String idToken;
 
-  const GoogleRegisterScreen({
-    super.key,
-    required this.idToken,
-  });
+  const GoogleRegisterScreen({super.key, required this.idToken});
 
   @override
   State<GoogleRegisterScreen> createState() => _GoogleRegisterScreenState();
 }
 
 class _GoogleRegisterScreenState extends State<GoogleRegisterScreen> {
-  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController(
+    text: '0',
+  );
   String? _selectedRole;
   bool _isLoading = false;
 
@@ -35,7 +34,7 @@ class _GoogleRegisterScreenState extends State<GoogleRegisterScreen> {
       return;
     }
 
-    if (_phoneController.text.isEmpty) {
+    if (_phoneController.text.isEmpty || _phoneController.text == '0') {
       _showError('Lütfen telefon numaranızı girin');
       return;
     }
@@ -46,8 +45,8 @@ class _GoogleRegisterScreenState extends State<GoogleRegisterScreen> {
       return;
     }
 
-    if (!phone.startsWith('05')) {
-      _showError('Telefon numarası 05 ile başlamalıdır');
+    if (!phone.startsWith('0')) {
+      _showError('Telefon numarası 0 ile başlamalıdır');
       return;
     }
 
@@ -146,13 +145,10 @@ class _GoogleRegisterScreenState extends State<GoogleRegisterScreen> {
               const SizedBox(height: 8),
               const Text(
                 'Tarladan\'da nasıl kullanmak istediğinizi seçin',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey,
-                ),
+                style: TextStyle(fontSize: 14, color: Colors.grey),
               ),
               const SizedBox(height: 24),
-              
+
               // Role seçimi
               Expanded(
                 child: GridView.builder(
@@ -166,7 +162,7 @@ class _GoogleRegisterScreenState extends State<GoogleRegisterScreen> {
                   itemBuilder: (context, index) {
                     final role = _roles[index];
                     final isSelected = _selectedRole == role['value'];
-                    
+
                     return GestureDetector(
                       onTap: () {
                         setState(() {
@@ -175,9 +171,13 @@ class _GoogleRegisterScreenState extends State<GoogleRegisterScreen> {
                       },
                       child: Container(
                         decoration: BoxDecoration(
-                          color: isSelected ? Colors.green.shade50 : Colors.white,
+                          color: isSelected
+                              ? Colors.green.shade50
+                              : Colors.white,
                           border: Border.all(
-                            color: isSelected ? Colors.green : Colors.grey.shade300,
+                            color: isSelected
+                                ? Colors.green
+                                : Colors.grey.shade300,
                             width: isSelected ? 2 : 1,
                           ),
                           borderRadius: BorderRadius.circular(16),
@@ -195,7 +195,9 @@ class _GoogleRegisterScreenState extends State<GoogleRegisterScreen> {
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
-                                color: isSelected ? Colors.green : Colors.black87,
+                                color: isSelected
+                                    ? Colors.green
+                                    : Colors.black87,
                               ),
                             ),
                           ],
@@ -205,9 +207,9 @@ class _GoogleRegisterScreenState extends State<GoogleRegisterScreen> {
                   },
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Telefon numarası
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -224,18 +226,20 @@ class _GoogleRegisterScreenState extends State<GoogleRegisterScreen> {
                   TextField(
                     controller: _phoneController,
                     keyboardType: TextInputType.phone,
-                    maxLength: 13, // 05XX XXX XX XX = 13 karakter
+                    maxLength: 14, // 0 XXX XXX XX XX = 14 karakter
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
                       _PhoneNumberFormatter(),
+                      LengthLimitingTextInputFormatter(10),
                     ],
                     decoration: InputDecoration(
-                      hintText: '05XX XXX XX XX',
+                      hintText: '0 XXX XXX XX XX',
                       hintStyle: const TextStyle(
                         color: Color(0xFFD1D5DB),
                         fontSize: 16,
                       ),
-                      counterText: '${_phoneController.text.replaceAll(' ', '').length}/10',
+                      counterText:
+                          '${_phoneController.text.replaceAll(' ', '').length}/10',
                       counterStyle: const TextStyle(
                         fontSize: 12,
                         color: Color(0xFF6B7280),
@@ -268,9 +272,9 @@ class _GoogleRegisterScreenState extends State<GoogleRegisterScreen> {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Kayıt butonu
               SizedBox(
                 width: double.infinity,
@@ -294,10 +298,7 @@ class _GoogleRegisterScreenState extends State<GoogleRegisterScreen> {
                         )
                       : const Text(
                           'Kaydı Tamamla',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.white,
-                          ),
+                          style: TextStyle(fontSize: 18, color: Colors.white),
                         ),
                 ),
               ),
@@ -318,9 +319,18 @@ class _PhoneNumberFormatter extends TextInputFormatter {
     TextEditingValue newValue,
   ) {
     final text = newValue.text.replaceAll(' ', '');
-    
+
+    // Eğer boşsa 0 koy
     if (text.isEmpty) {
-      return newValue;
+      return const TextEditingValue(
+        text: '0',
+        selection: TextSelection.collapsed(offset: 1),
+      );
+    }
+
+    // 0 ile başlamalı
+    if (!text.startsWith('0')) {
+      return oldValue;
     }
 
     // Maksimum 10 rakam
@@ -329,26 +339,26 @@ class _PhoneNumberFormatter extends TextInputFormatter {
     }
 
     final buffer = StringBuffer();
-    
+
     for (int i = 0; i < text.length; i++) {
       buffer.write(text[i]);
-      
-      // 4. rakamdan sonra boşluk (05XX XXX)
-      if (i == 3 && text.length > 4) {
+
+      // 1. rakamdan sonra boşluk (0 XXX)
+      if (i == 0 && text.length > 1) {
         buffer.write(' ');
       }
-      // 7. rakamdan sonra boşluk (05XX XXX XX)
+      // 4. rakamdan sonra boşluk (0 XXX XXX)
+      else if (i == 3 && text.length > 4) {
+        buffer.write(' ');
+      }
+      // 7. rakamdan sonra boşluk (0 XXX XXX XX)
       else if (i == 6 && text.length > 7) {
-        buffer.write(' ');
-      }
-      // 9. rakamdan sonra boşluk (05XX XXX XX XX)
-      else if (i == 8 && text.length > 9) {
         buffer.write(' ');
       }
     }
 
     final formatted = buffer.toString();
-    
+
     return TextEditingValue(
       text: formatted,
       selection: TextSelection.collapsed(offset: formatted.length),

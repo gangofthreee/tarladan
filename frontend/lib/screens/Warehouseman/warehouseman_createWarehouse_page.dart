@@ -210,8 +210,12 @@ class _WarehousemanCreateWarehousePageState
                     if (value == null || value.isEmpty) {
                       return 'Lütfen boyut giriniz';
                     }
-                    if (double.tryParse(value) == null) {
+                    final number = double.tryParse(value);
+                    if (number == null) {
                       return 'Lütfen geçerli bir sayı giriniz';
+                    }
+                    if (number <= 0) {
+                      return 'Boyut 0 veya negatif olamaz';
                     }
                     return null;
                   },
@@ -261,8 +265,12 @@ class _WarehousemanCreateWarehousePageState
                     if (value == null || value.isEmpty) {
                       return 'Lütfen kapasite giriniz';
                     }
-                    if (double.tryParse(value) == null) {
+                    final number = double.tryParse(value);
+                    if (number == null) {
                       return 'Lütfen geçerli bir sayı giriniz';
+                    }
+                    if (number <= 0) {
+                      return 'Kapasite 0 veya negatif olamaz';
                     }
                     return null;
                   },
@@ -312,8 +320,12 @@ class _WarehousemanCreateWarehousePageState
                     if (value == null || value.isEmpty) {
                       return 'Lütfen fiyat giriniz';
                     }
-                    if (double.tryParse(value) == null) {
+                    final number = double.tryParse(value);
+                    if (number == null) {
                       return 'Lütfen geçerli bir sayı giriniz';
+                    }
+                    if (number <= 0) {
+                      return 'Fiyat 0 veya negatif olamaz';
                     }
                     return null;
                   },

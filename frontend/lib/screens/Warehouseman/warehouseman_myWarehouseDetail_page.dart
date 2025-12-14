@@ -71,13 +71,6 @@ class _WarehousemanMyWarehouseDetailPageState
     }
   }
 
-  // Örnek rezervasyon verileri
-  final List<Map<String, dynamic>> reservations = [
-    {'farmerName': 'Çiftçi A', 'amount': 150, 'image': 'assets/farmer1.jpg'},
-    {'farmerName': 'Çiftçi B', 'amount': 200, 'image': 'assets/farmer2.jpg'},
-    {'farmerName': 'Çiftçi C', 'amount': 250, 'image': 'assets/farmer3.jpg'},
-  ];
-
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
@@ -233,33 +226,6 @@ class _WarehousemanMyWarehouseDetailPageState
 
                   const SizedBox(height: 12),
 
-                  // Mevcut Rezervasyonlar Section
-                  Container(
-                    color: Colors.white,
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Mevcut Rezervasyonlar',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Rezervasyon Listesi
-                        ...reservations.map(
-                          (reservation) => _buildReservationCard(reservation),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
                   // Alt Butonlar
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -398,48 +364,6 @@ class _WarehousemanMyWarehouseDetailPageState
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildReservationCard(Map<String, dynamic> reservation) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Row(
-        children: [
-          // Avatar
-          CircleAvatar(
-            radius: 25,
-            child: const Icon(Icons.person, size: 30, color: Colors.white),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  reservation['farmerName'],
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${reservation['amount']} ton',
                   style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
               ],

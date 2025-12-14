@@ -74,6 +74,14 @@ class _TruckerMainPageState extends State<TruckerMainPage> {
         context,
         MaterialPageRoute(builder: (context) => const TruckerSettingsPage()),
       );
+    } else if (index == 1 || index == 2) {
+      // İş Teklifleri ve Siparişler için gelişme aşamasında mesajı
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Gelişme Aşamasında'),
+          duration: Duration(seconds: 2),
+        ),
+      );
     } else {
       setState(() => _selectedIndex = index);
     }
@@ -119,7 +127,7 @@ class _TruckerMainPageState extends State<TruckerMainPage> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Text(
-                  'Açık İş Teklifleri',
+                  'İş Tekliflerim',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,

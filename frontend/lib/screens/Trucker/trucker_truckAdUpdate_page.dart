@@ -14,10 +14,9 @@ class TruckerTruckUpdatePage extends StatefulWidget {
 class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _priceController;
-  List<dynamic> _trucks = [];
-  bool _isLoadingTrucks = false, _isLoading = false;
-  String? _selectedTruckId;
-  DateTime? _selectedDateTime;
+  bool _isLoading = false;
+  DateTime? _startDate;
+  DateTime? _endDate;
 
   @override
   void initState() {
@@ -26,16 +25,26 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
       text: widget.ad['pricePerKm']?.toString() ?? '',
     );
     _parseStartDate();
-    _fetchTrucks();
   }
 
   void _parseStartDate() {
     try {
-      final dateStr = widget.ad['startDate']?.toString().split(' ')[0];
-      if (dateStr != null) {
-        final parts = dateStr.split('-');
+      final startDateStr = widget.ad['startDate']?.toString().split(' ')[0];
+      if (startDateStr != null) {
+        final parts = startDateStr.split('-');
         if (parts.length == 3) {
-          _selectedDateTime = DateTime(
+          _startDate = DateTime(
+            int.parse(parts[0]),
+            int.parse(parts[1]),
+            int.parse(parts[2]),
+          );
+        }
+      }
+      final endDateStr = widget.ad['endDate']?.toString().split(' ')[0];
+      if (endDateStr != null) {
+        final parts = endDateStr.split('-');
+        if (parts.length == 3) {
+          _endDate = DateTime(
             int.parse(parts[0]),
             int.parse(parts[1]),
             int.parse(parts[2]),
@@ -43,14 +52,6 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
         }
       }
     } catch (e) {}
-  }
-
-  Future<void> _fetchTrucks() async {
-    setState(() => _isLoadingTrucks = true);
-    try {
-      _trucks = await TruckService.getTrucksByTrucker();
-    } catch (e) {}
-    setState(() => _isLoadingTrucks = false);
   }
 
   @override
@@ -61,8 +62,8 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
 
   Future<void> _handleUpdate() async {
     if (!_formKey.currentState!.validate() ||
-        _selectedTruckId == null ||
-        _selectedDateTime == null) {
+        _startDate == null ||
+        _endDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Lütfen tüm alanları doldurun')),
       );
@@ -70,13 +71,15 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
     }
     setState(() => _isLoading = true);
     try {
-      final startDate =
-          '${_selectedDateTime!.year}-${_selectedDateTime!.month.toString().padLeft(2, '0')}-${_selectedDateTime!.day.toString().padLeft(2, '0')}';
+      final startDateStr =
+          '${_startDate!.year}-${_startDate!.month.toString().padLeft(2, '0')}-${_startDate!.day.toString().padLeft(2, '0')}';
+      final endDateStr =
+          '${_endDate!.year}-${_endDate!.month.toString().padLeft(2, '0')}-${_endDate!.day.toString().padLeft(2, '0')}';
+
       final response = await TruckService.updateTruckAd(
         adId: widget.ad['id'],
-        truckId: int.parse(_selectedTruckId!),
-        startDate: startDate,
-        endDate: startDate,
+        startDate: startDateStr,
+        endDate: endDateStr,
         pricePerKm: double.parse(_priceController.text),
       );
       if (!mounted) return;
@@ -117,17 +120,71 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
         padding: const EdgeInsets.all(20.0),
         child: Column(
           children: [
-            TruckerAdForm(
-              formKey: _formKey,
-              trucks: _trucks,
-              isLoadingTrucks: _isLoadingTrucks,
-              selectedTruck: _selectedTruckId,
-              selectedDateTime: _selectedDateTime,
-              priceController: _priceController,
-              onTruckChanged: (value) =>
-                  setState(() => _selectedTruckId = value),
-              onDateTimeSelected: (dateTime) =>
-                  setState(() => _selectedDateTime = dateTime),
+            Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TruckerSectionHeader(title: 'Araç Bilgisi'),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey[300]!, width: 1.5),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.local_shipping,
+                          size: 24,
+                          color: Colors.grey[700],
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            '${widget.ad['truck']['model']} - ${widget.ad['truck']['plate']}',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  TruckerDateRangePicker(
+                    startDate: _startDate,
+                    endDate: _endDate,
+                    onDateRangeSelected: (start, end) => setState(() {
+                      _startDate = start;
+                      _endDate = end;
+                    }),
+                  ),
+                  const SizedBox(height: 20),
+                  TruckerFormField(
+                    controller: _priceController,
+                    hintText: 'Taban fiyat ₺/km veya ₺/iş',
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Lütfen taban fiyat giriniz';
+                      }
+                      final price = double.tryParse(value);
+                      if (price == null) {
+                        return 'Lütfen geçerli bir sayı giriniz';
+                      }
+                      if (price <= 0) {
+                        return 'Fiyat 0\'dan büyük olmalıdır';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 40),
             TruckerPrimaryButton(

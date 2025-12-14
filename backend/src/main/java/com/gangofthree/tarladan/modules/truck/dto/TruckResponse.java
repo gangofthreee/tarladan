@@ -17,7 +17,7 @@ public class TruckResponse implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Long id;
-    // private String plate_number;
+    private String plate_number;
     private String vehicle;
     private BigInteger capacityTon;
     private String imageUrl;

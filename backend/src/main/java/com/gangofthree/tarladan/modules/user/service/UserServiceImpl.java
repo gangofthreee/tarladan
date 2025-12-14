@@ -39,6 +39,7 @@ public class UserServiceImpl implements UserService {
     private final TruckerRepository truckerRepository;
 
     @Override
+    @Transactional
     public User register(UserRegisterRequest request) {
         // email & phone kontrolü
         if (userRepository.existsByEmail(request.getEmail())) {

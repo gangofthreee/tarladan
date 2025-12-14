@@ -38,6 +38,7 @@ public class User {
     @NotBlank(message = "email cannot be empty")
     private String email;
 
+    @ToString.Exclude
     @NotBlank(message = "Password cannot be empty")
     @Size(min = 6, message = "Password must be at least 6 characters")
     private String password;

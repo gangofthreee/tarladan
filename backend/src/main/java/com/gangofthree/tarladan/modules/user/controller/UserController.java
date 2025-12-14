@@ -24,9 +24,9 @@ public class UserController {
     private final JwtUtil jwtUtil;
 
     @PostMapping("/register")
-    public ResponseEntity<User> register(@Valid @RequestBody UserRegisterRequest request) {
-        User savedUser = userService.register(request);
-        return ResponseEntity.ok(savedUser);
+    public ResponseEntity<String> register(@Valid @RequestBody UserRegisterRequest request) {
+        userService.register(request);
+        return ResponseEntity.ok("Registration successful. Please check your email for verification code.");
     }
 
     @PostMapping("/login")

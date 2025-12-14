@@ -20,6 +20,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -38,6 +39,7 @@ public class OrderServiceImpl implements OrderService {
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
+    @Transactional
     public OrderResponse createOrder(OrderCreateRequest req, Long customerId) {
 
         Customer customer = customerRepository.findById(customerId)

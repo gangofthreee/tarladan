@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'customer_purchaseProduct_page.dart';
 
 import '../../widgets/themed_scaffold.dart';
+
 class CustomerViewProductDetailsPage extends StatefulWidget {
+  final int productId;
+  final int depotId;
   final String productName;
   final String farmerName;
   final double price;
@@ -14,6 +17,8 @@ class CustomerViewProductDetailsPage extends StatefulWidget {
 
   const CustomerViewProductDetailsPage({
     super.key,
+    required this.productId,
+    required this.depotId,
     required this.productName,
     required this.farmerName,
     required this.price,
@@ -36,6 +41,8 @@ class _CustomerViewProductDetailsPageState
       context,
       MaterialPageRoute(
         builder: (context) => CustomerPurchaseProductPage(
+          productId: widget.productId,
+          depotId: widget.depotId,
           productName: widget.productName,
           imageUrl: widget.imageUrl,
           price: widget.price,
@@ -49,8 +56,8 @@ class _CustomerViewProductDetailsPageState
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
-            appBar: ThemedAppBar(
-                elevation: 0,
+      appBar: ThemedAppBar(
+        elevation: 0,
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -58,11 +65,7 @@ class _CustomerViewProductDetailsPageState
         ),
         title: const Text(
           'Ürün Detayları',
-          style: TextStyle(
-            
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
@@ -199,7 +202,7 @@ class _CustomerViewProductDetailsPageState
                       // Avatar
                       CircleAvatar(
                         radius: 30,
-                                                child: const Icon(
+                        child: const Icon(
                           Icons.person,
                           size: 35,
                           color: Colors.white,

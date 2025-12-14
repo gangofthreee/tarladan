@@ -8,6 +8,8 @@ import 'customer_selectTruck_page.dart';
 import '../../widgets/themed_scaffold.dart';
 
 class CustomerPurchaseProductPage extends StatefulWidget {
+  final int productId;
+  final int depotId;
   final String productName;
   final String imageUrl;
   final double price;
@@ -16,6 +18,8 @@ class CustomerPurchaseProductPage extends StatefulWidget {
 
   const CustomerPurchaseProductPage({
     super.key,
+    required this.productId,
+    required this.depotId,
     required this.productName,
     required this.imageUrl,
     required this.price,
@@ -33,29 +37,40 @@ class _CustomerPurchaseProductPageState
   String _selectedLogistic = 'have_truck';
   String _selectedPayment = 'credit_card';
   bool _isLoading = false;
+  int? _selectedTruckId;
 
   final _licensePlateController = TextEditingController();
   final _capacityController = TextEditingController();
   final _modelController = TextEditingController();
+  final _locFromController = TextEditingController();
+  final _locToController = TextEditingController();
 
   @override
   void dispose() {
     _licensePlateController.dispose();
     _capacityController.dispose();
     _modelController.dispose();
+    _locFromController.dispose();
+    _locToController.dispose();
     super.dispose();
   }
 
   Future<void> _handleBuyAndPay() async {
-    if (_selectedLogistic == 'have_truck') {
-      if (_licensePlateController.text.isEmpty ||
-          _capacityController.text.isEmpty ||
-          _modelController.text.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Lütfen tüm araç bilgilerini doldurun')),
-        );
-        return;
-      }
+    // Validation
+    if (_locFromController.text.isEmpty || _locToController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Lütfen nereden ve nereye bilgilerini girin'),
+        ),
+      );
+      return;
+    }
+
+    if (_selectedLogistic == 'no_truck' && _selectedTruckId == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Lütfen bir tır seçin')));
+      return;
     }
 
     setState(() {
@@ -64,20 +79,27 @@ class _CustomerPurchaseProductPageState
 
     try {
       final orderData = {
-        'productId': 1,
-        'depotId': 2,
-        'truckId': 1,
-        'locFrom': 'Aydın / Merkez',
-        'locTo': 'İzmir / Bornova',
+        'productId': widget.productId,
+        'depotId': widget.depotId,
+        'truckId': _selectedTruckId ?? 1,
+        'locFrom': _locFromController.text,
+        'locTo': _locToController.text,
         'quantityKg': widget.quantity,
       };
 
+      print('📦 Order Data: $orderData');
+
       final authHeaders = await TokenService.getAuthHeaders();
+      authHeaders['Content-Type'] = 'application/json';
+
       final response = await http.post(
         Uri.parse(ApiConfig.createOrderUrl),
         headers: authHeaders,
         body: jsonEncode(orderData),
       );
+
+      print('📦 Order Response: ${response.statusCode}');
+      print('📦 Order Response Body: ${response.body}');
 
       await TokenService.checkAndUpdateToken(response);
 
@@ -100,6 +122,7 @@ class _CustomerPurchaseProductPageState
         throw Exception('Sipariş oluşturulamadı: ${response.statusCode}');
       }
     } catch (e) {
+      print('❌ Order Error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -307,6 +330,9 @@ class _CustomerPurchaseProductPageState
                       );
 
                       if (selectedTruckId != null && mounted) {
+                        setState(() {
+                          _selectedTruckId = selectedTruckId;
+                        });
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text('Tır seçildi: $selectedTruckId'),
@@ -323,15 +349,32 @@ class _CustomerPurchaseProductPageState
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
-                      'Tır Listesine Git',
-                      style: TextStyle(
+                    child: Text(
+                      _selectedTruckId == null
+                          ? 'Tır Listesine Git'
+                          : 'Tır Seçildi (#$_selectedTruckId)',
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                 ),
+
+              const SizedBox(height: 20),
+
+              // Location Fields
+              _buildTextField(
+                controller: _locFromController,
+                label: 'Nereden',
+                hint: 'Örn: Aydın / Merkez',
+              ),
+              const SizedBox(height: 16),
+              _buildTextField(
+                controller: _locToController,
+                label: 'Nereye',
+                hint: 'Örn: İzmir / Bornova',
+              ),
 
               const SizedBox(height: 30),
 

@@ -214,7 +214,6 @@ class TruckService {
 
   static Future<http.Response> updateTruckAd({
     required int adId,
-    required int truckId,
     required String startDate,
     required String endDate,
     required double pricePerKm,
@@ -224,7 +223,6 @@ class TruckService {
       Uri.parse(ApiConfig.updateTruckAdUrl(adId)),
       headers: authHeaders,
       body: json.encode({
-        'truckId': truckId,
         'startDate': startDate,
         'endDate': endDate,
         'pricePerKm': pricePerKm,
@@ -261,7 +259,7 @@ class TruckService {
 
     await TokenService.checkAndUpdateToken(response);
 
-    if (response.statusCode != 200) {
+    if (response.statusCode != 200 && response.statusCode != 204) {
       throw Exception('İlan silinemedi: ${response.statusCode}');
     }
   }

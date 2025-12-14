@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../config/theme_provider.dart';
 import '../screens/User/login_screen.dart';
+import '../screens/User/user_profile_page.dart';
 import '../services/token_service.dart';
 import '../services/session_service.dart';
 import 'themed_scaffold.dart';
@@ -198,9 +199,10 @@ class BaseSettingsWidget extends StatelessWidget {
               color: Theme.of(context).textTheme.bodyMedium?.color,
             ),
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Profil sayfası yakında eklenecek'),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const UserProfilePage(),
                 ),
               );
             },

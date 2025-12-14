@@ -14,7 +14,8 @@ class _TruckerCreateAdPageState extends State<TruckerCreateAdPage> {
   final _formKey = GlobalKey<FormState>();
   final _priceController = TextEditingController();
   String? _selectedTruck;
-  DateTime? _selectedDateTime;
+  DateTime? _startDate;
+  DateTime? _endDate;
   List<dynamic> _trucks = [];
   bool _isLoadingTrucks = false, _isLoading = false;
 
@@ -46,7 +47,8 @@ class _TruckerCreateAdPageState extends State<TruckerCreateAdPage> {
   Future<void> _handlePublish() async {
     if (!_formKey.currentState!.validate() ||
         _selectedTruck == null ||
-        _selectedDateTime == null) {
+        _startDate == null ||
+        _endDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Lütfen tüm alanları doldurunuz')),
       );
@@ -54,18 +56,12 @@ class _TruckerCreateAdPageState extends State<TruckerCreateAdPage> {
     }
     setState(() => _isLoading = true);
     try {
-      final startDate = DateTime(
-        _selectedDateTime!.year,
-        _selectedDateTime!.month,
-        _selectedDateTime!.day,
-      );
-      final endDate = startDate.add(const Duration(days: 30));
       final response = await TruckService.createTruckAd(
         truckId: int.parse(_selectedTruck!),
         startDate:
-            '${startDate.year}-${startDate.month.toString().padLeft(2, '0')}-${startDate.day.toString().padLeft(2, '0')}',
+            '${_startDate!.year}-${_startDate!.month.toString().padLeft(2, '0')}-${_startDate!.day.toString().padLeft(2, '0')}',
         endDate:
-            '${endDate.year}-${endDate.month.toString().padLeft(2, '0')}-${endDate.day.toString().padLeft(2, '0')}',
+            '${_endDate!.year}-${_endDate!.month.toString().padLeft(2, '0')}-${_endDate!.day.toString().padLeft(2, '0')}',
         pricePerKm: double.parse(_priceController.text),
       );
       if (!mounted) return;
@@ -111,11 +107,14 @@ class _TruckerCreateAdPageState extends State<TruckerCreateAdPage> {
               trucks: _trucks,
               isLoadingTrucks: _isLoadingTrucks,
               selectedTruck: _selectedTruck,
-              selectedDateTime: _selectedDateTime,
+              startDate: _startDate,
+              endDate: _endDate,
               priceController: _priceController,
               onTruckChanged: (value) => setState(() => _selectedTruck = value),
-              onDateTimeSelected: (dateTime) =>
-                  setState(() => _selectedDateTime = dateTime),
+              onDateRangeSelected: (start, end) => setState(() {
+                _startDate = start;
+                _endDate = end;
+              }),
             ),
             const SizedBox(height: 40),
             TruckerPrimaryButton(

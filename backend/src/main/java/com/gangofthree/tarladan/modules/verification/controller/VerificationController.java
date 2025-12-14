@@ -21,7 +21,7 @@ public class VerificationController {
             return ResponseEntity.ok("✅ Email başarıyla doğrulandı!");
         } else {
             //
-            return ResponseEntity.badRequest().body("❌ Doğrulama başarısız! Kod hatalı veya süresi dolmuş.");
+            return ResponseEntity.badRequest().body("Doğrulama başarısız! Kod hatalı veya süresi dolmuş.");
         }
     }
 

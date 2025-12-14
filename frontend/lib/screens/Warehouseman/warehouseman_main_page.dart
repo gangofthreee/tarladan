@@ -39,6 +39,14 @@ class _WarehousemanMainPageState extends State<WarehousemanMainPage> {
           builder: (context) => const WarehousemanSettingsPage(),
         ),
       );
+    } else if (index == 1 || index == 2) {
+      // Siparişler veya Cüzdan - Geliştirme aşamasında
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Geliştirme Aşamasında'),
+          duration: Duration(seconds: 2),
+        ),
+      );
     } else {
       setState(() {
         _selectedIndex = index;

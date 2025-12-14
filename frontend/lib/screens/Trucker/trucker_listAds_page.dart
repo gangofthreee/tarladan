@@ -28,18 +28,22 @@ class _TruckerListAdsPageState extends State<TruckerListAdsPage> {
     });
     try {
       final loadedAds = await TruckService.getTruckAdsByTrucker();
-      ads = loadedAds
-          .map(
-            (data) => {
-              'id': data['adId'],
-              'truckModel': data['vehicle'] ?? 'Araç Modeli',
-              'plate': data['plate'] ?? '',
-              'startDate': data['startDate'] ?? '',
-              'endDate': data['endDate'] ?? '',
-              'pricePerKm': data['pricePerKm'],
-            },
-          )
-          .toList();
+      ads = loadedAds.map((data) {
+        return {
+          'id': data['adId'],
+          'truckId': data['truckId'],
+          'truckModel': data['vehicle'] ?? 'Araç Modeli',
+          'plate': data['plate'] ?? '',
+          'startDate': data['startDate'] ?? '',
+          'endDate': data['endDate'] ?? '',
+          'pricePerKm': data['pricePerKm'],
+          'truck': {
+            'id': data['truckId'],
+            'model': data['vehicle'] ?? 'Araç Modeli',
+            'plate': data['plate'] ?? '',
+          },
+        };
+      }).toList();
     } catch (e) {
       _errorMessage = 'Bağlantı hatası: $e';
     }

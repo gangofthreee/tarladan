@@ -99,7 +99,8 @@ public class SecurityConfig {
                                 "/google/verify-status",
                                 "/auth/password-reset",
                                 "/auth/password-reset/set-password",
-                                "/auth/password-reset/confirm-code"
+                                "/auth/password-reset/confirm-code",
+                                "/uploads/**"
                         ).permitAll()
 
 

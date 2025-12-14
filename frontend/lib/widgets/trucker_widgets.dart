@@ -1443,20 +1443,42 @@ class TruckerTruckCard extends StatelessWidget {
               width: 120,
               height: 120,
               color: Colors.grey[200],
-              child: Image.network(
-                truck['image'],
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: Colors.grey[300],
-                    child: const Icon(
-                      Icons.local_shipping,
-                      size: 50,
-                      color: Colors.grey,
+              child: truck['image'] != null && truck['image'].isNotEmpty
+                  ? Image.network(
+                      truck['image'],
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                      loadingProgress.expectedTotalBytes!
+                                : null,
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        print('❌ Image load error: $error');
+                        print('📸 Image URL was: ${truck['image']}');
+                        return Container(
+                          color: Colors.grey[300],
+                          child: const Icon(
+                            Icons.local_shipping,
+                            size: 50,
+                            color: Colors.grey,
+                          ),
+                        );
+                      },
+                    )
+                  : Container(
+                      color: Colors.grey[300],
+                      child: const Icon(
+                        Icons.local_shipping,
+                        size: 50,
+                        color: Colors.grey,
+                      ),
                     ),
-                  );
-                },
-              ),
             ),
           ),
           // Truck Info
@@ -1634,7 +1656,7 @@ class TruckerTruckDropdown extends StatelessWidget {
                 icon: const Icon(Icons.keyboard_arrow_down),
                 items: trucks.map((truck) {
                   final truckId = truck['id']?.toString() ?? '';
-                  final vehicle = truck['vehicle'] ?? 'Araç';
+                  final vehicle = truck['model'] ?? 'Araç';
                   final plate = truck['plate'] ?? '';
                   final displayName = '$vehicle - $plate';
 

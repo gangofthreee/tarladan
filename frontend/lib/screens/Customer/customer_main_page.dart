@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'customer_viewProductDetails_page.dart';
 import 'customer_viewOrders.dart';
 import 'customer_settings_page.dart';
 import '../../services/user_service.dart';
-
+import '../../services/token_service.dart';
+import '../../config/api_config.dart';
 import '../../widgets/themed_scaffold.dart';
 
 class CustomerMainPage extends StatefulWidget {
@@ -16,13 +19,15 @@ class CustomerMainPage extends StatefulWidget {
 class _CustomerMainPageState extends State<CustomerMainPage> {
   int _selectedIndex = 0;
   int _cartItemCount = 3;
-  String _selectedCategory = 'Sebze';
   String _userName = 'Müşteri';
+  List<Map<String, dynamic>> products = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _loadUserName();
+    _loadProducts();
   }
 
   Future<void> _loadUserName() async {
@@ -32,54 +37,53 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
     });
   }
 
-  final List<String> categories = ['Sebze', 'Meyve', 'Tahıl', 'Diğer'];
+  Future<void> _loadProducts() async {
+    setState(() => _isLoading = true);
+    try {
+      final authHeaders = await TokenService.getAuthHeaders();
+      print('🌐 API URL: ${ApiConfig.getAllProductsUrl}');
+      final response = await http.get(
+        Uri.parse(ApiConfig.getAllProductsUrl),
+        headers: authHeaders,
+      );
 
-  final Map<String, String> categoryEmojis = {
-    'Sebze': '🥒',
-    'Meyve': '🍎',
-    'Tahıl': '🌾',
-    'Diğer': '📦',
-  };
+      print('📦 Response Status: ${response.statusCode}');
+      print('📦 Response Body: ${response.body}');
 
-  // Örnek ürün verileri
-  final List<Map<String, dynamic>> products = [
-    {
-      'name': 'Domates',
-      'farmer': 'Çiftçi Emre',
-      'price': 15,
-      'unit': '₺/kg',
-      'image':
-          'https://images.unsplash.com/photo-1546470427-227e4c84d1da?w=400',
-      'category': 'Sebze',
-    },
-    {
-      'name': 'Elma',
-      'farmer': 'Çiftçi Ayşe',
-      'price': 8,
-      'unit': '₺/kg',
-      'image':
-          'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=400',
-      'category': 'Meyve',
-    },
-    {
-      'name': 'Buğday',
-      'farmer': 'Çiftçi Mehmet',
-      'price': 5,
-      'unit': '₺/kg',
-      'image':
-          'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=400',
-      'category': 'Tahıl',
-    },
-    {
-      'name': 'Patates',
-      'farmer': 'Çiftçi Fatma',
-      'price': 7,
-      'unit': '₺/kg',
-      'image':
-          'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400',
-      'category': 'Sebze',
-    },
-  ];
+      await TokenService.checkAndUpdateToken(response);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> dataList = json.decode(response.body);
+        print('✅ Products loaded: ${dataList.length} items');
+        setState(() {
+          products = dataList.map((data) {
+            print('🔍 Product data: $data');
+            return {
+              'id': data['id'],
+              'name': data['name'] ?? 'Ürün',
+              'farmer':
+                  'Çiftçi', // Backend'de farmerName yok, sonra eklenebilir
+              'price': data['price_per_kg'] ?? 0,
+              'unit': '₺/kg',
+              'image': data['image_path'] != null
+                  ? '${ApiConfig.baseUrl}${data['image_path']}'
+                  : 'https://images.unsplash.com/photo-1546470427-227e4c84d1da?w=400',
+              'stock': data['quantity_kg'] ?? 0,
+              'minBuy': data['min_buy'] ?? 0,
+              'depot_id': data['depot_id'] ?? 1,
+            };
+          }).toList();
+          print('✅ Total products after mapping: ${products.length}');
+        });
+      } else {
+        print('❌ Failed to load products: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ Ürün yükleme hatası: $e');
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -99,12 +103,6 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
         MaterialPageRoute(builder: (context) => const CustomerSettingsPage()),
       );
     }
-  }
-
-  List<Map<String, dynamic>> get filteredProducts {
-    return products
-        .where((product) => product['category'] == _selectedCategory)
-        .toList();
   }
 
   @override
@@ -220,83 +218,52 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
               ),
             ),
 
-            // Category Tabs
-            SizedBox(
-              height: 50,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                itemCount: categories.length,
-                itemBuilder: (context, index) {
-                  final category = categories[index];
-                  final isSelected = category == _selectedCategory;
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedCategory = category;
-                      });
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 12),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? const Color(0xFF4CAF50)
-                            : Colors.white,
-                        borderRadius: BorderRadius.circular(25),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.1),
-                            spreadRadius: 1,
-                            blurRadius: 3,
-                            offset: const Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          Text(
-                            categoryEmojis[category]!,
-                            style: const TextStyle(fontSize: 18),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            category,
-                            style: TextStyle(
-                              color: isSelected ? Colors.white : Colors.black87,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-
             const SizedBox(height: 20),
 
             // Products Grid
             Expanded(
-              child: GridView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.75,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                ),
-                itemCount: filteredProducts.length,
-                itemBuilder: (context, index) {
-                  final product = filteredProducts[index];
-                  return _buildProductCard(product);
-                },
-              ),
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: Color(0xFF4CAF50),
+                      ),
+                    )
+                  : products.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.inventory_2_outlined,
+                            size: 80,
+                            color: Colors.grey[400],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Henüz ürün bulunamadı',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : GridView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 0.75,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                          ),
+                      itemCount: products.length,
+                      itemBuilder: (context, index) {
+                        final product = products[index];
+                        return _buildProductCard(product);
+                      },
+                    ),
             ),
           ],
         ),
@@ -350,11 +317,14 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
           context,
           MaterialPageRoute(
             builder: (context) => CustomerViewProductDetailsPage(
+              productId: product['id'],
+              depotId: product['depot_id'] ?? 1,
               productName: product['name'],
               farmerName: product['farmer'],
               price: product['price'].toDouble(),
               unit: product['unit'],
               imageUrl: product['image'],
+              availableQuantity: product['stock'] ?? 0,
             ),
           ),
         );

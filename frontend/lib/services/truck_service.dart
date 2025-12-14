@@ -153,16 +153,20 @@ class TruckService {
 
     if (response.statusCode == 200) {
       final List<dynamic> dataList = json.decode(response.body);
+      print('🚛 Truck Response: $dataList');
       return dataList.map((data) {
+        print('🖼️ ImageUrl from backend: ${data['imageUrl']}');
+        final fullImageUrl = data['imageUrl'] != null
+            ? '${ApiConfig.baseUrl}${data['imageUrl']}'
+            : 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400';
+        print('🌐 Full Image URL: $fullImageUrl');
         return {
           'id': data['id'],
           'model': data['vehicle'] ?? 'Araç Modeli',
-          'plate': data['plate'] ?? 'Plaka',
+          'plate': data['plate_number'] ?? 'Plaka',
           'capacity': data['capacityTon'],
           'price': data['basePrice'],
-          'image': data['imageUrl'] != null
-              ? '${ApiConfig.baseUrl}${data['imageUrl']}'
-              : 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400',
+          'image': fullImageUrl,
         };
       }).toList();
     } else {

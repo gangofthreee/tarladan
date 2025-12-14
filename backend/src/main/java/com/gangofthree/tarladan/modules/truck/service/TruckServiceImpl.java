@@ -50,21 +50,26 @@ public class TruckServiceImpl implements TruckService {
                 throw new IllegalArgumentException("Bu plaka zaten sistemde kayıtlı: " + addTruckRequest.getPlate());
             }
 
-            MultipartFile photo = addTruckRequest.getPhoto();
-            String fileName = "truckPhoto_" + truckerId;
-            Path filePath = Paths.get(UPLOAD_DIR, fileName);
-            Files.createDirectories(filePath.getParent());
-            photo.transferTo(filePath.toFile());
-
+            // Önce truck'ı kaydet ki ID'sini alalım
             Truck truck = Truck.builder()
                     .trucker(trucker)
                     .vehicle(addTruckRequest.getVehicle())
                     .capacityTon(addTruckRequest.getCapacityTon())
                     .plate(addTruckRequest.getPlate())
                     .basePrice(addTruckRequest.getBasePrice())
-                    .imageUrl("/uploads/truckPhotos/" + fileName)
                     .build();
+            
+            truck = truckRepository.save(truck);
 
+            // Şimdi truck ID'si ile dosya adı oluştur
+            MultipartFile photo = addTruckRequest.getPhoto();
+            String fileName = "truckPhoto_" + truck.getId() + "_" + System.currentTimeMillis();
+            Path filePath = Paths.get(UPLOAD_DIR, fileName);
+            Files.createDirectories(filePath.getParent());
+            photo.transferTo(filePath.toFile());
+
+            // imageUrl'i güncelle
+            truck.setImageUrl("/uploads/truckPhotos/" + fileName);
             return truckRepository.save(truck);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -100,7 +105,7 @@ public class TruckServiceImpl implements TruckService {
                     Files.deleteIfExists(oldPath);
                 }
 
-                String fileName = "truckPhoto_" + existingTruck.getId();
+                String fileName = "truckPhoto_" + existingTruck.getId() + "_" + System.currentTimeMillis();
                 Path newPath = Paths.get(UPLOAD_DIR, fileName);
                 Files.createDirectories(newPath.getParent());
                 newPhoto.transferTo(newPath.toFile());

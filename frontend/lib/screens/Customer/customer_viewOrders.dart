@@ -71,10 +71,14 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage>
 
     try {
       final authHeaders = await TokenService.getAuthHeaders();
+      print('🛒 Fetching orders from: ${ApiConfig.getCustomerOrdersUrl}');
       final response = await http.get(
-        Uri.parse(ApiConfig.getOrdersByCustomerUrl),
+        Uri.parse(ApiConfig.getCustomerOrdersUrl),
         headers: authHeaders,
       );
+
+      print('🛒 Orders Response Status: ${response.statusCode}');
+      print('🛒 Orders Response Body: ${response.body}');
 
       // Yeni token varsa güncelle
       await TokenService.checkAndUpdateToken(response);
@@ -91,6 +95,7 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage>
         throw Exception('Siparişler yüklenemedi: ${response.statusCode}');
       }
     } catch (e) {
+      print('❌ Orders fetch error: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;

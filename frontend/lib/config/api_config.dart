@@ -31,6 +31,7 @@ class ApiConfig {
   static const String resendCodeEndpoint = '/api/verification/resendCode';
   static const String createProductEndpoint = '/farmer/product/create';
   static const String getFarmerProductsEndpoint = '/farmer/product/my-products';
+  static const String getAllProductsEndpoint = '/farmer/product/all_products';
   static const String getProductDetailEndpoint = '/farmer/product/get';
   static const String updateProductEndpoint = '/farmer/product/update';
   static const String deleteProductEndpoint = '/farmer/product/delete';
@@ -41,9 +42,8 @@ class ApiConfig {
   static const String getDepotsByOwnerEndpoint = '/depot/my-depots';
   static const String deleteDepotEndpoint = '/depot';
   static const String createOrderEndpoint = '/api/orders/create';
-  static const String getOrdersByCustomerEndpoint =
-      '/api/orders/customer/my-orders';
-  static const String getFarmerOrdersEndpoint = '/api/orders/my-orders';
+
+  static const String getCustomerOrdersEndpoint = '/api/orders/my-orders';
   static const String getOrderByIdEndpoint = '/api/orders';
   static const String createTruckEndpoint = '/truck/create';
   static const String updateTruckEndpoint = '/truck/update';
@@ -64,6 +64,7 @@ class ApiConfig {
   static String get createProductUrl => '$baseUrl$createProductEndpoint';
   static String get getFarmerProductsUrl =>
       '$baseUrl$getFarmerProductsEndpoint';
+  static String get getAllProductsUrl => '$baseUrl$getAllProductsEndpoint';
   static String getProductDetailUrl(int productId) =>
       '$baseUrl$getProductDetailEndpoint/$productId';
   static String updateProductUrl(int productId) =>
@@ -80,9 +81,9 @@ class ApiConfig {
   static String deleteDepotUrl(int depotId) =>
       '$baseUrl$deleteDepotEndpoint/$depotId';
   static String get createOrderUrl => '$baseUrl$createOrderEndpoint';
-  static String get getOrdersByCustomerUrl =>
-      '$baseUrl$getOrdersByCustomerEndpoint';
-  static String get getFarmerOrdersUrl => '$baseUrl$getFarmerOrdersEndpoint';
+  static String get getCustomerOrdersUrl =>
+      '$baseUrl$getCustomerOrdersEndpoint';
+  static String get getFarmerOrdersUrl => '$baseUrl$getCustomerOrdersEndpoint';
   static String getOrderByIdUrl(int orderId) =>
       '$baseUrl$getOrderByIdEndpoint/$orderId';
   static String get createTruckUrl => '$baseUrl$createTruckEndpoint';

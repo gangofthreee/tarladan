@@ -35,7 +35,7 @@ public class TruckServiceImpl implements TruckService {
                 .capacityTon(truck.getCapacityTon()) 
                 .imageUrl(truck.getImageUrl())
                 .plate_number(truck.getPlate())
-                .basePrice(truck.getBasePrice())    
+//                .basePrice(truck.getBasePrice())
                 .truckerId(truck.getTrucker() != null ? truck.getTrucker().getId() : null)
                 .build();
     }
@@ -56,7 +56,7 @@ public class TruckServiceImpl implements TruckService {
                     .vehicle(addTruckRequest.getVehicle())
                     .capacityTon(addTruckRequest.getCapacityTon())
                     .plate(addTruckRequest.getPlate())
-                    .basePrice(addTruckRequest.getBasePrice())
+//                    .basePrice(addTruckRequest.getBasePrice())
                     .build();
             
             truck = truckRepository.save(truck);
@@ -93,7 +93,7 @@ public class TruckServiceImpl implements TruckService {
 
         if (updateRequest.getVehicle() != null) existingTruck.setVehicle(updateRequest.getVehicle());
         if (updateRequest.getCapacityTon() != null) existingTruck.setCapacityTon(updateRequest.getCapacityTon());
-        if (updateRequest.getBasePrice() != null) existingTruck.setBasePrice(updateRequest.getBasePrice());
+//        if (updateRequest.getBasePrice() != null) existingTruck.setBasePrice(updateRequest.getBasePrice());
         if (updateRequest.getPlate() != null) existingTruck.setPlate(updateRequest.getPlate());
 
         MultipartFile newPhoto = updateRequest.getPhoto();

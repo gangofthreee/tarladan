@@ -18,7 +18,7 @@ public class NotificationController {
     // 1. Tüm bildirimlerimi getir (Sayfa açılınca çağrılır)
     @GetMapping("/my-notifications")
     public ResponseEntity<List<Notification>> getMyNotifications(
-            @RequestAttribute("domainId") Long userId
+            @RequestAttribute("uid") Long userId
     ) {
         return ResponseEntity.ok(notificationService.getMyNotifications(userId));
     }
@@ -26,7 +26,7 @@ public class NotificationController {
     // 2. Navbar'daki kırmızı baloncuk için sayı getir (Her sayfa geçişinde çağrılabilir)
     @GetMapping("/unread-count")
     public ResponseEntity<Long> getUnreadCount(
-            @RequestAttribute("domainId") Long userId
+            @RequestAttribute("uid") Long userId
     ) {
         return ResponseEntity.ok(notificationService.getUnreadCount(userId));
     }

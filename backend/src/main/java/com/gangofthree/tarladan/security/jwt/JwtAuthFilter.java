@@ -151,5 +151,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         // Controller'larda "Hangi çiftçi işlem yapıyor?" diye kolayca bulmak için
         // domainId'yi (farmerId, truckerId) request attribute'una ekliyoruz.
         request.setAttribute("domainId", domainId);
+        request.setAttribute("uid", userId);
     }
 }

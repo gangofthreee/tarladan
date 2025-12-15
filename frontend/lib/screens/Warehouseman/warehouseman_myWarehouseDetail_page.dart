@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../config/api_config.dart';
 import '../../services/token_service.dart';
+import '../../services/geocoding_service.dart';
 import 'warehouseman_updateWarehouseInfo_page.dart';
 
 import '../../widgets/themed_scaffold.dart';
@@ -23,6 +24,8 @@ class _WarehousemanMyWarehouseDetailPageState
   bool _isLoading = true;
   String? _errorMessage;
   bool _wasUpdated = false; // Güncelleme yapıldı mı?
+  String? _resolvedAddress; // Reverse geocoding ile çözülen adres
+  bool _isLoadingAddress = false;
 
   @override
   void initState() {
@@ -56,6 +59,11 @@ class _WarehousemanMyWarehouseDetailPageState
           _depotData = data;
           _isLoading = false;
         });
+
+        // Reverse geocoding ile adresi çöz
+        if (data['latitude'] != null && data['longitude'] != null) {
+          _loadAddress(data['latitude'], data['longitude']);
+        }
       } else {
         setState(() {
           _errorMessage = 'Depo detayları yüklenemedi: ${response.statusCode}';
@@ -68,6 +76,34 @@ class _WarehousemanMyWarehouseDetailPageState
         _errorMessage = 'Bağlantı hatası: $e';
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _loadAddress(double latitude, double longitude) async {
+    setState(() {
+      _isLoadingAddress = true;
+    });
+
+    try {
+      final address = await GeocodingService.getAddressFromCoordinates(
+        latitude,
+        longitude,
+      );
+
+      if (mounted) {
+        setState(() {
+          _resolvedAddress = address;
+          _isLoadingAddress = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _resolvedAddress =
+              'Koordinatlar: ${latitude.toStringAsFixed(6)}, ${longitude.toStringAsFixed(6)}';
+          _isLoadingAddress = false;
+        });
+      }
     }
   }
 
@@ -122,17 +158,22 @@ class _WarehousemanMyWarehouseDetailPageState
                 children: [
                   // Depo Bilgileri Section
                   Container(
-                    color: Colors.white,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey[900]
+                        : Colors.white,
                     padding: const EdgeInsets.all(20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Depo Bilgileri',
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white
+                                : Colors.black87,
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -142,8 +183,9 @@ class _WarehousemanMyWarehouseDetailPageState
                           icon: Icons.location_on,
                           iconColor: const Color(0xFF4CAF50),
                           title: 'Adres',
-                          subtitle:
-                              _depotData!['address'] ?? 'Adres bilgisi yok',
+                          subtitle: _isLoadingAddress
+                              ? 'Adres yükleniyor...'
+                              : (_resolvedAddress ?? 'Adres bilgisi yok'),
                         ),
 
                         const SizedBox(height: 12),
@@ -175,17 +217,22 @@ class _WarehousemanMyWarehouseDetailPageState
 
                   // Mevcut Doluluk Section
                   Container(
-                    color: Colors.white,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey[900]
+                        : Colors.white,
                     padding: const EdgeInsets.all(20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'Mevcut Doluluk',
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white
+                                : Colors.black87,
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -195,10 +242,14 @@ class _WarehousemanMyWarehouseDetailPageState
                           children: [
                             Text(
                               'Kapasite: ${(_depotData!['capacityTon'] ?? 0).toStringAsFixed(0)} ton',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.black87,
+                                color:
+                                    Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? Colors.white
+                                    : Colors.black87,
                               ),
                             ),
                             Text(
@@ -245,8 +296,10 @@ class _WarehousemanMyWarehouseDetailPageState
                                           depotId: widget.depotId,
                                           warehouseName:
                                               'Depo #${widget.depotId}',
-                                          currentAddress:
-                                              _depotData!['address'] ?? '',
+                                          currentLatitude:
+                                              _depotData!['latitude'],
+                                          currentLongitude:
+                                              _depotData!['longitude'],
                                           currentSize:
                                               (_depotData!['sizeM2'] ?? 0)
                                                   .toString(),
@@ -334,9 +387,15 @@ class _WarehousemanMyWarehouseDetailPageState
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Colors.grey[850]
+            : Colors.grey[50],
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.grey[700]!
+              : Colors.grey[200]!,
+        ),
       ),
       child: Row(
         children: [
@@ -355,10 +414,12 @@ class _WarehousemanMyWarehouseDetailPageState
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : Colors.black87,
                   ),
                 ),
                 const SizedBox(height: 4),

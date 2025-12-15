@@ -46,6 +46,12 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	
+	<!-- Location Permissions -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Depo konumunuzu haritada göstermek için konum bilginize ihtiyacımız var.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Depo konumunuzu haritada göstermek için konum bilginize ihtiyacımız var.</string>
+	
 	<!-- Google Sign-In Configuration -->
 	<key>GIDClientID</key>
 	<string>1016917742802-euehhgipssqflir6e8f6vhlqqfrfebqf.apps.googleusercontent.com</string>

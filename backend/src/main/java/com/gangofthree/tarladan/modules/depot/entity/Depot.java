@@ -22,8 +22,14 @@ public class Depot {
     @JoinColumn(name = "depo_owner_id", referencedColumnName = "id", nullable = false)
     private DepotOwner depotOwner;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String address;
+
+    @Column(nullable = false)
+    private Double latitude;
+
+    @Column(nullable = false)
+    private Double longitude;
 
     @Column(nullable = false)
     private Double sizeM2;

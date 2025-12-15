@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../config/api_config.dart';
 import '../../services/token_service.dart';
+import '../../services/geocoding_service.dart';
 import 'warehouseman_myWarehouseDetail_page.dart';
 import 'warehouseman_settings_page.dart';
 
@@ -22,6 +23,7 @@ class _WarehousemanMyWarehousePageState
   List<dynamic> _depots = [];
   bool _isLoading = true;
   String? _errorMessage;
+  Map<int, String> _depotAddresses = {}; // Depo ID -> Adres cache
 
   @override
   void initState() {
@@ -55,6 +57,8 @@ class _WarehousemanMyWarehousePageState
           _depots = data is List ? data : [data];
           _isLoading = false;
         });
+        // Load addresses for each depot
+        _loadDepotAddresses();
       } else {
         setState(() {
           _errorMessage = 'Depolar yüklenemedi: ${response.statusCode}';
@@ -68,6 +72,36 @@ class _WarehousemanMyWarehousePageState
         _isLoading = false;
       });
     }
+  }
+
+  Future<void> _loadDepotAddresses() async {
+    // Tüm API çağrılarını paralel olarak başlat
+    final futures = _depots.map((depot) async {
+      final depotId = depot['id'] as int;
+      final latitude = depot['latitude'] as double?;
+      final longitude = depot['longitude'] as double?;
+
+      if (latitude != null && longitude != null) {
+        try {
+          // Use new method that directly returns city and district
+          final cityAndDistrict = await GeocodingService.getCityAndDistrict(
+            latitude,
+            longitude,
+          );
+
+          if (mounted) {
+            setState(() {
+              _depotAddresses[depotId] = cityAndDistrict;
+            });
+          }
+        } catch (e) {
+          print('Adres yüklenemedi (Depo $depotId): $e');
+        }
+      }
+    }).toList();
+
+    // Tüm isteklerin tamamlanmasını bekle
+    await Future.wait(futures);
   }
 
   void _onItemTapped(int index) {
@@ -204,7 +238,7 @@ class _WarehousemanMyWarehousePageState
 
   Widget _buildWarehouseCard(Map<String, dynamic> depot) {
     final int depotId = depot['id'] ?? 0;
-    final String address = depot['address'] ?? 'Adres bilgisi yok';
+    final String address = _depotAddresses[depotId] ?? 'Adres yükleniyor...';
     final double sizeM2 = (depot['sizeM2'] ?? 0).toDouble();
     final double capacityTon = (depot['capacityTon'] ?? 0).toDouble();
     final double price = (depot['price'] ?? 0).toDouble();
@@ -228,7 +262,9 @@ class _WarehousemanMyWarehousePageState
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.grey[850]
+              : Colors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -265,10 +301,13 @@ class _WarehousemanMyWarehousePageState
                       Expanded(
                         child: Text(
                           address,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white
+                                : Colors.black87,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,

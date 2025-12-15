@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:latlong2/latlong.dart';
 import '../../config/api_config.dart';
 import '../../services/token_service.dart';
+import '../../widgets/location_picker_widget.dart';
 
 import '../../widgets/themed_scaffold.dart';
 
@@ -19,15 +21,14 @@ class WarehousemanCreateWarehousePage extends StatefulWidget {
 class _WarehousemanCreateWarehousePageState
     extends State<WarehousemanCreateWarehousePage> {
   final _formKey = GlobalKey<FormState>();
-  final _addressController = TextEditingController();
   final _sizeController = TextEditingController();
   final _capacityController = TextEditingController();
   final _priceController = TextEditingController();
   bool _isLoading = false;
+  LatLng? _selectedLocation;
 
   @override
   void dispose() {
-    _addressController.dispose();
     _sizeController.dispose();
     _capacityController.dispose();
     _priceController.dispose();
@@ -43,6 +44,16 @@ class _WarehousemanCreateWarehousePageState
       return;
     }
 
+    if (_selectedLocation == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Lütfen haritadan bir konum seçin'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
@@ -53,7 +64,8 @@ class _WarehousemanCreateWarehousePageState
         Uri.parse(ApiConfig.createDepotUrl),
         headers: authHeaders,
         body: json.encode({
-          'address': _addressController.text,
+          'latitude': _selectedLocation!.latitude,
+          'longitude': _selectedLocation!.longitude,
           'sizeM2': double.parse(_sizeController.text),
           'capacityTon': double.parse(_capacityController.text),
           'price': double.parse(_priceController.text),
@@ -121,9 +133,9 @@ class _WarehousemanCreateWarehousePageState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Adres Field
+                // Konum Seç Butonu
                 Text(
-                  'Adres',
+                  'Konum',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -131,39 +143,74 @@ class _WarehousemanCreateWarehousePageState
                   ),
                 ),
                 const SizedBox(height: 8),
-                TextFormField(
-                  controller: _addressController,
-                  decoration: InputDecoration(
-                    hintText: 'Adres giriniz',
-                    hintStyle: TextStyle(color: Colors.grey[400]),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
+                InkWell(
+                  onTap: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LocationPickerWidget(
+                          initialLocation: _selectedLocation,
+                          onLocationSelected: (location, address) {
+                            setState(() {
+                              _selectedLocation = location;
+                            });
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.grey[850]
+                          : Colors.white,
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: Color(0xFF4CAF50),
-                        width: 2,
+                      border: Border.all(
+                        color: _selectedLocation != null
+                            ? const Color(0xFF4CAF50)
+                            : (Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey[700]!
+                                  : Colors.grey[300]!),
+                        width: _selectedLocation != null ? 2 : 1,
                       ),
                     ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16,
+                    child: Row(
+                      children: [
+                        Icon(
+                          _selectedLocation != null
+                              ? Icons.location_on
+                              : Icons.location_off,
+                          color: _selectedLocation != null
+                              ? const Color(0xFF4CAF50)
+                              : Colors.grey[600],
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            _selectedLocation != null
+                                ? 'Konum seçildi: ${_selectedLocation!.latitude.toStringAsFixed(4)}, ${_selectedLocation!.longitude.toStringAsFixed(4)}'
+                                : 'Haritadan konum seçin',
+                            style: TextStyle(
+                              color: _selectedLocation != null
+                                  ? (Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Colors.white
+                                        : Colors.black87)
+                                  : Colors.grey[600],
+                            ),
+                          ),
+                        ),
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          size: 16,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.grey[600]
+                              : Colors.black87,
+                        ),
+                      ],
                     ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Lütfen adres giriniz';
-                    }
-                    return null;
-                  },
                 ),
 
                 const SizedBox(height: 20),
@@ -181,18 +228,33 @@ class _WarehousemanCreateWarehousePageState
                 TextFormField(
                   controller: _sizeController,
                   keyboardType: TextInputType.number,
+                  style: TextStyle(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : Colors.black87,
+                  ),
                   decoration: InputDecoration(
                     hintText: 'Boyut giriniz',
                     hintStyle: TextStyle(color: Colors.grey[400]),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey[850]
+                        : Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.grey[700]!
+                            : Colors.grey[300]!,
+                      ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.grey[700]!
+                            : Colors.grey[300]!,
+                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -236,18 +298,33 @@ class _WarehousemanCreateWarehousePageState
                 TextFormField(
                   controller: _capacityController,
                   keyboardType: TextInputType.number,
+                  style: TextStyle(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : Colors.black87,
+                  ),
                   decoration: InputDecoration(
                     hintText: 'Kapasite giriniz',
                     hintStyle: TextStyle(color: Colors.grey[400]),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey[850]
+                        : Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.grey[700]!
+                            : Colors.grey[300]!,
+                      ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.grey[700]!
+                            : Colors.grey[300]!,
+                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -291,18 +368,33 @@ class _WarehousemanCreateWarehousePageState
                 TextFormField(
                   controller: _priceController,
                   keyboardType: TextInputType.number,
+                  style: TextStyle(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : Colors.black87,
+                  ),
                   decoration: InputDecoration(
                     hintText: 'Fiyat giriniz',
                     hintStyle: TextStyle(color: Colors.grey[400]),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey[850]
+                        : Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.grey[700]!
+                            : Colors.grey[300]!,
+                      ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.grey[700]!
+                            : Colors.grey[300]!,
+                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),

@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'dart:convert';
 import 'dart:io';
 import '../../config/api_config.dart';
 import '../../services/token_service.dart';
+import '../../services/geocoding_service.dart';
 
 import '../../widgets/themed_scaffold.dart';
 
@@ -25,6 +28,7 @@ class _FarmerAdDetailState extends State<FarmerAdDetail> {
   bool _isSaving = false;
   bool _hasChanges = false; // Değişiklik takibi için
   String? _errorMessage;
+  String? _depotAddress;
 
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
@@ -81,6 +85,15 @@ class _FarmerAdDetailState extends State<FarmerAdDetail> {
           _minBuyController.text = (productData['min_buy'] ?? 0).toString();
           _isLoading = false;
         });
+
+        // Depot adresini yükle
+        if (productData['depot_latitude'] != null &&
+            productData['depot_longitude'] != null) {
+          _loadDepotAddress(
+            productData['depot_latitude'],
+            productData['depot_longitude'],
+          );
+        }
       } else {
         setState(() {
           _errorMessage = 'Ürün bilgileri yüklenemedi';
@@ -92,6 +105,20 @@ class _FarmerAdDetailState extends State<FarmerAdDetail> {
         _errorMessage = 'Bağlantı hatası: $e';
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _loadDepotAddress(double latitude, double longitude) async {
+    try {
+      final address = await GeocodingService.getCityAndDistrict(
+        latitude,
+        longitude,
+      );
+      setState(() {
+        _depotAddress = address;
+      });
+    } catch (e) {
+      print('Adres yüklenirken hata: $e');
     }
   }
 
@@ -436,7 +463,7 @@ class _FarmerAdDetailState extends State<FarmerAdDetail> {
         return false;
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF5F5F5),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: ThemedAppBar(
           elevation: 0,
           leading: IconButton(
@@ -445,23 +472,11 @@ class _FarmerAdDetailState extends State<FarmerAdDetail> {
           ),
           title: Text(
             _product?['name'] ?? 'İlan Detayları',
-            style: const TextStyle(
-              color: Colors.black,
+            style: TextStyle(
+              color: Theme.of(context).textTheme.bodyLarge?.color,
               fontWeight: FontWeight.bold,
             ),
           ),
-          actions: [
-            if (!_isEditMode && _product != null)
-              IconButton(
-                icon: const Icon(Icons.edit),
-                onPressed: _toggleEditMode,
-              ),
-            if (_isEditMode)
-              TextButton(
-                onPressed: _toggleEditMode,
-                child: const Text('İptal', style: TextStyle(color: Colors.red)),
-              ),
-          ],
         ),
         body: _isLoading
             ? const Center(child: CircularProgressIndicator())
@@ -573,30 +588,110 @@ class _FarmerAdDetailState extends State<FarmerAdDetail> {
                               ),
                             ),
                             const SizedBox(height: 12),
-                            Container(
-                              height: 200,
-                              decoration: BoxDecoration(
-                                color: Colors.grey[300],
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.map,
-                                      size: 60,
-                                      color: Colors.grey[500],
+                            if (_product!['depot_latitude'] != null &&
+                                _product!['depot_longitude'] != null)
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (_depotAddress != null)
+                                    Padding(
+                                      padding: const EdgeInsets.only(bottom: 8),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.location_on,
+                                            size: 16,
+                                            color: Colors.grey[600],
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            _depotAddress!,
+                                            style: TextStyle(
+                                              color: Colors.grey[700],
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'Harita Görünümü',
-                                      style: TextStyle(color: Colors.grey[600]),
+                                  Container(
+                                    height: 200,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: Colors.grey[300]!,
+                                      ),
                                     ),
-                                  ],
+                                    clipBehavior: Clip.antiAlias,
+                                    child: FlutterMap(
+                                      options: MapOptions(
+                                        initialCenter: LatLng(
+                                          _product!['depot_latitude'],
+                                          _product!['depot_longitude'],
+                                        ),
+                                        initialZoom: 15.0,
+                                        interactionOptions: InteractionOptions(
+                                          flags:
+                                              InteractiveFlag.all &
+                                              ~InteractiveFlag.rotate,
+                                        ),
+                                      ),
+                                      children: [
+                                        TileLayer(
+                                          urlTemplate:
+                                              'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                          userAgentPackageName:
+                                              'com.gangofthree.tarladan',
+                                        ),
+                                        MarkerLayer(
+                                          markers: [
+                                            Marker(
+                                              point: LatLng(
+                                                _product!['depot_latitude'],
+                                                _product!['depot_longitude'],
+                                              ),
+                                              width: 40,
+                                              height: 40,
+                                              child: const Icon(
+                                                Icons.location_on,
+                                                color: Colors.red,
+                                                size: 40,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              )
+                            else
+                              Container(
+                                height: 200,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[300],
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.location_off,
+                                        size: 60,
+                                        color: Colors.grey[500],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Konum bilgisi yok',
+                                        style: TextStyle(
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
                             const SizedBox(height: 24),
                             // Butonlar
                             if (_isEditMode)

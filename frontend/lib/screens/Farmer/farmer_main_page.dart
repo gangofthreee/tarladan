@@ -5,6 +5,10 @@ import 'farmer_ad_detail.dart';
 import 'farmer_orders.dart';
 import 'farmer_settings_page.dart';
 import '../../services/user_service.dart';
+import '../../config/api_config.dart';
+import '../../services/token_service.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 import '../../widgets/themed_scaffold.dart';
 
@@ -17,11 +21,14 @@ class FarmerMainPage extends StatefulWidget {
 
 class _FarmerMainPageState extends State<FarmerMainPage> {
   String _userName = 'Çiftçi';
+  List<dynamic> _products = [];
+  bool _isLoadingProducts = true;
 
   @override
   void initState() {
     super.initState();
     _loadUserName();
+    _fetchAllProducts();
   }
 
   Future<void> _loadUserName() async {
@@ -29,6 +36,39 @@ class _FarmerMainPageState extends State<FarmerMainPage> {
     setState(() {
       _userName = name;
     });
+  }
+
+  Future<void> _fetchAllProducts() async {
+    setState(() => _isLoadingProducts = true);
+
+    try {
+      final token = await TokenService.getAccessToken();
+      if (token == null) {
+        throw Exception('Token bulunamadı');
+      }
+
+      final response = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}/farmer/product/all_products'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes));
+        setState(() {
+          // Son eklenen ürünler önce gelsin diye ters çevir
+          _products = data.reversed.toList();
+          _isLoadingProducts = false;
+        });
+      } else {
+        throw Exception('Ürünler yüklenemedi: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Ürünler yüklenirken hata: $e');
+      setState(() => _isLoadingProducts = false);
+    }
   }
 
   @override
@@ -94,12 +134,15 @@ class _FarmerMainPageState extends State<FarmerMainPage> {
                     'Yeni İlan Aç',
                     Icons.add_circle_outline,
                     Color(0xFF00D563),
-                    () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const FarmerCreateAd(),
-                      ),
-                    ),
+                    () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const FarmerCreateAd(),
+                        ),
+                      );
+                      _fetchAllProducts(); // Geri dönüldüğünde listeyi yenile
+                    },
                   ),
                   _buildInteractiveActionCard(
                     'Siparişlerim',
@@ -133,36 +176,35 @@ class _FarmerMainPageState extends State<FarmerMainPage> {
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
                 ),
               ),
               SizedBox(height: 16),
-              _buildProductItem(
-                context,
-                'Domates',
-                '100 kg',
-                '₺5/kg',
-                'Aktif',
-                true,
-              ),
-              SizedBox(height: 12),
-              _buildProductItem(
-                context,
-                'Salatalık',
-                '50 kg',
-                '₺3/kg',
-                'Aktif',
-                true,
-              ),
-              SizedBox(height: 12),
-              _buildProductItem(
-                context,
-                'Biber',
-                '75 kg',
-                '₺4/kg',
-                'Beklemede',
-                false,
-              ),
+              _isLoadingProducts
+                  ? Center(child: CircularProgressIndicator())
+                  : _products.isEmpty
+                  ? Center(
+                      child: Text(
+                        'Henüz ürün eklenmemiş',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    )
+                  : Column(
+                      children: _products.map((product) {
+                        return Padding(
+                          padding: EdgeInsets.only(bottom: 12),
+                          child: _buildProductItem(
+                            context,
+                            product['name'] ?? 'Ürün',
+                            '${product['quantity_kg'] ?? 0} kg',
+                            '₺${product['price_per_kg'] ?? 0}/kg',
+                            'Aktif',
+                            true,
+                            product['id'],
+                          ),
+                        );
+                      }).toList(),
+                    ),
             ],
           ),
         ),
@@ -229,19 +271,22 @@ class _FarmerMainPageState extends State<FarmerMainPage> {
     String price,
     String status,
     bool isActive,
+    int productId,
   ) {
     return GestureDetector(
       onTap: () async {
         await Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => FarmerAdDetail(productId: 0)),
+          MaterialPageRoute(
+            builder: (context) => FarmerAdDetail(productId: productId),
+          ),
         );
-        // Bu sayfada statik veri olduğu için refresh gerekmez
+        _fetchAllProducts(); // Geri dönüldüğünde listeyi yenile
       },
       child: Container(
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -255,7 +300,7 @@ class _FarmerMainPageState extends State<FarmerMainPage> {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -272,7 +317,7 @@ class _FarmerMainPageState extends State<FarmerMainPage> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
                 ),
                 SizedBox(width: 12),

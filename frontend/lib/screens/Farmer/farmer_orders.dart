@@ -129,7 +129,7 @@ class _FarmerOrdersScreenState extends State<FarmerOrdersScreen> {
           Container(
             padding: EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).cardColor,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.05),
@@ -152,7 +152,7 @@ class _FarmerOrdersScreenState extends State<FarmerOrdersScreen> {
                       decoration: BoxDecoration(
                         color: showActiveOrders
                             ? Color(0xFF00D563)
-                            : Colors.white,
+                            : Theme.of(context).cardColor,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: showActiveOrders
@@ -165,7 +165,9 @@ class _FarmerOrdersScreenState extends State<FarmerOrdersScreen> {
                         'Aktif Siparişler',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: showActiveOrders ? Colors.white : Colors.black,
+                          color: showActiveOrders
+                              ? Colors.white
+                              : Theme.of(context).textTheme.bodyLarge?.color,
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
@@ -185,12 +187,16 @@ class _FarmerOrdersScreenState extends State<FarmerOrdersScreen> {
                       padding: EdgeInsets.symmetric(vertical: 16),
                       decoration: BoxDecoration(
                         color: !showActiveOrders
-                            ? Color(0xFFE8E8E8)
-                            : Colors.white,
+                            ? (Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey[800]
+                                  : Color(0xFFE8E8E8))
+                            : Theme.of(context).cardColor,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: !showActiveOrders
-                              ? Color(0xFFE8E8E8)
+                              ? (Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.grey[800]!
+                                    : Color(0xFFE8E8E8))
                               : Colors.grey[300]!,
                           width: 1,
                         ),
@@ -199,7 +205,7 @@ class _FarmerOrdersScreenState extends State<FarmerOrdersScreen> {
                         'Geçmiş Siparişler',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: Colors.black,
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),

@@ -6,6 +6,7 @@ import 'dart:io';
 import 'dart:convert';
 import '../../config/api_config.dart';
 import '../../services/token_service.dart';
+import '../../services/geocoding_service.dart';
 
 import '../../widgets/themed_scaffold.dart';
 
@@ -29,6 +30,7 @@ class _FarmerCreateAdState extends State<FarmerCreateAd> {
   List<dynamic> _depots = [];
   int? _selectedDepotId;
   bool _isLoadingDepots = false;
+  Map<int, String> _depotAddresses = {}; // Cache for geocoded addresses
 
   @override
   void initState() {
@@ -56,6 +58,8 @@ class _FarmerCreateAdState extends State<FarmerCreateAd> {
           _depots = data is List ? data : [data];
           _isLoadingDepots = false;
         });
+        // Load addresses for each depot
+        _loadDepotAddresses();
       } else {
         setState(() {
           _isLoadingDepots = false;
@@ -66,6 +70,33 @@ class _FarmerCreateAdState extends State<FarmerCreateAd> {
         _isLoadingDepots = false;
       });
     }
+  }
+
+  Future<void> _loadDepotAddresses() async {
+    final futures = _depots.map((depot) async {
+      final depotId = depot['id'] as int;
+      final latitude = depot['latitude'] as double?;
+      final longitude = depot['longitude'] as double?;
+
+      if (latitude != null && longitude != null) {
+        try {
+          final cityAndDistrict = await GeocodingService.getCityAndDistrict(
+            latitude,
+            longitude,
+          );
+
+          if (mounted) {
+            setState(() {
+              _depotAddresses[depotId] = cityAndDistrict;
+            });
+          }
+        } catch (e) {
+          print('Adres yüklenemedi (Depo $depotId): $e');
+        }
+      }
+    }).toList();
+
+    await Future.wait(futures);
   }
 
   void _showDepotSelectionDialog() {
@@ -85,8 +116,13 @@ class _FarmerCreateAdState extends State<FarmerCreateAd> {
                     itemCount: _depots.length,
                     itemBuilder: (context, index) {
                       final depot = _depots[index];
+                      final depotId = depot['id'] as int;
+                      final address =
+                          _depotAddresses[depotId] ??
+                          depot['address'] ??
+                          'Depo #$depotId';
                       return ListTile(
-                        title: Text(depot['address'] ?? 'Depo ${depot['id']}'),
+                        title: Text(address),
                         subtitle: Text(
                           'Kapasite: ${depot['capacityTon'] ?? ''} ton',
                         ),
@@ -247,7 +283,9 @@ class _FarmerCreateAdState extends State<FarmerCreateAd> {
                 controller: productController,
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: const Color(0xFFF5F5F5),
+                  fillColor: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.grey[850]
+                      : const Color(0xFFF5F5F5),
                   hintText: 'Örn: Elma',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -272,7 +310,9 @@ class _FarmerCreateAdState extends State<FarmerCreateAd> {
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: const Color(0xFFF5F5F5),
+                  fillColor: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.grey[850]
+                      : const Color(0xFFF5F5F5),
                   hintText: '400',
                   suffixText: 'kg',
                   border: OutlineInputBorder(
@@ -303,7 +343,9 @@ class _FarmerCreateAdState extends State<FarmerCreateAd> {
                 ),
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: const Color(0xFFF5F5F5),
+                  fillColor: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.grey[850]
+                      : const Color(0xFFF5F5F5),
                   hintText: '10',
                   suffixText: '₺/kg',
                   border: OutlineInputBorder(
@@ -332,7 +374,9 @@ class _FarmerCreateAdState extends State<FarmerCreateAd> {
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: const Color(0xFFF5F5F5),
+                  fillColor: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.grey[850]
+                      : const Color(0xFFF5F5F5),
                   hintText: '100',
                   suffixText: 'kg',
                   border: OutlineInputBorder(
@@ -362,7 +406,9 @@ class _FarmerCreateAdState extends State<FarmerCreateAd> {
                   height: 200,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF5F5F5),
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey[850]
+                        : const Color(0xFFF5F5F5),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: _selectedImage == null
@@ -417,7 +463,9 @@ class _FarmerCreateAdState extends State<FarmerCreateAd> {
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF5F5F5),
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey[850]
+                        : const Color(0xFFF5F5F5),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: Colors.green, width: 1),
                   ),
@@ -428,17 +476,16 @@ class _FarmerCreateAdState extends State<FarmerCreateAd> {
                         child: Text(
                           _selectedDepotId == null
                               ? 'Depo seçin'
-                              : _depots.firstWhere(
+                              : _depotAddresses[_selectedDepotId] ??
+                                    _depots.firstWhere(
                                       (d) => d['id'] == _selectedDepotId,
-                                      orElse: () => {
-                                        'name': 'Depo #$_selectedDepotId',
-                                      },
-                                    )['name'] ??
+                                      orElse: () => {'id': _selectedDepotId},
+                                    )['address'] ??
                                     'Depo #$_selectedDepotId',
                           style: TextStyle(
                             color: _selectedDepotId == null
                                 ? Colors.grey[600]
-                                : Colors.black,
+                                : Theme.of(context).textTheme.bodyLarge?.color,
                           ),
                         ),
                       ),

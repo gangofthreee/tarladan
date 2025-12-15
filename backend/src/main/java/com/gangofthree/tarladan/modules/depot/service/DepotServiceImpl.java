@@ -28,6 +28,8 @@ public class DepotServiceImpl implements DepotService {
         Depot depot = Depot.builder()
                 .depotOwner(depotOwner)
                 .address(request.getAddress())
+                .latitude(request.getLatitude())
+                .longitude(request.getLongitude())
                 .sizeM2(request.getSizeM2())
                 .capacityTon(request.getCapacityTon())
                 .price(request.getPrice())
@@ -62,6 +64,8 @@ public class DepotServiceImpl implements DepotService {
         }
 
         if (request.getAddress() != null) depot.setAddress(request.getAddress());
+        if (request.getLatitude() != null) depot.setLatitude(request.getLatitude());
+        if (request.getLongitude() != null) depot.setLongitude(request.getLongitude());
         if (request.getSizeM2() != null) depot.setSizeM2(request.getSizeM2());
         if (request.getCapacityTon() != null) depot.setCapacityTon(request.getCapacityTon());
         if (request.getPrice() != null) depot.setPrice(request.getPrice());
@@ -95,6 +99,8 @@ public class DepotServiceImpl implements DepotService {
                 .id(depot.getId())
                 .depotOwnerId(depot.getDepotOwner().getId())
                 .address(depot.getAddress())
+                .latitude(depot.getLatitude())
+                .longitude(depot.getLongitude())
                 .sizeM2(depot.getSizeM2())
                 .capacityTon(depot.getCapacityTon())
                 .price(depot.getPrice())

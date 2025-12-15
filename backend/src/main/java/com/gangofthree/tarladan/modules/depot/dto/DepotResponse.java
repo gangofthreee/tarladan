@@ -17,6 +17,8 @@ public class DepotResponse implements Serializable {
 
     private Long id;
     private String address;
+    private Double latitude;
+    private Double longitude;
     private Double sizeM2;
     private Double capacityTon;
     private Double price;

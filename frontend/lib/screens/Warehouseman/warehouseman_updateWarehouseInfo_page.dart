@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:latlong2/latlong.dart';
 import '../../config/api_config.dart';
 import '../../services/token_service.dart';
+import '../../widgets/location_picker_widget.dart';
 
 import '../../widgets/themed_scaffold.dart';
 
 class WarehousemanUpdateWarehouseInfoPage extends StatefulWidget {
   final int depotId;
   final String warehouseName;
-  final String currentAddress;
+  final double? currentLatitude;
+  final double? currentLongitude;
   final String currentSize;
   final String currentCapacity;
   final String currentPrice;
@@ -18,7 +21,8 @@ class WarehousemanUpdateWarehouseInfoPage extends StatefulWidget {
     super.key,
     required this.depotId,
     required this.warehouseName,
-    this.currentAddress = '',
+    this.currentLatitude,
+    this.currentLongitude,
     this.currentSize = '',
     this.currentCapacity = '',
     this.currentPrice = '',
@@ -32,16 +36,21 @@ class WarehousemanUpdateWarehouseInfoPage extends StatefulWidget {
 class _WarehousemanUpdateWarehouseInfoPageState
     extends State<WarehousemanUpdateWarehouseInfoPage> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _addressController;
   late TextEditingController _sizeController;
   late TextEditingController _capacityController;
   late TextEditingController _priceController;
   bool _isLoading = false;
+  LatLng? _selectedLocation;
 
   @override
   void initState() {
     super.initState();
-    _addressController = TextEditingController(text: widget.currentAddress);
+    if (widget.currentLatitude != null && widget.currentLongitude != null) {
+      _selectedLocation = LatLng(
+        widget.currentLatitude!,
+        widget.currentLongitude!,
+      );
+    }
     _sizeController = TextEditingController(text: widget.currentSize);
     _capacityController = TextEditingController(text: widget.currentCapacity);
     _priceController = TextEditingController(text: widget.currentPrice);
@@ -49,7 +58,6 @@ class _WarehousemanUpdateWarehouseInfoPageState
 
   @override
   void dispose() {
-    _addressController.dispose();
     _sizeController.dispose();
     _capacityController.dispose();
     _priceController.dispose();
@@ -69,14 +77,23 @@ class _WarehousemanUpdateWarehouseInfoPageState
 
     try {
       final authHeaders = await TokenService.getAuthHeaders();
+
+      final Map<String, dynamic> updateData = {
+        'price': double.parse(_priceController.text),
+        'capacityTon': double.parse(_capacityController.text),
+        'sizeM2': double.parse(_sizeController.text),
+      };
+
+      // Eğer konum seçildiyse ekle
+      if (_selectedLocation != null) {
+        updateData['latitude'] = _selectedLocation!.latitude;
+        updateData['longitude'] = _selectedLocation!.longitude;
+      }
+
       final response = await http.put(
         Uri.parse(ApiConfig.updateDepotUrl(widget.depotId)),
         headers: authHeaders,
-        body: json.encode({
-          'price': double.parse(_priceController.text),
-          'address': _addressController.text,
-          'capacityTon': double.parse(_capacityController.text),
-        }),
+        body: json.encode(updateData),
       );
 
       await TokenService.checkAndUpdateToken(response);
@@ -135,9 +152,9 @@ class _WarehousemanUpdateWarehouseInfoPageState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Adres Field
+                // Konum Seç
                 const Text(
-                  'Adres',
+                  'Konum (Opsiyonel)',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -145,44 +162,66 @@ class _WarehousemanUpdateWarehouseInfoPageState
                   ),
                 ),
                 const SizedBox(height: 8),
-                TextFormField(
-                  controller: _addressController,
-                  decoration: InputDecoration(
-                    hintText: 'Adres giriniz',
-                    hintStyle: TextStyle(color: Colors.grey[400]),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
+                InkWell(
+                  onTap: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LocationPickerWidget(
+                          initialLocation: _selectedLocation,
+                          onLocationSelected: (location, address) {
+                            setState(() {
+                              _selectedLocation = location;
+                            });
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: Color(0xFF4CAF50),
-                        width: 2,
+                      border: Border.all(
+                        color: _selectedLocation != null
+                            ? const Color(0xFF4CAF50)
+                            : Colors.grey[300]!,
+                        width: _selectedLocation != null ? 2 : 1,
                       ),
                     ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16,
+                    child: Row(
+                      children: [
+                        Icon(
+                          _selectedLocation != null
+                              ? Icons.location_on
+                              : Icons.location_off,
+                          color: _selectedLocation != null
+                              ? const Color(0xFF4CAF50)
+                              : Colors.grey[600],
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            _selectedLocation != null
+                                ? 'Konum: ${_selectedLocation!.latitude.toStringAsFixed(4)}, ${_selectedLocation!.longitude.toStringAsFixed(4)}'
+                                : 'Konumu güncellemek için haritadan seçin',
+                            style: TextStyle(
+                              color: _selectedLocation != null
+                                  ? Colors.black87
+                                  : Colors.grey[600],
+                            ),
+                          ),
+                        ),
+                        const Icon(Icons.arrow_forward_ios, size: 16),
+                      ],
                     ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Lütfen adres giriniz';
-                    }
-                    return null;
-                  },
                 ),
 
                 const SizedBox(height: 20),
 
-                // Boyut Field
+                // Boyut Field (read-only)
                 const Text(
                   'Boyut (m²)',
                   style: TextStyle(

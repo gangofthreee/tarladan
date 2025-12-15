@@ -50,7 +50,8 @@ class _FarmerAllAdsState extends State<FarmerAllAds> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
-          _products = data is List ? data : [data];
+          // Son eklenen ürünler önce gelsin diye ters çevir
+          _products = data is List ? data.reversed.toList() : [data];
           _isLoading = false;
         });
       } else {
@@ -84,7 +85,7 @@ class _FarmerAllAdsState extends State<FarmerAllAds> {
       body: Column(
         children: [
           Container(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
@@ -111,14 +112,18 @@ class _FarmerAllAdsState extends State<FarmerAllAds> {
                   child: Container(
                     padding: EdgeInsets.symmetric(vertical: 12),
                     decoration: BoxDecoration(
-                      color: Color(0xFFE8E8E8),
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.grey[800]
+                          : Color(0xFFE8E8E8),
                       borderRadius: BorderRadius.circular(24),
                     ),
                     child: Text(
                       'Geçmiş',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: Colors.black,
+                        color: Theme.of(
+                          context,
+                        ).textTheme.bodyLarge?.color?.withOpacity(0.7),
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
@@ -230,7 +235,7 @@ class _FarmerAllAdsState extends State<FarmerAllAds> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(

@@ -41,6 +41,8 @@ public class ProductServiceImpl implements ProductService {
                 .image_path(product.getImage_path())
                 .depot_id(product.getDepot() != null ? product.getDepot().getId() : null)
                 .farmer_id(product.getFarmer() != null ? product.getFarmer().getId() : null)
+                .depot_latitude(product.getDepot() != null ? product.getDepot().getLatitude() : null)
+                .depot_longitude(product.getDepot() != null ? product.getDepot().getLongitude() : null)
                 .build();
     }
 
@@ -55,28 +57,34 @@ public class ProductServiceImpl implements ProductService {
             Depot depot = depotRepository.findById(addProductRequest.getId_depot())
                     .orElseThrow(() -> new SecurityException("Depot not found with id: " + addProductRequest.getId_depot()));
 
-            // Fotoğrafı kaydet
-            MultipartFile photo = addProductRequest.getPhoto();
-            String uploadDir = "/app/uploads/productPhotos";
-            String fileName = "productPhoto_" + System.currentTimeMillis() + "_" + farmerId;
-            Path filePath = Paths.get(uploadDir, fileName);
-
-            Files.createDirectories(filePath.getParent());
-            if (photo != null && !photo.isEmpty()) {
-                photo.transferTo(filePath.toFile());
-            }
-
-            // Product entity oluştur
+            // Product entity oluştur (önce ID almak için kaydet)
             Product product = new Product();
             product.setName(addProductRequest.getName());
             product.setQuantity_kg(addProductRequest.getQuantity_kg());
             product.setPrice_per_kg(addProductRequest.getPrice_per_kg());
             product.setMin_buy(addProductRequest.getMin_buy());
             product.setFarmer(farmer);
-            product.setDepot(depot);  // -> artık depo entity de set ediliyor
-            product.setImage_path("/app/uploads/" + fileName);
+            product.setDepot(depot);
 
-            return productRepository.save(product);
+            // Önce product'ı kaydet ki ID'yi alalım
+            Product savedProduct = productRepository.save(product);
+
+            // Fotoğrafı productId ile kaydet
+            MultipartFile photo = addProductRequest.getPhoto();
+            if (photo != null && !photo.isEmpty()) {
+                String uploadDir = "/app/uploads/productPhotos";
+                String fileName = "product_" + savedProduct.getId() + "_" + System.currentTimeMillis();
+                Path filePath = Paths.get(uploadDir, fileName);
+
+                Files.createDirectories(filePath.getParent());
+                photo.transferTo(filePath.toFile());
+
+                // Image path'i güncelle
+                savedProduct.setImage_path("/app/uploads/productPhotos/" + fileName);
+                productRepository.save(savedProduct);
+            }
+
+            return savedProduct;
 
         } catch (IOException e) {
             throw new RuntimeException("Fotoğraf yükleme sırasında hata oluştu", e);

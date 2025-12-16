@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../config/api_config.dart';
 import '../../services/token_service.dart';
 import 'customer_selectTruck_page.dart';
@@ -15,6 +18,8 @@ class CustomerPurchaseProductPage extends StatefulWidget {
   final double price;
   final String unit;
   final int quantity;
+  final double? depotLatitude;
+  final double? depotLongitude;
 
   const CustomerPurchaseProductPage({
     super.key,
@@ -25,6 +30,8 @@ class CustomerPurchaseProductPage extends StatefulWidget {
     required this.price,
     required this.unit,
     this.quantity = 10,
+    this.depotLatitude,
+    this.depotLongitude,
   });
 
   @override
@@ -38,12 +45,77 @@ class _CustomerPurchaseProductPageState
   String _selectedPayment = 'credit_card';
   bool _isLoading = false;
   int? _selectedTruckId;
+  String? _selectedTruckerName;
+  String? _selectedTruckVehicle;
+  String? _selectedTruckPlate;
 
   final _licensePlateController = TextEditingController();
   final _capacityController = TextEditingController();
   final _modelController = TextEditingController();
   final _locFromController = TextEditingController();
   final _locToController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.depotLatitude != null && widget.depotLongitude != null) {
+      _getDepotAddress();
+    }
+  }
+
+  Future<void> _getDepotAddress() async {
+    try {
+      print(
+        '📍 Depot koordinatları: ${widget.depotLatitude}, ${widget.depotLongitude}',
+      );
+      final response = await http.get(
+        Uri.parse(
+          'https://nominatim.openstreetmap.org/reverse?format=json&lat=${widget.depotLatitude}&lon=${widget.depotLongitude}&accept-language=tr',
+        ),
+        headers: {'User-Agent': 'TarladanApp/1.0 (Flutter)'},
+      );
+
+      print('📍 Geocoding response: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final fullAddress = data['display_name'] ?? 'Depo konumu';
+
+        // Adresi il / ilçe formatına çevir
+        String shortAddress = fullAddress;
+        final parts = fullAddress.split(',').map((e) => e.trim()).toList();
+        if (parts.length >= 4) {
+          // İl (parts[parts.length - 3]) ve İlçe (parts[parts.length - 4])
+          shortAddress =
+              '${parts[parts.length - 3]} / ${parts[parts.length - 4]}';
+        } else if (parts.length == 3) {
+          shortAddress = '${parts[1]} / ${parts[0]}';
+        } else if (parts.length == 2) {
+          shortAddress = '${parts[1]} / ${parts[0]}';
+        }
+
+        if (mounted) {
+          setState(() {
+            _locFromController.text = shortAddress;
+          });
+          print('✅ Depo adresi: $shortAddress');
+        }
+      } else {
+        print('❌ Geocoding error: ${response.body}');
+        if (mounted) {
+          setState(() {
+            _locFromController.text = 'Depo konumu alınamadı';
+          });
+        }
+      }
+    } catch (e) {
+      print('❌ Depo adresi alınamadı: $e');
+      if (mounted) {
+        setState(() {
+          _locFromController.text = 'Depo konumu alınamadı';
+        });
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -108,15 +180,13 @@ class _CustomerPurchaseProductPageState
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Sipariş başarıyla oluşturuldu!'),
-              duration: Duration(seconds: 2),
+              backgroundColor: Color(0xFF4CAF50),
+              duration: Duration(seconds: 1),
             ),
           );
 
-          Future.delayed(const Duration(seconds: 2), () {
-            if (mounted) {
-              Navigator.popUntil(context, (route) => route.isFirst);
-            }
-          });
+          // Hemen geri dön
+          Navigator.popUntil(context, (route) => route.isFirst);
         }
       } else {
         throw Exception('Sipariş oluşturulamadı: ${response.statusCode}');
@@ -322,20 +392,24 @@ class _CustomerPurchaseProductPageState
                   height: 50,
                   child: ElevatedButton(
                     onPressed: () async {
-                      final selectedTruckId = await Navigator.push(
+                      final selectedTruckData = await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => const CustomerSelectTruckPage(),
                         ),
                       );
 
-                      if (selectedTruckId != null && mounted) {
+                      if (selectedTruckData != null && mounted) {
                         setState(() {
-                          _selectedTruckId = selectedTruckId;
+                          _selectedTruckId = selectedTruckData['truckId'];
+                          _selectedTruckerName =
+                              selectedTruckData['truckerName'];
+                          _selectedTruckVehicle = selectedTruckData['vehicle'];
+                          _selectedTruckPlate = selectedTruckData['plate'];
                         });
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Tır seçildi: $selectedTruckId'),
+                            content: Text('Tır seçildi: $_selectedTruckerName'),
                             backgroundColor: const Color(0xFF4CAF50),
                           ),
                         );
@@ -352,7 +426,7 @@ class _CustomerPurchaseProductPageState
                     child: Text(
                       _selectedTruckId == null
                           ? 'Tır Listesine Git'
-                          : 'Tır Seçildi (#$_selectedTruckId)',
+                          : '$_selectedTruckerName - $_selectedTruckVehicle ($_selectedTruckPlate)',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -367,13 +441,47 @@ class _CustomerPurchaseProductPageState
               _buildTextField(
                 controller: _locFromController,
                 label: 'Nereden',
-                hint: 'Örn: Aydın / Merkez',
+                hint: 'Depo konumu yükleniyor...',
+                readOnly: true,
               ),
               const SizedBox(height: 16),
-              _buildTextField(
-                controller: _locToController,
-                label: 'Nereye',
-                hint: 'Örn: İzmir / Bornova',
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildTextField(
+                    controller: _locToController,
+                    label: 'Nereye',
+                    hint: 'Örn: İzmir / Bornova',
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const _MapSelectionPage(),
+                          ),
+                        );
+                        if (result != null && mounted) {
+                          setState(() {
+                            _locToController.text = result;
+                          });
+                        }
+                      },
+                      icon: const Icon(Icons.map_outlined),
+                      label: const Text('Haritadan Seç'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF4CAF50),
+                        side: const BorderSide(color: Color(0xFF4CAF50)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
 
               const SizedBox(height: 30),
@@ -517,6 +625,7 @@ class _CustomerPurchaseProductPageState
     required String label,
     required String hint,
     TextInputType keyboardType = TextInputType.text,
+    bool readOnly = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -533,6 +642,7 @@ class _CustomerPurchaseProductPageState
         TextField(
           controller: controller,
           keyboardType: keyboardType,
+          readOnly: readOnly,
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(color: Colors.grey[400]),
@@ -557,6 +667,216 @@ class _CustomerPurchaseProductPageState
           ),
         ),
       ],
+    );
+  }
+}
+
+class _MapSelectionPage extends StatefulWidget {
+  const _MapSelectionPage();
+
+  @override
+  State<_MapSelectionPage> createState() => _MapSelectionPageState();
+}
+
+class _MapSelectionPageState extends State<_MapSelectionPage> {
+  LatLng? _selectedLocation;
+  String? _selectedAddress;
+  bool _isLoadingAddress = false;
+  final MapController _mapController = MapController();
+
+  @override
+  void initState() {
+    super.initState();
+    _getCurrentLocation();
+  }
+
+  Future<void> _getCurrentLocation() async {
+    try {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        // Varsayılan konum: Türkiye merkezi
+        setState(() {
+          _selectedLocation = const LatLng(39.0, 35.0);
+        });
+        _getAddressFromLatLng(const LatLng(39.0, 35.0));
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition();
+      final location = LatLng(position.latitude, position.longitude);
+      setState(() {
+        _selectedLocation = location;
+      });
+      _getAddressFromLatLng(location);
+    } catch (e) {
+      // Hata durumunda varsayılan konum
+      const defaultLocation = LatLng(39.0, 35.0);
+      setState(() {
+        _selectedLocation = defaultLocation;
+      });
+      _getAddressFromLatLng(defaultLocation);
+    }
+  }
+
+  Future<void> _getAddressFromLatLng(LatLng location) async {
+    setState(() {
+      _isLoadingAddress = true;
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse(
+          'https://nominatim.openstreetmap.org/reverse?format=json&lat=${location.latitude}&lon=${location.longitude}&accept-language=tr',
+        ),
+        headers: {'User-Agent': 'TarladanApp/1.0 (Flutter)'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (mounted) {
+          setState(() {
+            _selectedAddress = data['display_name'] ?? 'Seçili konum';
+            _isLoadingAddress = false;
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _selectedAddress = 'Seçili konum';
+            _isLoadingAddress = false;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _selectedAddress = 'Seçili konum';
+          _isLoadingAddress = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Konum Seç'),
+        backgroundColor: const Color(0xFF4CAF50),
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      body: _selectedLocation == null
+          ? const Center(child: CircularProgressIndicator())
+          : Stack(
+              children: [
+                FlutterMap(
+                  mapController: _mapController,
+                  options: MapOptions(
+                    initialCenter: _selectedLocation!,
+                    initialZoom: 13.0,
+                    onTap: (tapPosition, point) {
+                      setState(() {
+                        _selectedLocation = point;
+                      });
+                      _getAddressFromLatLng(point);
+                    },
+                  ),
+                  children: [
+                    TileLayer(
+                      urlTemplate:
+                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      userAgentPackageName: 'com.gangofthree.tarladan',
+                    ),
+                    MarkerLayer(
+                      markers: [
+                        Marker(
+                          point: _selectedLocation!,
+                          width: 40,
+                          height: 40,
+                          child: const Icon(
+                            Icons.location_on,
+                            color: Colors.red,
+                            size: 40,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                // Confirm button
+                Positioned(
+                  bottom: 20,
+                  left: 20,
+                  right: 20,
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (_isLoadingAddress)
+                          const CircularProgressIndicator(
+                            color: Color(0xFF4CAF50),
+                          )
+                        else if (_selectedAddress != null)
+                          Text(
+                            _selectedAddress!,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.black87,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              if (_selectedAddress != null) {
+                                Navigator.pop(context, _selectedAddress);
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF4CAF50),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              'Konumu Onayla',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
     );
   }
 }

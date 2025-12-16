@@ -58,19 +58,27 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
         setState(() {
           products = dataList.map((data) {
             print('🔍 Product data: $data');
+
+            // Image path dönüştürülür (/app/uploads/ -> /uploads/)
+            String? imagePath = data['image_path'];
+            if (imagePath != null && imagePath.startsWith('/app/uploads/')) {
+              imagePath = imagePath.replaceFirst('/app/uploads/', '/uploads/');
+            }
+
             return {
               'id': data['id'],
               'name': data['name'] ?? 'Ürün',
-              'farmer':
-                  'Çiftçi', // Backend'de farmerName yok, sonra eklenebilir
+              'farmer': data['farmer_name'] ?? 'Çiftçi',
               'price': data['price_per_kg'] ?? 0,
               'unit': '₺/kg',
-              'image': data['image_path'] != null
-                  ? '${ApiConfig.baseUrl}${data['image_path']}'
+              'image': imagePath != null
+                  ? '${ApiConfig.baseUrl}$imagePath'
                   : 'https://images.unsplash.com/photo-1546470427-227e4c84d1da?w=400',
               'stock': data['quantity_kg'] ?? 0,
               'minBuy': data['min_buy'] ?? 0,
               'depot_id': data['depot_id'] ?? 1,
+              'depot_latitude': data['depot_latitude'],
+              'depot_longitude': data['depot_longitude'],
             };
           }).toList();
           print('✅ Total products after mapping: ${products.length}');
@@ -254,7 +262,7 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
-                            childAspectRatio: 0.75,
+                            childAspectRatio: 0.68,
                             crossAxisSpacing: 16,
                             mainAxisSpacing: 16,
                           ),
@@ -325,6 +333,8 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
               unit: product['unit'],
               imageUrl: product['image'],
               availableQuantity: product['stock'] ?? 0,
+              depotLatitude: product['depot_latitude'],
+              depotLongitude: product['depot_longitude'],
             ),
           ),
         );
@@ -351,7 +361,7 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
                 top: Radius.circular(16),
               ),
               child: Container(
-                height: 140,
+                height: 120,
                 width: double.infinity,
                 color: Colors.grey[200],
                 child: Image.network(
@@ -373,28 +383,31 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
 
             // Product Info
             Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     product['name'],
                     style: const TextStyle(
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 3),
                   Text(
                     product['farmer'],
-                    style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Text(
                     '${product['price']} ${product['unit']}',
                     style: const TextStyle(
-                      fontSize: 16,
+                      fontSize: 15,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF4CAF50),
                     ),

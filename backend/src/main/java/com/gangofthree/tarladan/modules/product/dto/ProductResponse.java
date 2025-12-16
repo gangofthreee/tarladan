@@ -24,6 +24,7 @@ public class ProductResponse implements Serializable {
     private String image_path;
     private Long depot_id;
     private Long farmer_id;
+    private String farmer_name;
     private Double depot_latitude;
     private Double depot_longitude;
 

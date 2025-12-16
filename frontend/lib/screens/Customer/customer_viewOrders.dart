@@ -220,6 +220,15 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage>
     final totalPrice = order['totalPrice'] ?? 0;
     final status = order['status'] ?? 'PENDING';
 
+    // Image path dönüştür (/app/uploads/ -> /uploads/)
+    String? imagePath = order['product_image_path'];
+    if (imagePath != null && imagePath.startsWith('/app/uploads/')) {
+      imagePath = imagePath.replaceFirst('/app/uploads/', '/uploads/');
+    }
+    final imageUrl = imagePath != null
+        ? '${ApiConfig.baseUrl}$imagePath'
+        : 'https://images.unsplash.com/photo-1546470427-227e4c84d1da?w=400';
+
     // Status'e göre renk ve metin
     Color statusColor;
     String statusText;
@@ -269,13 +278,19 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage>
                 width: 120,
                 height: 160,
                 color: Colors.grey[200],
-                child: Container(
-                  color: const Color(0xFF4CAF50).withOpacity(0.1),
-                  child: const Icon(
-                    Icons.shopping_bag_outlined,
-                    size: 50,
-                    color: Color(0xFF4CAF50),
-                  ),
+                child: Image.network(
+                  imageUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: const Color(0xFF4CAF50).withOpacity(0.1),
+                      child: const Icon(
+                        Icons.shopping_bag_outlined,
+                        size: 50,
+                        color: Color(0xFF4CAF50),
+                      ),
+                    );
+                  },
                 ),
               ),
             ),

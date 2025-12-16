@@ -22,7 +22,7 @@ public class TruckResponse implements Serializable {
     private BigInteger capacityTon;
     private String imageUrl;
     private Long truckerId;
-//    private BigInteger basePrice;
+    private String trucker_name;
 
 
 }

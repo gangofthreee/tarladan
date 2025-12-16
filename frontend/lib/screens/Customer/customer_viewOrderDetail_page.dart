@@ -124,6 +124,38 @@ class _CustomerViewOrderDetailPageState
     final truckPlate = _orderDetail!['truckPlate'] ?? '';
     final status = _orderDetail!['status'] ?? 'PENDING';
 
+    // Adreslerden sadece il ve ilçeyi al
+    String _extractCityDistrict(String address) {
+      if (address.isEmpty) return '';
+      // Format: "Çobanisa, Kuyucak, Aydın, Ege Bölgesi, Türkiye"
+      // İl ve İlçeyi al
+      final parts = address.split(',').map((e) => e.trim()).toList();
+      if (parts.length >= 4) {
+        // İl (parts[parts.length - 3]) ve İlçe (parts[parts.length - 4])
+        return '${parts[parts.length - 3]} / ${parts[parts.length - 4]}';
+      } else if (parts.length == 3) {
+        // İl / İlçe
+        return '${parts[1]} / ${parts[0]}';
+      } else if (parts.length == 2) {
+        return '${parts[1]} / ${parts[0]}';
+      } else if (parts.length == 1) {
+        return parts[0];
+      }
+      return address;
+    }
+
+    final shortLocFrom = _extractCityDistrict(locFrom);
+    final shortLocTo = _extractCityDistrict(locTo);
+
+    // Image path dönüştür
+    String? imagePath = _orderDetail!['product_image_path'];
+    if (imagePath != null && imagePath.startsWith('/app/uploads/')) {
+      imagePath = imagePath.replaceFirst('/app/uploads/', '/uploads/');
+    }
+    final imageUrl = imagePath != null
+        ? '${ApiConfig.baseUrl}$imagePath'
+        : 'https://images.unsplash.com/photo-1546470427-227e4c84d1da?w=400';
+
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -169,13 +201,25 @@ class _CustomerViewOrderDetailPageState
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF4CAF50).withOpacity(0.1),
+                      color: Colors.grey[200],
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(
-                      Icons.shopping_bag_outlined,
-                      size: 40,
-                      color: Color(0xFF4CAF50),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        imageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: const Color(0xFF4CAF50).withOpacity(0.1),
+                            child: const Icon(
+                              Icons.shopping_bag_outlined,
+                              size: 40,
+                              color: Color(0xFF4CAF50),
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -256,8 +300,8 @@ class _CustomerViewOrderDetailPageState
                     isHighlight: true,
                   ),
                   const Divider(height: 30),
-                  _buildDetailRow('Nereden', locFrom),
-                  _buildDetailRow('Nereye', locTo),
+                  _buildDetailRow('Nereden', shortLocFrom),
+                  _buildDetailRow('Nereye', shortLocTo),
                   const Divider(height: 30),
                   _buildDetailRow('Depo', depotName),
                   _buildDetailRow('Araç Plakası', truckPlate),
@@ -288,20 +332,27 @@ class _CustomerViewOrderDetailPageState
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: isHighlight || isStatus ? 16 : 14,
-              fontWeight: isHighlight || isStatus
-                  ? FontWeight.bold
-                  : FontWeight.w600,
-              color: isHighlight
-                  ? const Color(0xFF4CAF50)
-                  : isStatus
-                  ? _getStatusColor(value)
-                  : Colors.black87,
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: isHighlight || isStatus ? 16 : 14,
+                fontWeight: isHighlight || isStatus
+                    ? FontWeight.bold
+                    : FontWeight.w600,
+                color: isHighlight
+                    ? const Color(0xFF4CAF50)
+                    : isStatus
+                    ? _getStatusColor(value)
+                    : Colors.black87,
+              ),
             ),
           ),
         ],

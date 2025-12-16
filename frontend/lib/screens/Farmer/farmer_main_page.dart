@@ -11,6 +11,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../../widgets/themed_scaffold.dart';
+import '../../widgets/notification_button.dart';
 
 class FarmerMainPage extends StatefulWidget {
   const FarmerMainPage({super.key});
@@ -87,13 +88,7 @@ class _FarmerMainPageState extends State<FarmerMainPage> {
           ),
         ),
         actions: [
-          IconButton(
-            icon: Icon(
-              Icons.notifications_outlined,
-              color: Theme.of(context).appBarTheme.foregroundColor,
-            ),
-            onPressed: () {},
-          ),
+          const NotificationButton(),
         ],
       ),
       body: SingleChildScrollView(

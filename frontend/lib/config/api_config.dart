@@ -55,6 +55,11 @@ class ApiConfig {
   static const String updateTruckAdEndpoint = '/truck/ads/update';
   static const String deleteTruckAdEndpoint = '/truck/ads/delete';
 
+  // Notification endpoints
+  static const String getMyNotificationsEndpoint = '/api/notifications/my-notifications';
+  static const String getUnreadCountEndpoint = '/api/notifications/unread-count';
+  static const String markAsReadEndpoint = '/api/notifications';
+
   static String get registerUrl => '$baseUrl$registerEndpoint';
   static String get loginUrl => '$baseUrl$loginEndpoint';
   static String get verifyUrl => '$baseUrl$verifyEndpoint';
@@ -100,4 +105,10 @@ class ApiConfig {
       '$baseUrl$updateTruckAdEndpoint/$adId';
   static String deleteTruckAdUrl(int adId) =>
       '$baseUrl$deleteTruckAdEndpoint/$adId';
+  
+  // Notification URLs
+  static String get getMyNotificationsUrl => '$baseUrl$getMyNotificationsEndpoint';
+  static String get getUnreadCountUrl => '$baseUrl$getUnreadCountEndpoint';
+  static String markAsReadUrl(int notificationId) =>
+      '$baseUrl$markAsReadEndpoint/$notificationId/read';
 }

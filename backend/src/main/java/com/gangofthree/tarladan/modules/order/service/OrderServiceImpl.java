@@ -131,6 +131,7 @@ public class OrderServiceImpl implements OrderService {
                 .id(order.getId())
                 .customerName(order.getCustomer().getUser().getName())
                 .productName(order.getProduct().getName())
+                .product_image_path(order.getProduct().getImage_path())
                 .depotName(order.getDepot().getAddress())
                 .truckPlate(order.getShipment().getTruck().getPlate())
                 .locFrom(order.getShipment().getLocFrom())

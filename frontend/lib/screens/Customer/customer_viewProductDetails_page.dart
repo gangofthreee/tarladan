@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'customer_purchaseProduct_page.dart';
 
 import '../../widgets/themed_scaffold.dart';
@@ -14,6 +16,8 @@ class CustomerViewProductDetailsPage extends StatefulWidget {
   final int availableQuantity;
   final double rating;
   final int reviewCount;
+  final double? depotLatitude;
+  final double? depotLongitude;
 
   const CustomerViewProductDetailsPage({
     super.key,
@@ -27,6 +31,8 @@ class CustomerViewProductDetailsPage extends StatefulWidget {
     this.availableQuantity = 500,
     this.rating = 4.8,
     this.reviewCount = 120,
+    this.depotLatitude,
+    this.depotLongitude,
   });
 
   @override
@@ -48,6 +54,8 @@ class _CustomerViewProductDetailsPageState
           price: widget.price,
           unit: widget.unit,
           quantity: 10,
+          depotLatitude: widget.depotLatitude,
+          depotLongitude: widget.depotLongitude,
         ),
       ),
     );
@@ -67,14 +75,6 @@ class _CustomerViewProductDetailsPageState
           'Ürün Detayları',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: () {
-              // Share functionality
-            },
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -84,13 +84,13 @@ class _CustomerViewProductDetailsPageState
             Container(
               width: double.infinity,
               height: 300,
-              color: const Color(0xFFF5E6D3),
+              color: Colors.white,
               child: Image.network(
                 widget.imageUrl,
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
-                    color: const Color(0xFFF5E6D3),
+                    color: Colors.white,
                     child: const Icon(
                       Icons.image_not_supported,
                       size: 100,
@@ -199,16 +199,6 @@ class _CustomerViewProductDetailsPageState
                   ),
                   child: Row(
                     children: [
-                      // Avatar
-                      CircleAvatar(
-                        radius: 30,
-                        child: const Icon(
-                          Icons.person,
-                          size: 35,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
                       // Seller Info
                       Expanded(
                         child: Column(
@@ -278,39 +268,73 @@ class _CustomerViewProductDetailsPageState
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Stack(
-                    children: [
-                      // Placeholder for map
-                      Container(
-                        color: Colors.grey[200],
-                        child: Center(
-                          child: Icon(
-                            Icons.map,
-                            size: 60,
-                            color: Colors.grey[400],
-                          ),
-                        ),
-                      ),
-                      // "Google Maps would be here" text
-                      Center(
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.9),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Text(
-                            'Harita Görünümü',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
+                  child:
+                      widget.depotLatitude != null &&
+                          widget.depotLongitude != null
+                      ? FlutterMap(
+                          options: MapOptions(
+                            initialCenter: LatLng(
+                              widget.depotLatitude!,
+                              widget.depotLongitude!,
                             ),
+                            initialZoom: 13.0,
                           ),
+                          children: [
+                            TileLayer(
+                              urlTemplate:
+                                  'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                              userAgentPackageName: 'com.gangofthree.tarladan',
+                            ),
+                            MarkerLayer(
+                              markers: [
+                                Marker(
+                                  point: LatLng(
+                                    widget.depotLatitude!,
+                                    widget.depotLongitude!,
+                                  ),
+                                  width: 40,
+                                  height: 40,
+                                  child: const Icon(
+                                    Icons.location_on,
+                                    color: Colors.red,
+                                    size: 40,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        )
+                      : Stack(
+                          children: [
+                            Container(
+                              color: Colors.grey[200],
+                              child: Center(
+                                child: Icon(
+                                  Icons.map,
+                                  size: 60,
+                                  color: Colors.grey[400],
+                                ),
+                              ),
+                            ),
+                            Center(
+                              child: Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.9),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Text(
+                                  'Konum bilgisi mevcut değil',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
                 ),
               ),
             ),

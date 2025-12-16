@@ -16,7 +16,7 @@ class GoogleRegisterScreen extends StatefulWidget {
 
 class _GoogleRegisterScreenState extends State<GoogleRegisterScreen> {
   final TextEditingController _phoneController = TextEditingController(
-    text: '0',
+    text: '0 5',
   );
   String? _selectedRole;
   bool _isLoading = false;
@@ -34,14 +34,15 @@ class _GoogleRegisterScreenState extends State<GoogleRegisterScreen> {
       return;
     }
 
-    if (_phoneController.text.isEmpty || _phoneController.text == '0') {
+    if (_phoneController.text.isEmpty ||
+        _phoneController.text.replaceAll(' ', '').length <= 2) {
       _showError('Lütfen telefon numaranızı girin');
       return;
     }
 
     final phone = _phoneController.text.replaceAll(' ', '');
-    if (phone.length != 10) {
-      _showError('Telefon numarası 10 haneli olmalıdır');
+    if (phone.length != 11) {
+      _showError('Telefon numarası 11 haneli olmalıdır (0 5XX XXX XX XX)');
       return;
     }
 
@@ -226,20 +227,20 @@ class _GoogleRegisterScreenState extends State<GoogleRegisterScreen> {
                   TextField(
                     controller: _phoneController,
                     keyboardType: TextInputType.phone,
-                    maxLength: 14, // 0 XXX XXX XX XX = 14 karakter
+                    maxLength:
+                        17, // 0 5XX XXX XX XX = 17 karakter (boşluklarla)
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
                       _PhoneNumberFormatter(),
-                      LengthLimitingTextInputFormatter(10),
                     ],
                     decoration: InputDecoration(
-                      hintText: '0 XXX XXX XX XX',
+                      hintText: '0 5XX XXX XX XX',
                       hintStyle: const TextStyle(
                         color: Color(0xFFD1D5DB),
                         fontSize: 16,
                       ),
                       counterText:
-                          '${_phoneController.text.replaceAll(' ', '').length}/10',
+                          '${_phoneController.text.replaceAll(' ', '').length}/11',
                       counterStyle: const TextStyle(
                         fontSize: 12,
                         color: Color(0xFF6B7280),
@@ -311,7 +312,7 @@ class _GoogleRegisterScreenState extends State<GoogleRegisterScreen> {
 }
 
 /// Türkiye telefon numarası formatter'ı
-/// Format: 05XX XXX XX XX
+/// Format: 0 5XX XXX XX XX
 class _PhoneNumberFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
@@ -320,21 +321,21 @@ class _PhoneNumberFormatter extends TextInputFormatter {
   ) {
     final text = newValue.text.replaceAll(' ', '');
 
-    // Eğer boşsa 0 koy
-    if (text.isEmpty) {
+    // Minimum '0 5' olmalı
+    if (text.length < 2) {
       return const TextEditingValue(
-        text: '0',
-        selection: TextSelection.collapsed(offset: 1),
+        text: '0 5',
+        selection: TextSelection.collapsed(offset: 3),
       );
     }
 
-    // 0 ile başlamalı
-    if (!text.startsWith('0')) {
+    // '0 5' ile başlamalı
+    if (!text.startsWith('05')) {
       return oldValue;
     }
 
-    // Maksimum 10 rakam
-    if (text.length > 10) {
+    // Maksimum 11 rakam
+    if (text.length > 11) {
       return oldValue;
     }
 
@@ -343,16 +344,20 @@ class _PhoneNumberFormatter extends TextInputFormatter {
     for (int i = 0; i < text.length; i++) {
       buffer.write(text[i]);
 
-      // 1. rakamdan sonra boşluk (0 XXX)
+      // 1. rakamdan sonra boşluk (0 5XX)
       if (i == 0 && text.length > 1) {
         buffer.write(' ');
       }
-      // 4. rakamdan sonra boşluk (0 XXX XXX)
+      // 4. rakamdan sonra boşluk (0 5XX XXX)
       else if (i == 3 && text.length > 4) {
         buffer.write(' ');
       }
-      // 7. rakamdan sonra boşluk (0 XXX XXX XX)
+      // 7. rakamdan sonra boşluk (0 5XX XXX XX)
       else if (i == 6 && text.length > 7) {
+        buffer.write(' ');
+      }
+      // 9. rakamdan sonra boşluk (0 5XX XXX XX XX)
+      else if (i == 8 && text.length > 9) {
         buffer.write(' ');
       }
     }

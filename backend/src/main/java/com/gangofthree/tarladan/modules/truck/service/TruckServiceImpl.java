@@ -29,14 +29,22 @@ public class TruckServiceImpl implements TruckService {
     private static final String UPLOAD_DIR = "/app/uploads/truckPhotos/";
 
     private TruckResponse mapToResponse(Truck truck) {
+        String truckerName = null;
+        if (truck.getTrucker() != null && truck.getTrucker().getUser() != null) {
+            String name = truck.getTrucker().getUser().getName();
+            String surname = truck.getTrucker().getUser().getSurname();
+            truckerName = (name != null ? name : "") + " " + (surname != null ? surname : "");
+            truckerName = truckerName.trim();
+        }
+        
         return TruckResponse.builder()
                 .id(truck.getId())
                 .vehicle(truck.getVehicle())
                 .capacityTon(truck.getCapacityTon()) 
                 .imageUrl(truck.getImageUrl())
                 .plate_number(truck.getPlate())
-//                .basePrice(truck.getBasePrice())
                 .truckerId(truck.getTrucker() != null ? truck.getTrucker().getId() : null)
+                .trucker_name(truckerName)
                 .build();
     }
 

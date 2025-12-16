@@ -32,6 +32,14 @@ public class ProductServiceImpl implements ProductService {
 
     // --- Yardımcı Metot: Entity -> DTO Dönüşümü ---
     private ProductResponse mapToResponse(Product product) {
+        String farmerName = null;
+        if (product.getFarmer() != null && product.getFarmer().getUser() != null) {
+            String name = product.getFarmer().getUser().getName();
+            String surname = product.getFarmer().getUser().getSurname();
+            farmerName = (name != null ? name : "") + " " + (surname != null ? surname : "");
+            farmerName = farmerName.trim();
+        }
+        
         return ProductResponse.builder()
                 .id(product.getId())
                 .name(product.getName())
@@ -41,6 +49,7 @@ public class ProductServiceImpl implements ProductService {
                 .image_path(product.getImage_path())
                 .depot_id(product.getDepot() != null ? product.getDepot().getId() : null)
                 .farmer_id(product.getFarmer() != null ? product.getFarmer().getId() : null)
+                .farmer_name(farmerName)
                 .depot_latitude(product.getDepot() != null ? product.getDepot().getLatitude() : null)
                 .depot_longitude(product.getDepot() != null ? product.getDepot().getLongitude() : null)
                 .build();

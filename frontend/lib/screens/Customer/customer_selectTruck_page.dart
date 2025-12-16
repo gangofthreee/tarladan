@@ -49,13 +49,13 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
             return {
               'id': truck['id'].toString(),
               'truckId': truck['id'],
-              'driverName': truck['trucker']?['user']?['name'] ?? 'Bilinmiyor',
-              'driverSurname': truck['trucker']?['user']?['surname'] ?? '',
+              'driverName': truck['trucker_name'] ?? 'Bilinmiyor',
+              'driverSurname': '',
               'brand': truck['vehicle'] ?? 'Araç Bilgisi Yok',
               'capacity': truck['capacityTon'] ?? 0,
-              'rating': truck['basePrice']?.toDouble() ?? 0.0,
-              'priceUnit': '₺',
-              'plate': truck['plate'] ?? '',
+              'basePrice': 0.0,
+              'priceUnit': '₺/km',
+              'plate': truck['plate_number'] ?? '',
               'icon': '🚛',
             };
           }).toList();
@@ -80,13 +80,18 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
       return;
     }
 
-    // Find selected truck and return its actual ID
+    // Find selected truck and return its info
     final selectedTruck = trucks.firstWhere(
       (truck) => truck['id'] == _selectedTruckId,
     );
 
-    // Return actual truck ID from database
-    Navigator.pop(context, selectedTruck['truckId']);
+    // Return truck data
+    Navigator.pop(context, {
+      'truckId': selectedTruck['truckId'],
+      'truckerName': selectedTruck['driverName'],
+      'vehicle': selectedTruck['brand'],
+      'plate': selectedTruck['plate'],
+    });
   }
 
   @override
@@ -335,29 +340,40 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '${truck['brand']} - ${truck['plate']}',
                     style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'Kapasite: ${truck['capacity']} ton',
                     style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
                       const Icon(
                         Icons.attach_money,
                         color: Color(0xFF4CAF50),
-                        size: 18,
+                        size: 16,
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Taban Fiyat: ${truck['rating']} ${truck['priceUnit']}',
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      const SizedBox(width: 2),
+                      Flexible(
+                        child: Text(
+                          '${truck['basePrice']} ${truck['priceUnit']}',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[600],
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ],
                   ),
@@ -365,9 +381,11 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
               ),
             ),
 
+            const SizedBox(width: 8),
+
             // Select Button
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: isSelected
                     ? const Color(0xFF4CAF50)

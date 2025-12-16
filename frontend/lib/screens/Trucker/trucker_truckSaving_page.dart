@@ -87,10 +87,17 @@ class _TruckerTruckSavingPageState extends State<TruckerTruckSavingPage> {
         Navigator.pop(context, true);
       }
     } catch (e) {
-      if (mounted)
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Kayıt hatası: $e')));
+      if (mounted) {
+        // Exception mesajından "Exception: " kısmını temizle
+        String errorMessage = e.toString().replaceFirst('Exception: ', '');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

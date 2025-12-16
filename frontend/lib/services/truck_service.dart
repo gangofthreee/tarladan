@@ -106,7 +106,7 @@ class TruckService {
     required XFile photoFile,
     required Uint8List photoBytes,
   }) async {
-    return VehicleService.createVehicle(
+    final response = await VehicleService.createVehicle(
       endpoint: ApiConfig.createTruckUrl,
       fields: {
         'vehicle': vehicle,
@@ -117,6 +117,13 @@ class TruckService {
       photoFile: photoFile,
       photoBytes: photoBytes,
     );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      final errorBody = jsonDecode(response.body);
+      throw Exception(errorBody['error'] ?? 'Araç kaydedilemedi');
+    }
+
+    return response;
   }
 
   static Future<http.Response> updateTruck({
@@ -128,7 +135,7 @@ class TruckService {
     XFile? photoFile,
     Uint8List? photoBytes,
   }) async {
-    return VehicleService.updateVehicle(
+    final response = await VehicleService.updateVehicle(
       endpoint: ApiConfig.updateTruckUrl(truckId),
       fields: {
         'vehicle': vehicle,
@@ -139,6 +146,13 @@ class TruckService {
       photoFile: photoFile,
       photoBytes: photoBytes,
     );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      final errorBody = jsonDecode(response.body);
+      throw Exception(errorBody['error'] ?? 'Araç güncellenemedi');
+    }
+
+    return response;
   }
 
   /// Trucker'a ait tüm truck'ları getir

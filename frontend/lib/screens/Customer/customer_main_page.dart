@@ -8,6 +8,7 @@ import '../../services/user_service.dart';
 import '../../services/token_service.dart';
 import '../../config/api_config.dart';
 import '../../widgets/themed_scaffold.dart';
+import '../../widgets/notification_button.dart';
 
 class CustomerMainPage extends StatefulWidget {
   const CustomerMainPage({super.key});
@@ -147,48 +148,55 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
                       ),
                     ],
                   ),
-                  // Sepet ikonu
-                  Stack(
+                  Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.grey[800]
-                              : Colors.grey[100],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          Icons.shopping_cart_outlined,
-                          size: 28,
-                          color: Theme.of(context).textTheme.bodyLarge?.color,
-                        ),
-                      ),
-                      if (_cartItemCount > 0)
-                        Positioned(
-                          right: 0,
-                          top: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF4CAF50),
-                              shape: BoxShape.circle,
+                      // Bildirim butonu
+                      const NotificationButton(),
+                      const SizedBox(width: 8),
+                      // Sepet ikonu
+                      Stack(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey[800]
+                                  : Colors.grey[100],
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            constraints: const BoxConstraints(
-                              minWidth: 20,
-                              minHeight: 20,
-                            ),
-                            child: Text(
-                              '$_cartItemCount',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.center,
+                            child: Icon(
+                              Icons.shopping_cart_outlined,
+                              size: 28,
+                              color: Theme.of(context).textTheme.bodyLarge?.color,
                             ),
                           ),
-                        ),
+                          if (_cartItemCount > 0)
+                            Positioned(
+                              right: 0,
+                              top: 0,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF4CAF50),
+                                  shape: BoxShape.circle,
+                                ),
+                                constraints: const BoxConstraints(
+                                  minWidth: 20,
+                                  minHeight: 20,
+                                ),
+                                child: Text(
+                                  '$_cartItemCount',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
                     ],
                   ),
                 ],

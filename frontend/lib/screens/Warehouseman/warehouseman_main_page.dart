@@ -5,6 +5,7 @@ import 'warehouseman_settings_page.dart';
 import '../../services/user_service.dart';
 
 import '../../widgets/themed_scaffold.dart';
+import '../../widgets/notification_button.dart';
 
 class WarehousemanMainPage extends StatefulWidget {
   const WarehousemanMainPage({super.key});
@@ -66,8 +67,8 @@ class _WarehousemanMainPageState extends State<WarehousemanMainPage> {
             Container(
               padding: const EdgeInsets.all(20),
               color: Theme.of(context).cardColor,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     'Tarladan',
@@ -77,6 +78,7 @@ class _WarehousemanMainPageState extends State<WarehousemanMainPage> {
                       color: Theme.of(context).textTheme.bodyLarge?.color,
                     ),
                   ),
+                  const NotificationButton(),
                 ],
               ),
             ),

@@ -4,6 +4,12 @@ import 'dart:convert';
 class GeocodingService {
   // OpenStreetMap Nominatim API (ücretsiz)
   static const String _nominatimBaseUrl = 'https://nominatim.openstreetmap.org';
+  static final Map<String, String> _cache = {};
+
+  /// Önbelleği temizler (Örn: Çıkış yaparken kullanılabilir)
+  static void clearCache() {
+    _cache.clear();
+  }
 
   /// Reverse Geocoding: Koordinatları adrese çevirir
   ///
@@ -69,6 +75,9 @@ class GeocodingService {
     double latitude,
     double longitude,
   ) async {
+    final key = '$latitude,$longitude';
+    if (_cache.containsKey(key)) return _cache[key]!;
+
     try {
       final url = Uri.parse(
         '$_nominatimBaseUrl/reverse?format=json&lat=$latitude&lon=$longitude&zoom=18&addressdetails=1',
@@ -96,13 +105,19 @@ class GeocodingService {
           String? city =
               address['city'] ?? address['state'] ?? address['province'];
 
+          String result = 'Konum bilgisi yok';
           if (district != null && city != null) {
-            return '$district, $city';
+            result = '$district, $city';
           } else if (city != null) {
-            return city;
+            result = city;
           } else if (district != null) {
-            return district;
+            result = district;
           }
+          
+          if (result != 'Konum bilgisi yok') {
+             _cache[key] = result;
+          }
+          return result;
         }
 
         return 'Konum bilgisi yok';

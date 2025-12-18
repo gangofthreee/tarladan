@@ -6,6 +6,6 @@ class TruckerSettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const BaseSettingsWidget(primaryColor: Color(0xFF4CAF50));
+    return BaseSettingsWidget(primaryColor: const Color(0xFF4CAF50));
   }
 }

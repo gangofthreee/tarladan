@@ -165,12 +165,12 @@ class _CustomerViewOrderDetailPageState
           // Sipariş Özeti
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: const Text(
+            child: Text(
               'Sipariş Özeti',
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
               ),
             ),
           ),
@@ -183,11 +183,13 @@ class _CustomerViewOrderDetailPageState
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFF1E1E1E)
+                    : Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
+                    color: Colors.black.withOpacity(0.1),
                     spreadRadius: 1,
                     blurRadius: 5,
                     offset: const Offset(0, 2),
@@ -201,7 +203,9 @@ class _CustomerViewOrderDetailPageState
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: Colors.grey[200],
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.grey[800]
+                          : Colors.grey[200],
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: ClipRRect(
@@ -230,10 +234,10 @@ class _CustomerViewOrderDetailPageState
                       children: [
                         Text(
                           productName,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            color: Theme.of(context).textTheme.bodyLarge?.color,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -241,7 +245,7 @@ class _CustomerViewOrderDetailPageState
                           '${quantityKg}kg',
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.grey[600],
+                            color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -269,11 +273,13 @@ class _CustomerViewOrderDetailPageState
             child: Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFF1E1E1E)
+                    : Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
+                    color: Colors.black.withOpacity(0.1),
                     spreadRadius: 1,
                     blurRadius: 5,
                     offset: const Offset(0, 2),
@@ -283,12 +289,12 @@ class _CustomerViewOrderDetailPageState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'Sipariş Detayları',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -334,7 +340,10 @@ class _CustomerViewOrderDetailPageState
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+          Text(label,
+              style: TextStyle(
+                  fontSize: 14,
+                  color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7))),
           const SizedBox(width: 8),
           Flexible(
             child: Text(
@@ -350,8 +359,8 @@ class _CustomerViewOrderDetailPageState
                 color: isHighlight
                     ? const Color(0xFF4CAF50)
                     : isStatus
-                    ? _getStatusColor(value)
-                    : Colors.black87,
+                        ? _getStatusColor(value)
+                        : Theme.of(context).textTheme.bodyLarge?.color,
               ),
             ),
           ),

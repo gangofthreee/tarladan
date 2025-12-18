@@ -17,7 +17,7 @@ class CustomerPurchaseProductPage extends StatefulWidget {
   final String imageUrl;
   final double price;
   final String unit;
-  final int quantity;
+  final int availableQuantity;
   final double? depotLatitude;
   final double? depotLongitude;
 
@@ -29,7 +29,7 @@ class CustomerPurchaseProductPage extends StatefulWidget {
     required this.imageUrl,
     required this.price,
     required this.unit,
-    this.quantity = 10,
+    required this.availableQuantity,
     this.depotLatitude,
     this.depotLongitude,
   });
@@ -49,6 +49,8 @@ class _CustomerPurchaseProductPageState
   String? _selectedTruckVehicle;
   String? _selectedTruckPlate;
 
+
+  final _quantityController = TextEditingController(text: '1');
   final _licensePlateController = TextEditingController();
   final _capacityController = TextEditingController();
   final _modelController = TextEditingController();
@@ -58,6 +60,9 @@ class _CustomerPurchaseProductPageState
   @override
   void initState() {
     super.initState();
+    _quantityController.addListener(() {
+      setState(() {}); // Rebuild to update total price
+    });
     if (widget.depotLatitude != null && widget.depotLongitude != null) {
       _getDepotAddress();
     }
@@ -128,7 +133,22 @@ class _CustomerPurchaseProductPageState
   }
 
   Future<void> _handleBuyAndPay() async {
-    // Validation
+    // Quantity Validation
+    final quantity = double.tryParse(_quantityController.text) ?? 0;
+    if (quantity <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Lütfen geçerli bir miktar giriniz (0\'dan büyük)')),
+      );
+      return;
+    }
+
+    if (quantity > widget.availableQuantity) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Girilen miktar stoktan fazla! (Max: ${widget.availableQuantity} kg)')),
+      );
+      return;
+    }
+
     if (_locFromController.text.isEmpty || _locToController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -156,7 +176,7 @@ class _CustomerPurchaseProductPageState
         'truckId': _selectedTruckId ?? 1,
         'locFrom': _locFromController.text,
         'locTo': _locToController.text,
-        'quantityKg': widget.quantity,
+        'quantityKg': quantity,
       };
 
       print('📦 Order Data: $orderData');
@@ -212,7 +232,8 @@ class _CustomerPurchaseProductPageState
 
   @override
   Widget build(BuildContext context) {
-    final totalPrice = widget.price * widget.quantity;
+    final double quantity = double.tryParse(_quantityController.text) ?? 0;
+    final totalPrice = widget.price * quantity;
 
     return ThemedScaffold(
       appBar: ThemedAppBar(
@@ -234,12 +255,12 @@ class _CustomerPurchaseProductPageState
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Order Summary
-              const Text(
+              Text(
                 'Sipariş Özeti',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
                 ),
               ),
 
@@ -249,11 +270,13 @@ class _CustomerPurchaseProductPageState
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF1E1E1E)
+                      : Colors.white,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
+                      color: Colors.black.withOpacity(0.1),
                       spreadRadius: 1,
                       blurRadius: 5,
                       offset: const Offset(0, 2),
@@ -268,23 +291,70 @@ class _CustomerPurchaseProductPageState
                         children: [
                           Text(
                             widget.productName,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: Colors.black87,
+                              color: Theme.of(context).textTheme.bodyLarge?.color,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Miktar: ${widget.quantity} kg',
+                            'Birim Fiyat: ${widget.price} ₺/kg',
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.grey[600],
+                              color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
                             ),
                           ),
-                          const SizedBox(height: 8),
                           Text(
-                            '\$${totalPrice.toStringAsFixed(2)}',
+                            'Stok: ${widget.availableQuantity} kg',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Miktar',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  SizedBox(
+                                    width: 100, // Fixed width for better layout
+                                    child: TextField(
+                                      controller: _quantityController,
+                                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                      style: TextStyle(
+                                        color: Theme.of(context).textTheme.bodyLarge?.color,
+                                      ),
+                                      decoration: InputDecoration(
+                                        suffixText: 'kg',
+                                        filled: true,
+                                        fillColor: Theme.of(context).brightness == Brightness.dark
+                                            ? const Color(0xFF2C2C2C)
+                                            : Colors.grey[100],
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                          borderSide: BorderSide.none,
+                                        ),
+                                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Toplam: \$${totalPrice.toStringAsFixed(2)}',
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -324,12 +394,12 @@ class _CustomerPurchaseProductPageState
               const SizedBox(height: 30),
 
               // Logistics Section
-              const Text(
+              Text(
                 'Lojistik',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
                 ),
               ),
 
@@ -487,12 +557,12 @@ class _CustomerPurchaseProductPageState
               const SizedBox(height: 30),
 
               // Payment Section
-              const Text(
+              Text(
                 'Ödeme',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
                 ),
               ),
 
@@ -563,7 +633,9 @@ class _CustomerPurchaseProductPageState
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFF1E1E1E) 
+              : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: value == groupValue
@@ -606,8 +678,8 @@ class _CustomerPurchaseProductPageState
                 style: TextStyle(
                   fontSize: 16,
                   color: value == groupValue
-                      ? Colors.black87
-                      : Colors.grey[600],
+                      ? Theme.of(context).textTheme.bodyLarge?.color
+                      : Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6),
                   fontWeight: value == groupValue
                       ? FontWeight.w600
                       : FontWeight.normal,
@@ -634,35 +706,43 @@ class _CustomerPurchaseProductPageState
           label,
           style: TextStyle(
             fontSize: 14,
-            color: Colors.grey[600],
+            color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
             fontWeight: FontWeight.w500,
           ),
         ),
         const SizedBox(height: 8),
-        TextField(
-          controller: controller,
-          keyboardType: keyboardType,
-          readOnly: readOnly,
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: TextStyle(color: Colors.grey[400]),
-            filled: true,
-            fillColor: Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey[300]!),
+        IgnorePointer(
+          ignoring: readOnly,
+          child: TextField(
+            controller: controller,
+            keyboardType: keyboardType,
+            readOnly: readOnly,
+            style: TextStyle(
+              color: Theme.of(context).textTheme.bodyLarge?.color,
             ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey[300]!),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF4CAF50), width: 2),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: TextStyle(color: Colors.grey[400]),
+              filled: true,
+              fillColor: Theme.of(context).brightness == Brightness.dark
+                  ? const Color(0xFF1E1E1E)
+                  : Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey[300]!),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey[300]!),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFF4CAF50), width: 2),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
             ),
           ),
         ),

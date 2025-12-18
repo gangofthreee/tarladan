@@ -185,10 +185,10 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).cardColor,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.2),
+                    color: Colors.black.withOpacity(0.1),
                     spreadRadius: 1,
                     blurRadius: 10,
                     offset: const Offset(0, -3),
@@ -220,10 +220,10 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
                       children: [
                         Text(
                           '${selectedTruck['driverName']} ${selectedTruck['driverSurname']}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            color: Theme.of(context).textTheme.bodyLarge?.color,
                           ),
                         ),
                         Text(
@@ -291,7 +291,9 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFF1E1E1E)
+              : Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected ? const Color(0xFF4CAF50) : Colors.transparent,
@@ -299,7 +301,7 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: Colors.black.withOpacity(0.1),
               spreadRadius: 1,
               blurRadius: 5,
               offset: const Offset(0, 2),
@@ -315,7 +317,9 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
               decoration: BoxDecoration(
                 color: isSelected
                     ? const Color(0xFF4CAF50).withOpacity(0.1)
-                    : Colors.grey[200],
+                    : Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey[800]
+                        : Colors.grey[200],
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Center(
@@ -335,10 +339,10 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
                 children: [
                   Text(
                     '${truck['driverName']} ${truck['driverSurname']}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -346,14 +350,18 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
                   const SizedBox(height: 4),
                   Text(
                     '${truck['brand']} - ${truck['plate']}',
-                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    style: TextStyle(
+                        fontSize: 14,
+                        color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7)),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'Kapasite: ${truck['capacity']} ton',
-                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    style: TextStyle(
+                        fontSize: 14,
+                        color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7)),
                   ),
                   const SizedBox(height: 6),
                   Row(

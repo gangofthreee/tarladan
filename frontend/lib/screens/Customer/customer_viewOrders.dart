@@ -89,6 +89,8 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage>
           _orders = ordersJson
               .map((order) => order as Map<String, dynamic>)
               .toList();
+          // Sort by id descending (newest first)
+          _orders.sort((a, b) => (b['id'] ?? 0).compareTo(a['id'] ?? 0));
           _isLoading = false;
         });
       } else {
@@ -132,7 +134,7 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage>
         children: [
           // Tab Bar
           Container(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             child: TabBar(
               controller: _tabController,
               indicatorColor: const Color(0xFF4CAF50),
@@ -147,9 +149,19 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage>
                 fontSize: 16,
                 fontWeight: FontWeight.normal,
               ),
-              tabs: const [
-                Tab(text: 'Aktif Siparişler'),
-                Tab(text: 'Geçmiş Siparişler'),
+              tabs: [
+                Tab(
+                  height: 50,
+                  child: Center(
+                    child: Text('Aktif Siparişler'),
+                  ),
+                ),
+                Tab(
+                  height: 50,
+                  child: Center(
+                    child: Text('Geçmiş Siparişler'),
+                  ),
+                ),
               ],
             ),
           ),
@@ -256,11 +268,13 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage>
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFF1E1E1E)
+              : Colors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: Colors.black.withOpacity(0.1),
               spreadRadius: 1,
               blurRadius: 5,
               offset: const Offset(0, 2),
@@ -277,7 +291,9 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage>
               child: Container(
                 width: 120,
                 height: 160,
-                color: Colors.grey[200],
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.grey[800]
+                    : Colors.grey[200],
                 child: Image.network(
                   imageUrl,
                   fit: BoxFit.cover,
@@ -304,10 +320,10 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage>
                   children: [
                     Text(
                       '$productName $quantity',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                        color: Theme.of(context).textTheme.bodyLarge?.color,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -317,7 +333,7 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage>
                           'Toplam: ',
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.grey[600],
+                            color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
                           ),
                         ),
                         Text(
@@ -344,7 +360,7 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage>
                             '$locFrom → $locTo',
                             style: TextStyle(
                               fontSize: 13,
-                              color: Colors.grey[700],
+                              color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),

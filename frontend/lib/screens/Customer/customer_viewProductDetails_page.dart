@@ -53,7 +53,7 @@ class _CustomerViewProductDetailsPageState
           imageUrl: widget.imageUrl,
           price: widget.price,
           unit: widget.unit,
-          quantity: 10,
+          availableQuantity: widget.availableQuantity,
           depotLatitude: widget.depotLatitude,
           depotLongitude: widget.depotLongitude,
         ),
@@ -84,17 +84,21 @@ class _CustomerViewProductDetailsPageState
             Container(
               width: double.infinity,
               height: 300,
-              color: Colors.white,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? const Color(0xFF1E1E1E)
+                  : Colors.white,
               child: Image.network(
                 widget.imageUrl,
                 fit: BoxFit.contain,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
-                    color: Colors.white,
-                    child: const Icon(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xFF1E1E1E)
+                        : Colors.white,
+                    child: Icon(
                       Icons.image_not_supported,
                       size: 100,
-                      color: Colors.grey,
+                      color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.5),
                     ),
                   );
                 },
@@ -111,10 +115,10 @@ class _CustomerViewProductDetailsPageState
                 children: [
                   Text(
                     widget.productName,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -143,9 +147,14 @@ class _CustomerViewProductDetailsPageState
                 ),
                 child: Row(
                   children: [
-                    const Text(
+                    Text(
                       'Mevcut Miktar: ',
-                      style: TextStyle(fontSize: 16, color: Colors.black87),
+                      style: TextStyle(
+                        fontSize: 16, 
+                        color: Theme.of(context).brightness == Brightness.dark
+                             ? Colors.black87
+                             : Colors.black87,
+                      ),
                     ),
                     Text(
                       '${widget.availableQuantity} kg',
@@ -165,12 +174,12 @@ class _CustomerViewProductDetailsPageState
             // Seller Information
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: const Text(
+              child: Text(
                 'Satıcı Bilgileri',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
                 ),
               ),
             ),
@@ -186,11 +195,13 @@ class _CustomerViewProductDetailsPageState
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xFF1E1E1E)
+                        : Colors.white,
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
+                        color: Colors.black.withOpacity(0.1),
                         spreadRadius: 1,
                         blurRadius: 5,
                         offset: const Offset(0, 2),
@@ -206,10 +217,10 @@ class _CustomerViewProductDetailsPageState
                           children: [
                             Text(
                               widget.farmerName,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.black87,
+                                color: Theme.of(context).textTheme.bodyLarge?.color,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -225,7 +236,7 @@ class _CustomerViewProductDetailsPageState
                                   '${widget.rating} (${widget.reviewCount} değerlendirme)',
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: Colors.grey[600],
+                                    color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
                                   ),
                                 ),
                               ],
@@ -245,12 +256,12 @@ class _CustomerViewProductDetailsPageState
             // Warehouse Location
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: const Text(
+              child: Text(
                 'Depo Konumu',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
                 ),
               ),
             ),

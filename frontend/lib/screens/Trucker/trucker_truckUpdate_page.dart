@@ -15,7 +15,6 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
   late TextEditingController _brandModelController;
   late TextEditingController _plateController;
   late TextEditingController _capacityController;
-  late TextEditingController _priceController;
   bool _isLoading = false;
 
   @override
@@ -28,9 +27,6 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
     _capacityController = TextEditingController(
       text: widget.truck['trailerCapacity']?.toString() ?? '',
     );
-    _priceController = TextEditingController(
-      text: widget.truck['basePrice']?.toString() ?? '',
-    );
   }
 
   @override
@@ -38,7 +34,6 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
     _brandModelController.dispose();
     _plateController.dispose();
     _capacityController.dispose();
-    _priceController.dispose();
     super.dispose();
   }
 
@@ -52,7 +47,7 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
         vehicle: _brandModelController.text,
         capacityTon: _capacityController.text,
         plate: _plateController.text,
-        basePrice: _priceController.text,
+
       );
       if (mounted) {
         ScaffoldMessenger.of(
@@ -91,7 +86,6 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
                     brandModelController: _brandModelController,
                     plateController: _plateController,
                     capacityController: _capacityController,
-                    priceController: _priceController,
                   ),
                   const SizedBox(height: 30),
                   Row(

@@ -9,7 +9,6 @@ class TruckerTruckForm extends StatelessWidget {
   final TextEditingController brandModelController;
   final TextEditingController plateController;
   final TextEditingController capacityController;
-  final TextEditingController priceController;
 
   const TruckerTruckForm({
     super.key,
@@ -17,7 +16,6 @@ class TruckerTruckForm extends StatelessWidget {
     required this.brandModelController,
     required this.plateController,
     required this.capacityController,
-    required this.priceController,
   });
 
   @override
@@ -82,27 +80,7 @@ class TruckerTruckForm extends StatelessWidget {
               return null;
             },
           ),
-          const SizedBox(height: 20),
-          TruckerSectionHeader(title: 'Taban Fiyat'),
-          const SizedBox(height: 8),
-          TruckerFormField(
-            controller: priceController,
-            hintText: 'Örn. 5 ₺/km',
-            keyboardType: TextInputType.number,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Lütfen taban fiyat giriniz';
-              }
-              final price = double.tryParse(value);
-              if (price == null) {
-                return 'Lütfen geçerli bir sayı giriniz';
-              }
-              if (price <= 0) {
-                return 'Fiyat 0\'dan büyük olmalıdır';
-              }
-              return null;
-            },
-          ),
+
         ],
       ),
     );
@@ -1909,8 +1887,12 @@ class TruckerAdForm extends StatelessWidget {
               if (value == null || value.isEmpty) {
                 return 'Lütfen taban fiyat giriniz';
               }
-              if (double.tryParse(value) == null) {
+              final price = double.tryParse(value);
+              if (price == null) {
                 return 'Lütfen geçerli bir sayı giriniz';
+              }
+              if (price <= 0) {
+                return 'Fiyat 0\'dan büyük olmalıdır';
               }
               return null;
             },

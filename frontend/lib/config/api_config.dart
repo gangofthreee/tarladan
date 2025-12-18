@@ -54,6 +54,7 @@ class ApiConfig {
   static const String getTruckerAdsEndpoint = '/truck/ads/my-ads';
   static const String updateTruckAdEndpoint = '/truck/ads/update';
   static const String deleteTruckAdEndpoint = '/truck/ads/delete';
+  static const String getAvailableTruckAdsEndpoint = '/truck/ads';
 
   // Notification endpoints
   static const String getMyNotificationsEndpoint = '/api/notifications/my-notifications';
@@ -105,6 +106,8 @@ class ApiConfig {
       '$baseUrl$updateTruckAdEndpoint/$adId';
   static String deleteTruckAdUrl(int adId) =>
       '$baseUrl$deleteTruckAdEndpoint/$adId';
+  static String get getAvailableTruckAdsUrl =>
+      '$baseUrl$getAvailableTruckAdsEndpoint';
   
   // Notification URLs
   static String get getMyNotificationsUrl => '$baseUrl$getMyNotificationsEndpoint';

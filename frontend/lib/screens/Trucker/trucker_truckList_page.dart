@@ -29,6 +29,7 @@ class _TruckerTruckListPageState extends State<TruckerTruckListPage> {
     });
     try {
       trucks = await TruckService.getTrucksByTrucker();
+      trucks.sort((a, b) => (b['id'] ?? 0).compareTo(a['id'] ?? 0));
     } catch (e) {
       _errorMessage = e.toString();
     }

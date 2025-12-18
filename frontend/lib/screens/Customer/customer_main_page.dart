@@ -19,7 +19,6 @@ class CustomerMainPage extends StatefulWidget {
 
 class _CustomerMainPageState extends State<CustomerMainPage> {
   int _selectedIndex = 0;
-  int _cartItemCount = 3;
   String _userName = 'Müşteri';
   List<Map<String, dynamic>> products = [];
   bool _isLoading = true;
@@ -82,7 +81,9 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
               'depot_longitude': data['depot_longitude'],
             };
           }).toList();
-          print('✅ Total products after mapping: ${products.length}');
+          // Sort products by ID descending (newest first)
+          products.sort((a, b) => (b['id'] ?? 0).compareTo(a['id'] ?? 0));
+          print('✅ Total products after mapping and sorting: ${products.length}');
         });
       } else {
         print('❌ Failed to load products: ${response.statusCode}');
@@ -95,15 +96,22 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
   }
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-
-    if (index == 1) {
+    if (index == 0) {
+      setState(() {
+        _selectedIndex = 0;
+      });
+    } else if (index == 1) {
       // Navigate to orders page
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const CustomerViewOrdersPage()),
+      );
+    } else if (index == 2) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Geliştirme Aşamasında'),
+          duration: Duration(seconds: 1),
+        ),
       );
     } else if (index == 3) {
       // Navigate to settings page
@@ -150,53 +158,7 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
                   ),
                   Row(
                     children: [
-                      // Bildirim butonu
                       const NotificationButton(),
-                      const SizedBox(width: 8),
-                      // Sepet ikonu
-                      Stack(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).brightness == Brightness.dark
-                                  ? Colors.grey[800]
-                                  : Colors.grey[100],
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(
-                              Icons.shopping_cart_outlined,
-                              size: 28,
-                              color: Theme.of(context).textTheme.bodyLarge?.color,
-                            ),
-                          ),
-                          if (_cartItemCount > 0)
-                            Positioned(
-                              right: 0,
-                              top: 0,
-                              child: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFF4CAF50),
-                                  shape: BoxShape.circle,
-                                ),
-                                constraints: const BoxConstraints(
-                                  minWidth: 20,
-                                  minHeight: 20,
-                                ),
-                                child: Text(
-                                  '$_cartItemCount',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
                     ],
                   ),
                 ],
@@ -208,11 +170,13 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
               padding: const EdgeInsets.all(20),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF1E1E1E)
+                      : Colors.white,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
+                      color: Colors.black.withOpacity(0.1),
                       spreadRadius: 1,
                       blurRadius: 5,
                       offset: const Offset(0, 2),
@@ -220,6 +184,9 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
                   ],
                 ),
                 child: TextField(
+                  style: TextStyle(
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                  ),
                   decoration: InputDecoration(
                     hintText: 'Ürün ara...',
                     hintStyle: TextStyle(color: Colors.grey[400]),
@@ -349,11 +316,13 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? const Color(0xFF1E1E1E)
+              : Colors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: Colors.black.withOpacity(0.1),
               spreadRadius: 1,
               blurRadius: 5,
               offset: const Offset(0, 2),
@@ -398,10 +367,10 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
                 children: [
                   Text(
                     product['name'],
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -409,7 +378,10 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
                   const SizedBox(height: 3),
                   Text(
                     product['farmer'],
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                    ),
                   ),
                   const SizedBox(height: 6),
                   Text(

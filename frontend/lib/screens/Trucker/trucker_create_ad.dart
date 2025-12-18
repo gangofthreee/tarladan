@@ -56,6 +56,7 @@ class _TruckerCreateAdPageState extends State<TruckerCreateAdPage> {
     }
     setState(() => _isLoading = true);
     try {
+      print('Publishing ad with price: ${_priceController.text}');
       final response = await TruckService.createTruckAd(
         truckId: int.parse(_selectedTruck!),
         startDate:

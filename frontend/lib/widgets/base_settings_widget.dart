@@ -5,6 +5,7 @@ import '../screens/User/login_screen.dart';
 import '../screens/User/user_profile_page.dart';
 import '../services/token_service.dart';
 import '../services/session_service.dart';
+import '../services/geocoding_service.dart';
 import 'themed_scaffold.dart';
 
 class BaseSettingsWidget extends StatelessWidget {
@@ -45,6 +46,7 @@ class BaseSettingsWidget extends StatelessWidget {
                 // Clear authentication data
                 await TokenService.clearTokens();
                 SessionService.clearSession();
+                GeocodingService.clearCache();
 
                 if (context.mounted) {
                   Navigator.of(context).pushAndRemoveUntil(

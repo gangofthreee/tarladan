@@ -1,365 +1,110 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import '../../config/api_config.dart';
-import '../../services/token_service.dart';
-import '../../services/geocoding_service.dart';
+import '../../services/depot_service.dart';
 import 'warehouseman_myWarehouseDetail_page.dart';
 import 'warehouseman_settings_page.dart';
-
 import '../../widgets/themed_scaffold.dart';
+import '../../widgets/custom_bottom_navbar.dart';
 
 class WarehousemanMyWarehousePage extends StatefulWidget {
   const WarehousemanMyWarehousePage({super.key});
-
   @override
-  State<WarehousemanMyWarehousePage> createState() =>
-      _WarehousemanMyWarehousePageState();
+  State<WarehousemanMyWarehousePage> createState() => _WarehousemanMyWarehousePageState();
 }
 
-class _WarehousemanMyWarehousePageState
-    extends State<WarehousemanMyWarehousePage> {
-  int _selectedIndex = 0;
-  List<dynamic> _depots = [];
+class _WarehousemanMyWarehousePageState extends State<WarehousemanMyWarehousePage> {
+  int _idx = 0;
+  List<Map<String, dynamic>> _depots = [];
   bool _isLoading = true;
-  String? _errorMessage;
-  Map<int, String> _depotAddresses = {}; // Depo ID -> Adres cache
+  String? _err;
 
   @override
-  void initState() {
-    super.initState();
-    _fetchDepots();
-  }
+  void initState() { super.initState(); _load(); }
 
-  Future<void> _fetchDepots() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
+  Future<void> _load() async {
+    setState(() { _isLoading = true; _err = null; });
     try {
-      final authHeaders = await TokenService.getAuthHeaders();
-      final response = await http.get(
-        Uri.parse(ApiConfig.getDepotsByOwnerUrl),
-        headers: authHeaders,
-      );
-
-      await TokenService.checkAndUpdateToken(response);
-
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
-      if (!mounted) return;
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        setState(() {
-          _depots = data is List ? data : [data];
-          _isLoading = false;
-        });
-        // Load addresses for each depot
-        _loadDepotAddresses();
-      } else {
-        setState(() {
-          _errorMessage = 'Depolar yüklenemedi: ${response.statusCode}';
-          _isLoading = false;
-        });
-      }
+      final depots = await DepotService.fetchMyDepots();
+      if (mounted) setState(() { _depots = depots; _isLoading = false; });
     } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _errorMessage = 'Bağlantı hatası: $e';
-        _isLoading = false;
-      });
+      if (mounted) setState(() { _err = e.toString().replaceAll('Exception: ', ''); _isLoading = false; });
     }
   }
 
-  Future<void> _loadDepotAddresses() async {
-    // Tüm API çağrılarını paralel olarak başlat
-    final futures = _depots.map((depot) async {
-      final depotId = depot['id'] as int;
-      final latitude = depot['latitude'] as double?;
-      final longitude = depot['longitude'] as double?;
-
-      if (latitude != null && longitude != null) {
-        try {
-          // Use new method that directly returns city and district
-          final cityAndDistrict = await GeocodingService.getCityAndDistrict(
-            latitude,
-            longitude,
-          );
-
-          if (mounted) {
-            setState(() {
-              _depotAddresses[depotId] = cityAndDistrict;
-            });
-          }
-        } catch (e) {
-          print('Adres yüklenemedi (Depo $depotId): $e');
-        }
-      }
-    }).toList();
-
-    // Tüm isteklerin tamamlanmasını bekle
-    await Future.wait(futures);
-  }
-
-  void _onItemTapped(int index) {
-    if (index == 0) {
-      Navigator.pop(context);
-    } else if (index == 3) {
-      // Ayarlar sayfasına git
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const WarehousemanSettingsPage(),
-        ),
-      );
-    } else {
-      setState(() {
-        _selectedIndex = index;
-      });
-    }
+  void _nav(int i) {
+    if (i == 0) Navigator.pop(context);
+    else if (i == 3) Navigator.push(context, MaterialPageRoute(builder: (_) => const WarehousemanSettingsPage()));
+    else setState(() => _idx = i);
   }
 
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
-      appBar: ThemedAppBar(
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Depolarım',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-      ),
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFF4CAF50)),
-            )
-          : _errorMessage != null
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
-                  const SizedBox(height: 16),
-                  Text(
-                    _errorMessage!,
-                    style: TextStyle(color: Colors.grey[600], fontSize: 16),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton.icon(
-                    onPressed: _fetchDepots,
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Tekrar Dene'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF4CAF50),
-                    ),
-                  ),
-                ],
-              ),
-            )
-          : _depots.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.warehouse_outlined,
-                    size: 64,
-                    color: Colors.grey[400],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Henüz depo eklemediniz',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 16),
-                  ),
-                ],
-              ),
-            )
-          : RefreshIndicator(
-              onRefresh: _fetchDepots,
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: _depots.length,
-                itemBuilder: (context, index) {
-                  final depot = _depots[index];
-                  return _buildWarehouseCard(depot);
-                },
-              ),
-            ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.2),
-              spreadRadius: 1,
-              blurRadius: 10,
-              offset: const Offset(0, -3),
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          selectedItemColor: const Color(0xFF4CAF50),
-          unselectedItemColor: Colors.grey[400],
-          selectedLabelStyle: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 12,
-          ),
-          unselectedLabelStyle: const TextStyle(fontSize: 12),
-          currentIndex: _selectedIndex,
-          onTap: _onItemTapped,
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Anasayfa'),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.list_alt),
-              label: 'Siparişler',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_today),
-              label: 'Cüzdan',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.settings),
-              label: 'Ayarlar',
-            ),
-          ],
-        ),
-      ),
+      appBar: ThemedAppBar(title: const Text('Depolarım', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)), leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)), centerTitle: true, elevation: 0),
+      body: _isLoading ? const Center(child: CircularProgressIndicator(color: Color(0xFF4CAF50))) : _err != null ? _ErrView(err: _err!, onRetry: _load) : _depots.isEmpty ? const _EmptyView() : RefreshIndicator(onRefresh: _load, child: ListView.builder(padding: const EdgeInsets.all(16), itemCount: _depots.length, itemBuilder: (_, i) => _DepotCard(depot: _depots[i], onUpdate: _load))),
+      bottomNavigationBar: CustomBottomNavBar(currentIndex: _idx, onTap: _nav, items: const [BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Anasayfa'), BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: 'Siparişler'), BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: 'Cüzdan'), BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Ayarlar')]),
     );
   }
+}
 
-  Widget _buildWarehouseCard(Map<String, dynamic> depot) {
-    final int depotId = depot['id'] ?? 0;
-    final String address = _depotAddresses[depotId] ?? 'Adres yükleniyor...';
-    final double sizeM2 = (depot['sizeM2'] ?? 0).toDouble();
-    final double capacityTon = (depot['capacityTon'] ?? 0).toDouble();
-    final double price = (depot['price'] ?? 0).toDouble();
-    final int percentage = 0;
+class _DepotCard extends StatelessWidget {
+  final Map<String, dynamic> depot;
+  final VoidCallback onUpdate;
+  const _DepotCard({required this.depot, required this.onUpdate});
 
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () async {
-        final result = await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                WarehousemanMyWarehouseDetailPage(depotId: depotId),
-          ),
-        );
-        // Eğer güncelleme yapıldıysa listeyi yenile
-        if (result == true) {
-          _fetchDepots();
-        }
+        if (await Navigator.push(context, MaterialPageRoute(builder: (_) => WarehousemanMyWarehouseDetailPage(depotId: depot['id']))) == true) onUpdate();
       },
       child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Theme.of(context).brightness == Brightness.dark
-              ? Colors.grey[850]
-              : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              spreadRadius: 1,
-              blurRadius: 5,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
+        margin: const EdgeInsets.only(bottom: 16), padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), spreadRadius: 1, blurRadius: 5, offset: const Offset(0, 2))]),
         child: Row(
           children: [
-            // Avatar/Image
-            Container(
-              width: 70,
-              height: 70,
-              decoration: BoxDecoration(
-                color: Colors.grey[800],
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(Icons.warehouse, size: 40, color: Colors.white),
-            ),
-
+            Container(width: 70, height: 70, decoration: BoxDecoration(color: Colors.grey[800], borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.warehouse, size: 40, color: Colors.white)),
             const SizedBox(width: 16),
-
-            // Warehouse Info
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          address,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color:
-                                Theme.of(context).brightness == Brightness.dark
-                                ? Colors.white
-                                : Colors.black87,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      Text(
-                        '$percentage%',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF4CAF50),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  Text(
-                    'Kapasite: ${capacityTon.toStringAsFixed(0)} ton',
-                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                  ),
-
-                  Text(
-                    'Alan: ${sizeM2.toStringAsFixed(0)} m²',
-                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                  ),
-
-                  Text(
-                    'Fiyat: ${price.toStringAsFixed(2)} ₺',
-                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Progress Bar
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: LinearProgressIndicator(
-                      value: percentage / 100,
-                      valueColor: const AlwaysStoppedAnimation<Color>(
-                        Color(0xFF4CAF50),
-                      ),
-                      minHeight: 8,
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                  Expanded(
+                    child: FutureBuilder<String>(
+                      future: (depot['latitude'] != null && depot['longitude'] != null) 
+                          ? DepotService.getAddress(depot['latitude'], depot['longitude']) 
+                          : Future.value('Konum bilgisi yok'),
+                      builder: (context, snapshot) {
+                        return Text(
+                          snapshot.data ?? 'Adres yükleniyor...',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color),
+                          maxLines: 2, overflow: TextOverflow.ellipsis
+                        );
+                      }
                     ),
                   ),
-                ],
-              ),
+                  const Text('0%', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF4CAF50))),
+                ]),
+                const SizedBox(height: 8),
+                Text('Kapasite: ${depot['capacityTon']} ton', style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+                Text('Alan: ${depot['sizeM2']} m²', style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+                Text('Fiyat: ${depot['price']} ₺', style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+                const SizedBox(height: 12),
+                ClipRRect(borderRadius: BorderRadius.circular(10), child: const LinearProgressIndicator(value: 0, valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF4CAF50)), minHeight: 8)),
+              ]),
             ),
           ],
         ),
       ),
     );
   }
+}
+
+class _ErrView extends StatelessWidget {
+  final String err; final VoidCallback onRetry;
+  const _ErrView({required this.err, required this.onRetry});
+  @override Widget build(BuildContext context) => Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.error_outline, size: 64, color: Colors.grey[400]), const SizedBox(height: 16), Text(err, textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[600], fontSize: 16)), const SizedBox(height: 16), ElevatedButton.icon(onPressed: onRetry, icon: const Icon(Icons.refresh), label: const Text('Tekrar Dene'), style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4CAF50)))]));
+}
+
+class _EmptyView extends StatelessWidget {
+  const _EmptyView();
+  @override Widget build(BuildContext context) => Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.warehouse_outlined, size: 64, color: Colors.grey[400]), const SizedBox(height: 16), Text('Henüz depo eklemediniz', style: TextStyle(color: Colors.grey[600], fontSize: 16))]));
 }

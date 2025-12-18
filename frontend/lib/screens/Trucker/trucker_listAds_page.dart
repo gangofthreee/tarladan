@@ -44,6 +44,7 @@ class _TruckerListAdsPageState extends State<TruckerListAdsPage> {
           },
         };
       }).toList();
+      ads.sort((a, b) => (b['id'] ?? 0).compareTo(a['id'] ?? 0));
     } catch (e) {
       _errorMessage = 'Bağlantı hatası: $e';
     }

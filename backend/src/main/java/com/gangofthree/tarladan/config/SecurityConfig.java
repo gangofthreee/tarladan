@@ -132,11 +132,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/truck/**").hasRole("TRUCKER")
                         .requestMatchers(HttpMethod.DELETE, "/truck/**").hasRole("TRUCKER")
 
-                        // Nakliye İlanları
-                        .requestMatchers(HttpMethod.GET, "/truckAd/**").hasAnyRole("TRUCKER", "CUSTOMER")
-                        .requestMatchers(HttpMethod.POST, "/truckAd/**").hasRole("TRUCKER")
-                        .requestMatchers(HttpMethod.PUT, "/truckAd/**").hasRole("TRUCKER")
-                        .requestMatchers(HttpMethod.DELETE, "/truckAd/**").hasRole("TRUCKER")
+                        // Nakliye İlanları (Truck Ad Controller)
+                        .requestMatchers(HttpMethod.GET, "/truck/ads/**").hasAnyRole("TRUCKER", "CUSTOMER")
+                        .requestMatchers(HttpMethod.POST, "/truck/ads/**").hasRole("TRUCKER")
+                        .requestMatchers(HttpMethod.PATCH, "/truck/ads/**").hasRole("TRUCKER")
+                        .requestMatchers(HttpMethod.DELETE, "/truck/ads/**").hasRole("TRUCKER")
 
                         // DEPOT (Depo Sahibi) İşlemleri
                         .requestMatchers(HttpMethod.GET, "/depot/**").hasAnyRole("DEPOT_OWNER", "FARMER", "CUSTOMER")

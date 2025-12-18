@@ -102,7 +102,6 @@ class TruckService {
     required String vehicle,
     required String capacityTon,
     required String plate,
-    required String basePrice,
     required XFile photoFile,
     required Uint8List photoBytes,
   }) async {
@@ -112,7 +111,6 @@ class TruckService {
         'vehicle': vehicle,
         'capacityTon': capacityTon,
         'plate': plate,
-        'basePrice': basePrice,
       },
       photoFile: photoFile,
       photoBytes: photoBytes,
@@ -131,7 +129,6 @@ class TruckService {
     required String vehicle,
     required String capacityTon,
     required String plate,
-    required String basePrice,
     XFile? photoFile,
     Uint8List? photoBytes,
   }) async {
@@ -141,7 +138,6 @@ class TruckService {
         'vehicle': vehicle,
         'capacityTon': capacityTon,
         'plate': plate,
-        'basePrice': basePrice,
       },
       photoFile: photoFile,
       photoBytes: photoBytes,
@@ -275,6 +271,38 @@ class TruckService {
 
     if (response.statusCode != 200 && response.statusCode != 204) {
       throw Exception('İlan silinemedi: ${response.statusCode}');
+    }
+  }
+  static Future<List<Map<String, dynamic>>> getAvailableTruckAds({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    final authHeaders = await TokenService.getAuthHeaders();
+    final uri = Uri.parse(ApiConfig.getAvailableTruckAdsUrl).replace(
+      queryParameters: {
+        'searchStartDate': startDate.toIso8601String().split('T')[0],
+        'searchEndDate': endDate.toIso8601String().split('T')[0],
+      },
+    );
+
+    final response = await http.get(uri, headers: authHeaders);
+
+    await TokenService.checkAndUpdateToken(response);
+
+    if (response.statusCode == 200) {
+      if (response.body.contains("uygun kamyon yok")) {
+        return [];
+      }
+      try {
+        final List<dynamic> dataList = json.decode(response.body);
+        return dataList.map((data) => data as Map<String, dynamic>).toList();
+      } catch (e) {
+        // If it's not a list, consider it empty or error
+        print('Error parsing ads: $e');
+        return [];
+      }
+    } else {
+      throw Exception('İlanlar yüklenemedi: ${response.statusCode}');
     }
   }
 }

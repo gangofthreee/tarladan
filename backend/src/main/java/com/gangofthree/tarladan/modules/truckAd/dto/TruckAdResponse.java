@@ -19,6 +19,9 @@ public class TruckAdResponse {
     // Truck Bilgisi
     private String vehicle;
     private String plate;
+    private Long truckId;
+    private String capacityTon;
+    private String imageUrl;
 
     // İlan Bilgileri
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")

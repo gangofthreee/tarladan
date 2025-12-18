@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../config/api_config.dart';
 import '../../services/token_service.dart';
+import '../../services/truck_service.dart';
 
 import '../../widgets/themed_scaffold.dart';
 
@@ -23,47 +24,44 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
   @override
   void initState() {
     super.initState();
-    _fetchAllTrucks();
+    _fetchAvailableTruckAds();
   }
 
-  Future<void> _fetchAllTrucks() async {
+  Future<void> _fetchAvailableTruckAds() async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
     try {
-      final authHeaders = await TokenService.getAuthHeaders();
-      final response = await http.get(
-        Uri.parse(ApiConfig.getAllTrucksUrl),
-        headers: authHeaders,
+      // Search for ads in the next 1 year (fetching effectively all active ads)
+      final startDate = DateTime.now();
+      final endDate = startDate.add(const Duration(days: 365));
+
+      final ads = await TruckService.getAvailableTruckAds(
+        startDate: startDate,
+        endDate: endDate,
       );
 
-      await TokenService.checkAndUpdateToken(response);
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-
-        setState(() {
-          trucks = data.map((truck) {
-            return {
-              'id': truck['id'].toString(),
-              'truckId': truck['id'],
-              'driverName': truck['trucker_name'] ?? 'Bilinmiyor',
-              'driverSurname': '',
-              'brand': truck['vehicle'] ?? 'Araç Bilgisi Yok',
-              'capacity': truck['capacityTon'] ?? 0,
-              'basePrice': 0.0,
-              'priceUnit': '₺/km',
-              'plate': truck['plate_number'] ?? '',
-              'icon': '🚛',
-            };
-          }).toList();
-          _isLoading = false;
-        });
-      } else {
-        throw Exception('Tırlar yüklenemedi: ${response.statusCode}');
-      }
+      setState(() {
+        trucks = ads.map((ad) {
+          return {
+            'id': ad['adId'].toString(), // Use adId as unique identifier in list
+            'truckId': ad['truckId'],
+            'driverName': ad['truckerName'] ?? 'Bilinmiyor',
+            'driverSurname': '',
+            'brand': ad['vehicle'] ?? 'Araç Bilgisi Yok',
+            'capacity': ad['capacityTon'] ?? 0,
+            'basePrice': ad['pricePerKm'] ?? 0.0,
+            'priceUnit': '₺/km',
+            'plate': ad['plate'] ?? '',
+            'availability': '${ad['startDate']} - ${ad['endDate']}',
+            'imageUrl': ad['imageUrl'],
+            'icon': '🚛',
+          };
+        }).toList();
+        _isLoading = false;
+      });
     } catch (e) {
       setState(() {
         _errorMessage = 'Hata: $e';
@@ -142,7 +140,7 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
                         ),
                         const SizedBox(height: 16),
                         ElevatedButton(
-                          onPressed: _fetchAllTrucks,
+                          onPressed: _fetchAvailableTruckAds,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF4CAF50),
                           ),
@@ -163,7 +161,7 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
                         ),
                         SizedBox(height: 16),
                         Text(
-                          'Henüz tır bulunamadı',
+                          'Uygun tır ilanı bulunamadı',
                           style: TextStyle(fontSize: 16, color: Colors.grey),
                         ),
                       ],
@@ -206,10 +204,25 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Center(
-                      child: Text(
-                        selectedTruck['icon'],
-                        style: const TextStyle(fontSize: 40),
-                      ),
+                      child: selectedTruck['imageUrl'] != null
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                '${ApiConfig.baseUrl}${selectedTruck['imageUrl']}',
+                                width: 80,
+                                height: 80,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Text(
+                                  selectedTruck['icon'],
+                                  style: const TextStyle(fontSize: 40),
+                                ),
+                              ),
+                            )
+                          : Text(
+                              selectedTruck['icon'],
+                              style: const TextStyle(fontSize: 40),
+                            ),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -219,26 +232,32 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          '${selectedTruck['driverName']} ${selectedTruck['driverSurname']}',
+                          'Sürücü: ${selectedTruck['driverName']}',
                           style: TextStyle(
-                            fontSize: 18,
+                            fontSize: 14,
                             fontWeight: FontWeight.bold,
                             color: Theme.of(context).textTheme.bodyLarge?.color,
                           ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          '${selectedTruck['brand']} - ${selectedTruck['plate']}',
+                          'Araç: ${selectedTruck['brand']}',
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 13,
                             color: Colors.grey[600],
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          '${selectedTruck['capacity']} ton',
+                          'Plaka: ${selectedTruck['plate']}',
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 13,
                             color: Colors.grey[600],
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
@@ -323,10 +342,24 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Center(
-                child: Text(
-                  truck['icon'],
-                  style: const TextStyle(fontSize: 40),
-                ),
+                child: truck['imageUrl'] != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          '${ApiConfig.baseUrl}${truck['imageUrl']}',
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Text(
+                            truck['icon'],
+                            style: const TextStyle(fontSize: 40),
+                          ),
+                        ),
+                      )
+                    : Text(
+                        truck['icon'],
+                        style: const TextStyle(fontSize: 40),
+                      ),
               ),
             ),
 
@@ -338,9 +371,9 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${truck['driverName']} ${truck['driverSurname']}',
+                    'Sürücü: ${truck['driverName']} ${truck['driverSurname']}',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).textTheme.bodyLarge?.color,
                     ),
@@ -349,10 +382,19 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${truck['brand']} - ${truck['plate']}',
+                    'Araç: ${truck['brand']}',
                     style: TextStyle(
                         fontSize: 14,
-                        color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7)),
+                        color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.9)),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Plaka: ${truck['plate']}',
+                    style: TextStyle(
+                        fontSize: 14,
+                        color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.9)),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -363,27 +405,21 @@ class _CustomerSelectTruckPageState extends State<CustomerSelectTruckPage> {
                         fontSize: 14,
                         color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7)),
                   ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.attach_money,
-                        color: Color(0xFF4CAF50),
-                        size: 16,
-                      ),
-                      const SizedBox(width: 2),
-                      Flexible(
-                        child: Text(
-                          '${truck['basePrice']} ${truck['priceUnit']}',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey[600],
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
+                  const SizedBox(height: 4),
+                  Text(
+                    'Fiyat: ${truck['basePrice']} ${truck['priceUnit']}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.9),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Müsaitlik: ${truck['availability']}',
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6)),
                   ),
                 ],
               ),

@@ -16,7 +16,6 @@ class _TruckerTruckSavingPageState extends State<TruckerTruckSavingPage> {
   final _brandModelController = TextEditingController();
   final _plateController = TextEditingController();
   final _capacityController = TextEditingController();
-  final _priceController = TextEditingController();
   XFile? _photoFile;
   Uint8List? _photoBytes;
   bool _isLoading = false;
@@ -27,7 +26,6 @@ class _TruckerTruckSavingPageState extends State<TruckerTruckSavingPage> {
     _brandModelController.dispose();
     _plateController.dispose();
     _capacityController.dispose();
-    _priceController.dispose();
     super.dispose();
   }
 
@@ -76,7 +74,7 @@ class _TruckerTruckSavingPageState extends State<TruckerTruckSavingPage> {
         vehicle: _brandModelController.text,
         capacityTon: _capacityController.text,
         plate: _plateController.text,
-        basePrice: _priceController.text,
+
         photoFile: _photoFile!,
         photoBytes: _photoBytes!,
       );
@@ -124,7 +122,6 @@ class _TruckerTruckSavingPageState extends State<TruckerTruckSavingPage> {
                     brandModelController: _brandModelController,
                     plateController: _plateController,
                     capacityController: _capacityController,
-                    priceController: _priceController,
                   ),
                   const SizedBox(height: 30),
                   TruckerSingleImageUploader(

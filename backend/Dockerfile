@@ -11,8 +11,8 @@ RUN mvn dependency:go-offline -B
 # ŞİMDİ KRİTİK NOKTA: Kaynak kodları içeri kopyalıyoruz!
 COPY src ./src
 
-# Projeyi derle ve .jar dosyasını oluştur (Testleri atla ki hızlı olsun)
-RUN mvn clean package -DskipTests
+# Projeyi derle ve .jar dosyasını oluştur (Testleri calistir)
+RUN mvn clean package
 
 # ----------------------------
 # 2. AŞAMA: RUNTIME (Çalıştırma)

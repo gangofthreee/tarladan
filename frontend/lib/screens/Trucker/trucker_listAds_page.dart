@@ -17,132 +17,77 @@ class _TruckerListAdsPageState extends State<TruckerListAdsPage> {
   String? _errorMessage;
 
   @override
-  void initState() {
-    super.initState();
-    _fetchMyAds();
+  void initState() { super.initState(); _fetchAds(); }
+
+  void _showMessage(String text, {bool isError = false}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text), backgroundColor: isError ? Colors.red : kPrimaryColor));
   }
 
-  Future<void> _fetchMyAds() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+  Future<void> _fetchAds() async {
+    setState(() { _isLoading = true; _errorMessage = null; });
     try {
       final loadedAds = await TruckService.getTruckAdsByTrucker();
       ads = loadedAds.map((data) {
-        // imageUrl'yi full URL'ye dönüştür
         final imageUrl = data['imageUrl'];
-        final fullImageUrl = imageUrl != null && imageUrl.isNotEmpty
-            ? '${ApiConfig.baseUrl}$imageUrl'
-            : null;
-        
         return {
           'id': data['adId'],
           'truckId': data['truckId'],
           'truckModel': data['vehicle'] ?? 'Araç Modeli',
           'plate': data['plate'] ?? '',
+          'capacity': data['capacityTon'],
           'startDate': data['startDate'] ?? '',
           'endDate': data['endDate'] ?? '',
           'pricePerKm': data['pricePerKm'],
-          'imageUrl': fullImageUrl,
-          'truck': {
-            'id': data['truckId'],
-            'model': data['vehicle'] ?? 'Araç Modeli',
-            'plate': data['plate'] ?? '',
-          },
+          'imageUrl': imageUrl != null && imageUrl.isNotEmpty ? '${ApiConfig.baseUrl}$imageUrl' : null,
+          'truck': {'id': data['truckId'], 'model': data['vehicle'] ?? 'Araç Modeli', 'plate': data['plate'] ?? ''},
         };
       }).toList();
       ads.sort((a, b) => (b['id'] ?? 0).compareTo(a['id'] ?? 0));
     } catch (e) {
       _errorMessage = 'Bağlantı hatası: $e';
     }
-    setState(() => _isLoading = false);
+    if (mounted) setState(() => _isLoading = false);
   }
 
   Future<void> _handleDelete(int adId) async {
     try {
       await TruckService.deleteTruckAd(adId);
       setState(() => ads.removeWhere((ad) => ad['id'] == adId));
-      if (mounted)
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('İlan silindi')));
+      _showMessage('İlan silindi');
     } catch (e) {
-      if (mounted)
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Hata: ${e.toString()}')));
+      _showMessage('Hata: $e', isError: true);
     }
   }
 
-  void _showDeleteConfirmation(Map<String, dynamic> ad) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('İlanı Sil'),
-        content: Text(
-          '${ad['truckModel']} ilanını silmek istediğinizden emin misiniz?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('İptal'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _handleDelete(ad['id']);
-            },
-            child: const Text('Sil', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
+  Future<void> _confirmDelete(Map<String, dynamic> ad) async {
+    if (await showTruckerDeleteDialog(context, title: 'İlanı Sil', itemName: ad['truckModel'])) _handleDelete(ad['id']);
+  }
+
+  Future<void> _navigateAndRefresh(Widget page) async {
+    final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+    if (result == true) _fetchAds();
   }
 
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
-      appBar: ThemedAppBar(
-        title: const Text('İlanlarım'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+      appBar: ThemedAppBar(title: const Text('İlanlarım'), leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context))),
       body: _isLoading
           ? const TruckerLoadingWidget(message: 'İlanlar yükleniyor...')
           : _errorMessage != null
-          ? TruckerErrorWidget(
-              errorMessage: _errorMessage!,
-              onRetry: _fetchMyAds,
-            )
-          : ads.isEmpty
-          ? const TruckerEmptyWidget(
-              title: 'Henüz İlan Yok',
-              message: 'Araçlarınız için ilan oluşturabilirsiniz',
-              icon: Icons.campaign_outlined,
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(20),
-              itemCount: ads.length,
-              itemBuilder: (context, index) {
-                final ad = ads[index];
-                return TruckerAdCard(
-                  ad: ad,
-                  onEdit: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => TruckerTruckUpdatePage(ad: ad),
+              ? TruckerErrorWidget(errorMessage: _errorMessage!, onRetry: _fetchAds)
+              : ads.isEmpty
+                  ? const TruckerEmptyWidget(title: 'Henüz İlan Yok', message: 'Araçlarınız için ilan oluşturabilirsiniz', icon: Icons.campaign_outlined)
+                  : ListView.builder(
+                      padding: const EdgeInsets.all(20),
+                      itemCount: ads.length,
+                      itemBuilder: (_, i) => TruckerAdCard(
+                        ad: ads[i],
+                        onEdit: () => _navigateAndRefresh(TruckerTruckUpdatePage(ad: ads[i])),
+                        onDelete: () => _confirmDelete(ads[i]),
                       ),
-                    );
-                    if (result == true) _fetchMyAds();
-                  },
-                  onDelete: () => _showDeleteConfirmation(ad),
-                );
-              },
-            ),
+                    ),
     );
   }
 }

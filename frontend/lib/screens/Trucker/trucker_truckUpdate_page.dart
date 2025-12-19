@@ -12,21 +12,17 @@ class TruckerTruckUpdatePage extends StatefulWidget {
 
 class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _brandModelController;
-  late TextEditingController _plateController;
-  late TextEditingController _capacityController;
+  late final TextEditingController _brandModelController;
+  late final TextEditingController _plateController;
+  late final TextEditingController _capacityController;
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _brandModelController = TextEditingController(
-      text: widget.truck['brandModel'] ?? '',
-    );
+    _brandModelController = TextEditingController(text: widget.truck['model'] ?? '');
     _plateController = TextEditingController(text: widget.truck['plate'] ?? '');
-    _capacityController = TextEditingController(
-      text: widget.truck['trailerCapacity']?.toString() ?? '',
-    );
+    _capacityController = TextEditingController(text: widget.truck['capacity']?.toString() ?? '');
   }
 
   @override
@@ -37,29 +33,30 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
     super.dispose();
   }
 
+  void _showMessage(String text, {bool isError = false}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(text),
+      backgroundColor: isError ? Colors.red : kPrimaryColor,
+    ));
+  }
+
   Future<void> _handleUpdate() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _isLoading = true);
     try {
       await TruckService.updateTruck(
-        truckId: widget.truck['truckId'],
+        truckId: widget.truck['id'],
         vehicle: _brandModelController.text,
         capacityTon: _capacityController.text,
         plate: _plateController.text,
-
       );
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Araç güncellendi')));
+        _showMessage('Araç güncellendi');
         Navigator.pop(context, true);
       }
     } catch (e) {
-      if (mounted)
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Güncelleme hatası: $e')));
+      _showMessage('Güncelleme hatası: $e', isError: true);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -68,46 +65,20 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
-      appBar: ThemedAppBar(
-        title: const Text('Araç Güncelle'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+      appBar: ThemedAppBar(title: const Text('Araç Güncelle'), leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context))),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const TruckerLoadingWidget(message: 'Güncelleniyor...')
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                children: [
-                  TruckerTruckForm(
-                    formKey: _formKey,
-                    brandModelController: _brandModelController,
-                    plateController: _plateController,
-                    capacityController: _capacityController,
-                  ),
-                  const SizedBox(height: 30),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TruckerPrimaryButton(
-                          label: 'İptal',
-                          onPressed: () => Navigator.pop(context),
-                          backgroundColor: Colors.grey,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: TruckerPrimaryButton(
-                          label: 'Güncelle',
-                          onPressed: _handleUpdate,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+              padding: const EdgeInsets.all(20),
+              child: Column(children: [
+                TruckerTruckForm(formKey: _formKey, brandModelController: _brandModelController, plateController: _plateController, capacityController: _capacityController),
+                const SizedBox(height: 30),
+                Row(children: [
+                  Expanded(child: TruckerPrimaryButton(label: 'İptal', onPressed: () => Navigator.pop(context), backgroundColor: Colors.grey)),
+                  const SizedBox(width: 16),
+                  Expanded(child: TruckerPrimaryButton(label: 'Güncelle', onPressed: _handleUpdate)),
+                ]),
+              ]),
             ),
     );
   }

@@ -100,4 +100,18 @@ class DepotService {
     await TokenService.checkAndUpdateToken(response);
     if (response.statusCode != 200) throw Exception('Depo silinemedi: ${response.statusCode}');
   }
+
+  static Future<List<dynamic>> getAllDepots() async {
+    try {
+      final response = await http.get(
+        Uri.parse(ApiConfig.getAllDepotsUrl),
+        headers: await TokenService.getAuthHeaders(),
+      );
+      await TokenService.checkAndUpdateToken(response);
+      if (response.statusCode == 200) {
+        return json.decode(utf8.decode(response.bodyBytes)) as List;
+      }
+    } catch (_) {}
+    return [];
+  }
 }

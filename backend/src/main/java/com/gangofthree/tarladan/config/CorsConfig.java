@@ -58,8 +58,9 @@ public class CorsConfig {
         config.setExposedHeaders(Arrays.asList(
                 "Access-Control-Allow-Origin",
                 "Access-Control-Allow-Credentials",
-                "Authorization",    // Eğer token'ı header'da dönüyorsanız
-                "X-Total-Count"     // Eğer sayfalama yapıyorsanız gerekebilir
+                "Authorization",        // Eğer token'ı header'da dönüyorsanız
+                "X-New-Access-Token",   // JWT Token yenilemesi için - Frontend bu header'ı alıp kaydetmeli
+                "X-Total-Count"         // Eğer sayfalama yapıyorsanız gerekebilir
         ));
 
         // 6. ÖN BELLEK SÜRESİ (Max Age)

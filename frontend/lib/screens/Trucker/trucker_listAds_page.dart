@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../config/api_config.dart';
 import '../../services/truck_service.dart';
 import '../../widgets/themed_scaffold.dart';
 import '../../widgets/trucker_widgets.dart';
@@ -29,6 +30,12 @@ class _TruckerListAdsPageState extends State<TruckerListAdsPage> {
     try {
       final loadedAds = await TruckService.getTruckAdsByTrucker();
       ads = loadedAds.map((data) {
+        // imageUrl'yi full URL'ye dönüştür
+        final imageUrl = data['imageUrl'];
+        final fullImageUrl = imageUrl != null && imageUrl.isNotEmpty
+            ? '${ApiConfig.baseUrl}$imageUrl'
+            : null;
+        
         return {
           'id': data['adId'],
           'truckId': data['truckId'],
@@ -37,6 +44,7 @@ class _TruckerListAdsPageState extends State<TruckerListAdsPage> {
           'startDate': data['startDate'] ?? '',
           'endDate': data['endDate'] ?? '',
           'pricePerKm': data['pricePerKm'],
+          'imageUrl': fullImageUrl,
           'truck': {
             'id': data['truckId'],
             'model': data['vehicle'] ?? 'Araç Modeli',

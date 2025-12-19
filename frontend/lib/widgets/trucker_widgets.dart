@@ -87,134 +87,6 @@ class TruckerTruckForm extends StatelessWidget {
   }
 }
 
-/// Image uploader widget for truck photos
-class TruckerTruckImageUploader extends StatelessWidget {
-  final List<Uint8List> compressedImages;
-  final VoidCallback onPickImages;
-  final Function(int) onRemoveImage;
-
-  const TruckerTruckImageUploader({
-    super.key,
-    required this.compressedImages,
-    required this.onPickImages,
-    required this.onRemoveImage,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TruckerSectionHeader(title: 'Araç Fotoğrafları'),
-        const SizedBox(height: 16),
-        GestureDetector(
-          onTap: onPickImages,
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 50),
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: Theme.of(context).dividerColor,
-                width: 2,
-              ),
-            ),
-            child: Column(
-              children: [
-                Icon(
-                  Icons.upload_file,
-                  size: 60,
-                  color: Theme.of(context).hintColor,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Fotoğraf Yükle',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).textTheme.bodyLarge?.color,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Araç fotoğraflarını yükle',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Theme.of(context).textTheme.bodyMedium?.color,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: onPickImages,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4CAF50).withOpacity(0.1),
-                    foregroundColor: const Color(0xFF4CAF50),
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const Text(
-                    'Dosya Seç',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        if (compressedImages.isNotEmpty) ...[
-          const SizedBox(height: 20),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: List.generate(compressedImages.length, (index) {
-              return Stack(
-                children: [
-                  Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      image: DecorationImage(
-                        image: MemoryImage(compressedImages[index]),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: 5,
-                    right: 5,
-                    child: GestureDetector(
-                      onTap: () => onRemoveImage(index),
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.close,
-                          size: 16,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            }),
-          ),
-        ],
-      ],
-    );
-  }
-}
 
 /// Single image uploader widget for truck photo
 class TruckerSingleImageUploader extends StatelessWidget {
@@ -502,12 +374,15 @@ class TruckerAdCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final imageUrl = ad['imageUrl'];
+    
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
@@ -517,41 +392,157 @@ class TruckerAdCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Text(
-            ad['truckModel'],
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          // Left side - Text info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  ad['truckModel'] ?? 'Araç Modeli',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Plaka: ${ad['plate'] ?? ''}',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Fiyat: ${ad['pricePerKm']} ₺/km',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _formatDateRange(ad['startDate'] ?? '', ad['endDate'] ?? ''),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: InkWell(
+                        onTap: onEdit,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isDark ? Colors.grey[800] : Colors.grey[200],
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Düzenle',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Icon(
+                                Icons.edit,
+                                size: 16,
+                                color: Theme.of(context).iconTheme.color,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    InkWell(
+                      onTap: onDelete,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.red[50],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.delete_outline,
+                          size: 20,
+                          color: Colors.red,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 8),
-          Text('Plaka: ${ad['plate']}'),
-          Text('Fiyat: ${ad['pricePerKm']} ₺/km'),
-          Text('Tarih: ${_formatDateRange(ad['startDate'], ad['endDate'])}'),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: TruckerPrimaryButton(
-                  onPressed: onEdit,
-                  label: 'Düzenle',
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TruckerPrimaryButton(
-                  onPressed: onDelete,
-                  label: 'Sil',
-                  backgroundColor: Colors.red,
-                ),
-              ),
-            ],
+          const SizedBox(width: 16),
+          // Right side - Image
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              width: 100,
+              height: 100,
+              color: Colors.grey[200],
+              child: imageUrl != null && imageUrl.isNotEmpty
+                  ? Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                      loadingProgress.expectedTotalBytes!
+                                : null,
+                            strokeWidth: 2,
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        print('❌ Ad image load error: $error');
+                        print('📸 Image URL was: $imageUrl');
+                        return Container(
+                          color: Colors.grey[300],
+                          child: const Icon(
+                            Icons.local_shipping,
+                            size: 40,
+                            color: Colors.grey,
+                          ),
+                        );
+                      },
+                    )
+                  : Container(
+                      color: Colors.grey[300],
+                      child: const Icon(
+                        Icons.local_shipping,
+                        size: 40,
+                        color: Colors.grey,
+                      ),
+                    ),
+            ),
           ),
         ],
       ),
     );
   }
 }
+
 
 /// Bottom navigation bar widget
 class TruckerBottomNav extends StatelessWidget {
@@ -960,68 +951,6 @@ class TruckerPrimaryButton extends StatelessWidget {
   }
 }
 
-/// Info card widget
-class TruckerInfoCard extends StatelessWidget {
-  final String label;
-  final String value;
-  final IconData? icon;
-  final Color? backgroundColor;
-
-  const TruckerInfoCard({
-    super.key,
-    required this.label,
-    required this.value,
-    this.icon,
-    this.backgroundColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: backgroundColor ?? Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).brightness == Brightness.dark
-              ? Colors.grey[700]!
-              : Colors.grey[300]!,
-        ),
-      ),
-      child: Row(
-        children: [
-          if (icon != null) ...[
-            Icon(icon, color: const Color(0xFF4CAF50), size: 28),
-            const SizedBox(width: 12),
-          ],
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Theme.of(context).textTheme.bodyMedium?.color,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).textTheme.bodyLarge?.color,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 /// Section header widget
 class TruckerSectionHeader extends StatelessWidget {
@@ -1248,340 +1177,6 @@ class TruckerDateRangePicker extends StatelessWidget {
   }
 }
 
-/// Date/Time picker widget with Turkish month names
-class TruckerDateTimePicker extends StatelessWidget {
-  final DateTime? selectedDateTime;
-  final Function(DateTime?) onDateTimeSelected;
-  final String? hintText;
-
-  const TruckerDateTimePicker({
-    super.key,
-    required this.selectedDateTime,
-    required this.onDateTimeSelected,
-    this.hintText,
-  });
-
-  static String formatDateTime(DateTime dateTime) {
-    final dateStr = TruckerDateRangePicker.formatDate(dateTime);
-    final hour = dateTime.hour.toString().padLeft(2, '0');
-    final minute = dateTime.minute.toString().padLeft(2, '0');
-
-    return '$dateStr, $hour:$minute';
-  }
-
-  Future<void> _selectDateTime(BuildContext context) async {
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: selectedDateTime ?? DateTime.now(),
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Color(0xFF4CAF50),
-              onPrimary: Colors.white,
-              onSurface: Colors.black,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-
-    if (pickedDate != null && context.mounted) {
-      final TimeOfDay? pickedTime = await showTimePicker(
-        context: context,
-        initialTime: TimeOfDay.now(),
-        builder: (context, child) {
-          return Theme(
-            data: Theme.of(context).copyWith(
-              colorScheme: const ColorScheme.light(
-                primary: Color(0xFF4CAF50),
-                onPrimary: Colors.white,
-                onSurface: Colors.black,
-              ),
-            ),
-            child: child!,
-          );
-        },
-      );
-
-      if (pickedTime != null) {
-        onDateTimeSelected(
-          DateTime(
-            pickedDate.year,
-            pickedDate.month,
-            pickedDate.day,
-            pickedTime.hour,
-            pickedTime.minute,
-          ),
-        );
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => _selectDateTime(context),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Theme.of(context).dividerColor),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              selectedDateTime == null
-                  ? (hintText ?? 'mm/dd/yyyy, --:-- --')
-                  : formatDateTime(selectedDateTime!),
-              style: TextStyle(
-                color: selectedDateTime == null
-                    ? Theme.of(context).hintColor
-                    : Theme.of(context).textTheme.bodyLarge?.color,
-                fontSize: 16,
-              ),
-            ),
-            Icon(
-              Icons.calendar_today,
-              size: 20,
-              color: Theme.of(context).iconTheme.color,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Truck selector with dialog for choosing from available trucks
-class TruckerTruckSelector extends StatelessWidget {
-  final TextEditingController controller;
-  final List<dynamic> trucks;
-  final bool isLoading;
-  final Function(String truckId, String displayText) onTruckSelected;
-  final String? Function(String?)? validator;
-
-  const TruckerTruckSelector({
-    super.key,
-    required this.controller,
-    required this.trucks,
-    required this.isLoading,
-    required this.onTruckSelected,
-    this.validator,
-  });
-
-  void _showTruckSelectionDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Tır Seç'),
-          content: isLoading
-              ? const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(20),
-                    child: CircularProgressIndicator(color: Color(0xFF4CAF50)),
-                  ),
-                )
-              : trucks.isEmpty
-              ? const Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Text('Araç bulunamadı'),
-                )
-              : SizedBox(
-                  width: double.maxFinite,
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: trucks.length,
-                    itemBuilder: (context, index) {
-                      final truck = trucks[index];
-                      final vehicle = truck['vehicle'] ?? 'Araç';
-                      final plate = truck['plate'] ?? '';
-                      return ListTile(
-                        title: Text(vehicle),
-                        subtitle: Text(plate),
-                        onTap: () {
-                          onTruckSelected(
-                            truck['id'].toString(),
-                            '$vehicle - $plate',
-                          );
-                          Navigator.pop(dialogContext);
-                        },
-                      );
-                    },
-                  ),
-                ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('İptal'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => _showTruckSelectionDialog(context),
-      child: AbsorbPointer(
-        child: TruckerFormField(
-          controller: controller,
-          hintText: 'Tır seçin',
-          suffix: const Icon(Icons.arrow_drop_down),
-          validator: validator,
-        ),
-      ),
-    );
-  }
-}
-
-/// Image uploader widget for vehicle photos
-class TruckerImageUploader extends StatelessWidget {
-  final List<dynamic> images;
-  final VoidCallback onPickImages;
-  final Function(int index) onRemoveImage;
-  final String title;
-  final String uploadText;
-  final String dragDropText;
-
-  const TruckerImageUploader({
-    super.key,
-    required this.images,
-    required this.onPickImages,
-    required this.onRemoveImage,
-    this.title = 'Araç Fotoğrafları',
-    this.uploadText = 'Fotoğraf Yükle',
-    this.dragDropText = 'Araç fotoğraflarını sürükle bırak',
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TruckerSectionHeader(title: title),
-        const SizedBox(height: 16),
-        GestureDetector(
-          onTap: onPickImages,
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 50),
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: Theme.of(context).dividerColor,
-                width: 2,
-              ),
-            ),
-            child: Column(
-              children: [
-                Icon(
-                  Icons.upload_file,
-                  size: 60,
-                  color: Theme.of(context).hintColor,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  uploadText,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).textTheme.bodyLarge?.color,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  dragDropText,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Theme.of(context).textTheme.bodyMedium?.color,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: onPickImages,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4CAF50).withOpacity(0.1),
-                    foregroundColor: const Color(0xFF4CAF50),
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const Text(
-                    'Dosya Seç',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        if (images.isNotEmpty) ...[
-          const SizedBox(height: 20),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: List.generate(images.length, (index) {
-              return Stack(
-                children: [
-                  Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Theme.of(context).dividerColor),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Icon(
-                        Icons.image,
-                        size: 40,
-                        color: Theme.of(context).iconTheme.color,
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: 5,
-                    right: 5,
-                    child: GestureDetector(
-                      onTap: () => onRemoveImage(index),
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.close,
-                          size: 16,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            }),
-          ),
-        ],
-      ],
-    );
-  }
-}
 
 /// Truck kartı widget'ı - TruckListPage için
 class TruckerTruckCard extends StatelessWidget {

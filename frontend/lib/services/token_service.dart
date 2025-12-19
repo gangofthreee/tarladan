@@ -42,9 +42,10 @@ class TokenService {
     final newToken =
         response.headers['x-new-access-token'] ??
         response.headers['X-New-Access-Token'];
+    
     if (newToken != null && newToken.isNotEmpty) {
       await saveAccessToken(newToken);
-      print('✅ New access token received and saved');
+      print('✅ Token yenilendi');
     }
   }
 

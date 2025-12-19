@@ -163,13 +163,8 @@ class TruckService {
 
     if (response.statusCode == 200) {
       final List<dynamic> dataList = json.decode(response.body);
-      print('🚛 Truck Response: $dataList');
       return dataList.map((data) {
-        print('🖼️ ImageUrl from backend: ${data['imageUrl']}');
-        final fullImageUrl = data['imageUrl'] != null
-            ? '${ApiConfig.baseUrl}${data['imageUrl']}'
-            : 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=400';
-        print('🌐 Full Image URL: $fullImageUrl');
+        final fullImageUrl = data['imageUrl'] != null ? '${ApiConfig.baseUrl}${data['imageUrl']}' : null;
         return {
           'id': data['id'],
           'model': data['vehicle'] ?? 'Araç Modeli',
@@ -273,6 +268,7 @@ class TruckService {
       throw Exception('İlan silinemedi: ${response.statusCode}');
     }
   }
+
   static Future<List<Map<String, dynamic>>> getAvailableTruckAds({
     required DateTime startDate,
     required DateTime endDate,
@@ -297,8 +293,7 @@ class TruckService {
         final List<dynamic> dataList = json.decode(response.body);
         return dataList.map((data) => data as Map<String, dynamic>).toList();
       } catch (e) {
-        // If it's not a list, consider it empty or error
-        print('Error parsing ads: $e');
+        // JSON parse hatası - boş liste döndür
         return [];
       }
     } else {

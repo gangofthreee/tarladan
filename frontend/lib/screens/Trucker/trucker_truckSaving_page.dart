@@ -16,10 +16,10 @@ class _TruckerTruckSavingPageState extends State<TruckerTruckSavingPage> {
   final _brandModelController = TextEditingController();
   final _plateController = TextEditingController();
   final _capacityController = TextEditingController();
+  final _picker = ImagePicker();
   XFile? _photoFile;
   Uint8List? _photoBytes;
   bool _isLoading = false;
-  final ImagePicker _picker = ImagePicker();
 
   @override
   void dispose() {
@@ -29,43 +29,32 @@ class _TruckerTruckSavingPageState extends State<TruckerTruckSavingPage> {
     super.dispose();
   }
 
+  void _showMessage(String text, {bool isError = false}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(text),
+      backgroundColor: isError ? Colors.red : kPrimaryColor,
+    ));
+  }
+
   Future<void> _pickImage() async {
     try {
       final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
       if (pickedFile == null) return;
       final bytes = await pickedFile.readAsBytes();
       final compressed = await ImageService.compressImage(bytes);
-      setState(() {
-        _photoFile = pickedFile;
-        _photoBytes = compressed;
-      });
-      if (mounted)
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Fotoğraf yüklendi'),
-            backgroundColor: Color(0xFF4CAF50),
-          ),
-        );
+      setState(() { _photoFile = pickedFile; _photoBytes = compressed; });
+      _showMessage('Fotoğraf yüklendi');
     } catch (e) {
-      if (mounted)
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Resim hatası: $e')));
+      _showMessage('Resim hatası: $e', isError: true);
     }
   }
 
-  void _removeImage() => setState(() {
-    _photoFile = null;
-    _photoBytes = null;
-  });
+  void _removeImage() => setState(() { _photoFile = null; _photoBytes = null; });
 
   Future<void> _handleSave() async {
-    if (!_formKey.currentState!.validate() ||
-        _photoBytes == null ||
-        _photoFile == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Lütfen tüm alanları doldurunuz')),
-      );
+    if (!_formKey.currentState!.validate() || _photoBytes == null || _photoFile == null) {
+      _showMessage('Lütfen tüm alanları doldurunuz', isError: true);
       return;
     }
     setState(() => _isLoading = true);
@@ -74,28 +63,15 @@ class _TruckerTruckSavingPageState extends State<TruckerTruckSavingPage> {
         vehicle: _brandModelController.text,
         capacityTon: _capacityController.text,
         plate: _plateController.text,
-
         photoFile: _photoFile!,
         photoBytes: _photoBytes!,
       );
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Araç kaydedildi')));
+        _showMessage('Araç kaydedildi');
         Navigator.pop(context, true);
       }
     } catch (e) {
-      if (mounted) {
-        // Exception mesajından "Exception: " kısmını temizle
-        String errorMessage = e.toString().replaceFirst('Exception: ', '');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
+      _showMessage(e.toString().replaceFirst('Exception: ', ''), isError: true);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -104,35 +80,18 @@ class _TruckerTruckSavingPageState extends State<TruckerTruckSavingPage> {
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
-      appBar: ThemedAppBar(
-        title: const Text('Araç Kaydet'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+      appBar: ThemedAppBar(title: const Text('Araç Kaydet'), leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context))),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const TruckerLoadingWidget(message: 'Kaydediliyor...')
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                children: [
-                  TruckerTruckForm(
-                    formKey: _formKey,
-                    brandModelController: _brandModelController,
-                    plateController: _plateController,
-                    capacityController: _capacityController,
-                  ),
-                  const SizedBox(height: 30),
-                  TruckerSingleImageUploader(
-                    imageBytes: _photoBytes,
-                    onPickImage: _pickImage,
-                    onRemoveImage: _removeImage,
-                  ),
-                  const SizedBox(height: 30),
-                  TruckerPrimaryButton(label: 'Kaydet', onPressed: _handleSave),
-                ],
-              ),
+              padding: const EdgeInsets.all(20),
+              child: Column(children: [
+                TruckerTruckForm(formKey: _formKey, brandModelController: _brandModelController, plateController: _plateController, capacityController: _capacityController),
+                const SizedBox(height: 30),
+                TruckerSingleImageUploader(imageBytes: _photoBytes, onPickImage: _pickImage, onRemoveImage: _removeImage),
+                const SizedBox(height: 30),
+                TruckerPrimaryButton(label: 'Kaydet', onPressed: _handleSave),
+              ]),
             ),
     );
   }

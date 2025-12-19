@@ -17,121 +17,58 @@ class _TruckerTruckListPageState extends State<TruckerTruckListPage> {
   String? _errorMessage;
 
   @override
-  void initState() {
-    super.initState();
-    _loadTruck();
-  }
+  void initState() { super.initState(); _loadTrucks(); }
 
-  Future<void> _loadTruck() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+  Future<void> _loadTrucks() async {
+    setState(() { _isLoading = true; _errorMessage = null; });
     try {
       trucks = await TruckService.getTrucksByTrucker();
       trucks.sort((a, b) => (b['id'] ?? 0).compareTo(a['id'] ?? 0));
-    } catch (e) {
-      _errorMessage = e.toString();
-    }
-    setState(() => _isLoading = false);
+    } catch (e) { _errorMessage = e.toString(); }
+    if (mounted) setState(() => _isLoading = false);
   }
 
   Future<void> _handleDelete(Map<String, dynamic> truck) async {
     try {
       await TruckService.deleteTruck(truck['id']);
       setState(() => trucks.remove(truck));
-      if (mounted)
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Araç silindi')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Araç silindi')));
     } catch (e) {
-      if (mounted)
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Hata: ${e.toString()}')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Hata: $e')));
     }
   }
 
-  void _showDeleteConfirmation(Map<String, dynamic> truck) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Aracı Sil'),
-        content: Text(
-          '${truck['model']} aracını silmek istediğinizden emin misiniz?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('İptal'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _handleDelete(truck);
-            },
-            child: const Text('Sil', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
+  Future<void> _confirmDelete(Map<String, dynamic> truck) async {
+    if (await showTruckerDeleteDialog(context, title: 'Aracı Sil', itemName: truck['model'])) _handleDelete(truck);
+  }
+
+  Future<void> _navigateAndRefresh(Widget page) async {
+    final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+    if (result == true) _loadTrucks();
   }
 
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
-      appBar: ThemedAppBar(
-        title: const Text('Araçlarım'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+      appBar: ThemedAppBar(title: const Text('Araçlarım'), leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context))),
       body: _isLoading
           ? const TruckerLoadingWidget(message: 'Araçlar yükleniyor...')
           : _errorMessage != null
-          ? TruckerErrorWidget(
-              errorMessage: _errorMessage!,
-              onRetry: _loadTruck,
-            )
-          : trucks.isEmpty
-          ? const TruckerEmptyWidget(
-              title: 'Henüz Kayıtlı Araç Yok',
-              message: 'Araç ekleyerek başlayabilirsiniz',
-              icon: Icons.local_shipping_outlined,
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(20),
-              itemCount: trucks.length,
-              itemBuilder: (context, index) {
-                final truck = trucks[index];
-                return TruckerTruckCard(
-                  truck: truck,
-                  onEdit: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            TruckerTruckUpdatePage(truck: truck),
+              ? TruckerErrorWidget(errorMessage: _errorMessage!, onRetry: _loadTrucks)
+              : trucks.isEmpty
+                  ? const TruckerEmptyWidget(title: 'Henüz Kayıtlı Araç Yok', message: 'Araç ekleyerek başlayabilirsiniz', icon: Icons.local_shipping_outlined)
+                  : ListView.builder(
+                      padding: const EdgeInsets.all(20),
+                      itemCount: trucks.length,
+                      itemBuilder: (_, i) => TruckerTruckCard(
+                        truck: trucks[i],
+                        onEdit: () => _navigateAndRefresh(TruckerTruckUpdatePage(truck: trucks[i])),
+                        onDelete: () => _confirmDelete(trucks[i]),
                       ),
-                    );
-                    if (result == true) _loadTruck();
-                  },
-                  onDelete: () => _showDeleteConfirmation(truck),
-                );
-              },
-            ),
+                    ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const TruckerTruckSavingPage(),
-            ),
-          );
-          if (result == true) _loadTruck();
-        },
-        backgroundColor: const Color(0xFF4CAF50),
+        onPressed: () => _navigateAndRefresh(const TruckerTruckSavingPage()),
+        backgroundColor: kPrimaryColor,
         icon: const Icon(Icons.add),
         label: const Text('Yeni Araç Ekle'),
       ),

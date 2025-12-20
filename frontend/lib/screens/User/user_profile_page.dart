@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/user_service.dart';
+import '../../widgets/themed_scaffold.dart';
 
 class UserProfilePage extends StatefulWidget {
   const UserProfilePage({super.key});
@@ -60,13 +61,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: const Text('Profil Bilgileri'),
+    return ThemedScaffold(
+      useGradientBackground: true,
+      appBar: ThemedAppBar(
+        title: const Text('Profil Bilgileri', style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        backgroundColor: Colors.transparent,
       ),
       body: _isLoading
           ? const Center(
@@ -201,15 +202,15 @@ class _UserProfilePageState extends State<UserProfilePage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? Colors.grey[850] : Colors.white,
+        color: isDark ? Colors.grey[850] : Colors.white.withOpacity(0.85),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark ? Colors.grey[700]! : Colors.grey[200]!,
+          color: isDark ? Colors.grey[700]! : const Color(0xFF4CAF50).withOpacity(0.3),
         ),
         boxShadow: [
           if (!isDark)
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: Colors.black.withOpacity(0.05),
               spreadRadius: 1,
               blurRadius: 5,
               offset: const Offset(0, 2),

@@ -9,6 +9,7 @@ import '../../widgets/themed_scaffold.dart';
 import '../../widgets/trucker_widgets.dart';
 import '../../widgets/custom_bottom_navbar.dart';
 import '../../widgets/notification_button.dart';
+import '../../utils/page_transitions.dart';
 
 class TruckerMainPage extends StatefulWidget {
   const TruckerMainPage({super.key});
@@ -44,7 +45,7 @@ class _TruckerMainPageState extends State<TruckerMainPage> {
 
   void _onItemTapped(int index) {
     if (index == 3) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const TruckerSettingsPage()));
+      AppNavigator.push(context, const TruckerSettingsPage(), transition: TransitionType.slideRight);
     } else if (index == 1 || index == 2) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gelişme Aşamasında'), duration: Duration(seconds: 2)));
     } else {
@@ -74,7 +75,7 @@ class _TruckerMainPageState extends State<TruckerMainPage> {
                 shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
                 crossAxisCount: 2, mainAxisSpacing: 16, crossAxisSpacing: 16, childAspectRatio: 1.1,
                 children: _actionCards.map((c) => TruckerActionCard(emoji: c['emoji'], title: c['title'],
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => c['page'])))).toList(),
+                  onTap: () => AppNavigator.push(context, c['page'], transition: TransitionType.slideRight))).toList(),
               ),
             ),
             const SizedBox(height: 30),

@@ -3,6 +3,7 @@ import '../../config/api_config.dart';
 import '../../services/truck_service.dart';
 import '../../widgets/themed_scaffold.dart';
 import '../../widgets/trucker_widgets.dart';
+import '../../utils/page_transitions.dart';
 import 'trucker_truckAdUpdate_page.dart';
 
 class TruckerListAdsPage extends StatefulWidget {
@@ -65,7 +66,7 @@ class _TruckerListAdsPageState extends State<TruckerListAdsPage> {
   }
 
   Future<void> _navigateAndRefresh(Widget page) async {
-    final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+    final result = await AppNavigator.push(context, page, transition: TransitionType.slideRight);
     if (result == true) _fetchAds();
   }
 

@@ -223,16 +223,28 @@ class _SetNewPasswordScreenState extends State<SetNewPasswordScreen> {
               TextField(
                 controller: _passwordController,
                 obscureText: _obscurePassword,
+                style: const TextStyle(color: Color(0xFF3A5A40), fontSize: 16),
                 decoration: InputDecoration(
                   labelText: 'Yeni Şifre',
+                  labelStyle: TextStyle(color: Colors.grey[700]),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFF7CB342)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFF7CB342)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFF3A5A40), width: 2),
                   ),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: Colors.white.withOpacity(0.9),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                      color: Colors.grey[600],
                     ),
                     onPressed: () {
                       setState(() {
@@ -247,18 +259,30 @@ class _SetNewPasswordScreenState extends State<SetNewPasswordScreen> {
               TextField(
                 controller: _confirmPasswordController,
                 obscureText: _obscureConfirmPassword,
+                style: const TextStyle(color: Color(0xFF3A5A40), fontSize: 16),
                 decoration: InputDecoration(
                   labelText: 'Yeni Şifreyi Onayla',
+                  labelStyle: TextStyle(color: Colors.grey[700]),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFF7CB342)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFF7CB342)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFF3A5A40), width: 2),
                   ),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: Colors.white.withOpacity(0.9),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscureConfirmPassword
                           ? Icons.visibility_off
                           : Icons.visibility,
+                      color: Colors.grey[600],
                     ),
                     onPressed: () {
                       setState(() {

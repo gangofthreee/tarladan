@@ -9,6 +9,7 @@ import '../../services/farmer_product_service.dart';
 import '../../widgets/themed_scaffold.dart';
 import '../../widgets/notification_button.dart';
 import '../../widgets/farmer_widgets.dart';
+import '../../utils/page_transitions.dart';
 
 class FarmerMainPage extends StatefulWidget {
   const FarmerMainPage({super.key});
@@ -49,7 +50,7 @@ class _FarmerMainPageState extends State<FarmerMainPage> {
   }
 
   void _go(Widget page, {bool refresh = false}) async {
-    await Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+    await AppNavigator.push(context, page, transition: TransitionType.slideRight);
     if (refresh && mounted) _loadProducts();
   }
 

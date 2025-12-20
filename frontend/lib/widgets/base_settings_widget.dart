@@ -6,16 +6,19 @@ import '../screens/User/user_profile_page.dart';
 import '../services/token_service.dart';
 import '../services/session_service.dart';
 import '../services/geocoding_service.dart';
+import '../utils/page_transitions.dart';
 import 'themed_scaffold.dart';
 
 class BaseSettingsWidget extends StatelessWidget {
   final Color primaryColor;
   final bool useGradientBackground;
+  final Widget? bottomNavigationBar;
 
   const BaseSettingsWidget({
     super.key,
     required this.primaryColor,
     this.useGradientBackground = false,
+    this.bottomNavigationBar,
   });
 
   void _showLogoutDialog(BuildContext context) {
@@ -111,6 +114,7 @@ class BaseSettingsWidget extends StatelessWidget {
           const SizedBox(height: 16),
         ],
       ),
+      bottomNavigationBar: bottomNavigationBar,
     );
   }
 
@@ -209,11 +213,10 @@ class BaseSettingsWidget extends StatelessWidget {
               color: Theme.of(context).textTheme.bodyMedium?.color,
             ),
             onTap: () {
-              Navigator.push(
+              AppNavigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const UserProfilePage(),
-                ),
+                const UserProfilePage(),
+                transition: TransitionType.slideRight,
               );
             },
           ),

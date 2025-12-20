@@ -4,6 +4,7 @@ import 'package:latlong2/latlong.dart';
 import '../screens/Farmer/farmer_all_ads.dart';
 import '../screens/Farmer/farmer_orders.dart';
 import '../screens/Farmer/farmer_settings_page.dart';
+import '../utils/page_transitions.dart';
 
 /// Farmer için ortak kullanılan sabitler
 class FarmerConstants {
@@ -70,8 +71,8 @@ class FarmerBottomNavBar extends StatelessWidget {
       final page = pages[index];
       if (page != null) {
         currentIndex == 0 
-            ? Navigator.push(context, MaterialPageRoute(builder: (_) => page)) 
-            : Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page));
+            ? AppNavigator.push(context, page, transition: TransitionType.slideRight) 
+            : AppNavigator.pushReplacement(context, page, transition: TransitionType.fade);
       }
     }
   }

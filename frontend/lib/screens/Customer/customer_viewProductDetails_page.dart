@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../../widgets/themed_scaffold.dart';
+import '../../utils/page_transitions.dart';
 import 'customer_purchaseProduct_page.dart';
 
 class CustomerViewProductDetailsPage extends StatelessWidget {
@@ -99,11 +100,11 @@ class CustomerViewProductDetailsPage extends StatelessWidget {
                   width: double.infinity,
                   height: 55,
                   child: ElevatedButton(
-                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => CustomerPurchaseProductPage(
+                    onPressed: () => AppNavigator.push(context, CustomerPurchaseProductPage(
                       productId: productId, depotId: depotId, productName: productName, imageUrl: imageUrl,
                       price: price, unit: unit, availableQuantity: availableQuantity,
                       depotLatitude: depotLatitude, depotLongitude: depotLongitude,
-                    ))),
+                    ), transition: TransitionType.slideUp),
                     style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4CAF50), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                     child: const Text('Hemen Al', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
                   ),

@@ -128,15 +128,22 @@ class _NotificationModalState extends State<NotificationModal> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor = isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF5FFF5);
+    final cardColor = isDark ? Colors.grey[850] : Colors.white.withOpacity(0.9);
+    
     return DraggableScrollableSheet(
       initialChildSize: 0.7,
       minChildSize: 0.5,
       maxChildSize: 0.95,
       builder: (context, scrollController) {
         return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            border: Border(
+              top: BorderSide(color: const Color(0xFF4CAF50).withOpacity(0.3), width: 1.5),
+            ),
           ),
           child: Column(
             children: [
@@ -146,7 +153,7 @@ class _NotificationModalState extends State<NotificationModal> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: const Color(0xFF4CAF50).withOpacity(0.5),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -156,21 +163,22 @@ class _NotificationModalState extends State<NotificationModal> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       'Bildirimler',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : const Color(0xFF3A5A40),
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close),
+                      icon: Icon(Icons.close, color: isDark ? Colors.white70 : Colors.grey[700]),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
                 ),
               ),
-              const Divider(height: 1),
+              Divider(height: 1, color: const Color(0xFF4CAF50).withOpacity(0.2)),
               // Notifications list
               Expanded(
                 child: _isLoading
@@ -210,19 +218,27 @@ class _NotificationModalState extends State<NotificationModal> {
                               final notification = _notifications[index];
                               
                               // Debug: notification yapısını kontrol et
-                              print('📬 Notification data: $notification');
+                              // print('📬 Notification data: $notification');
                               
                               // Tüm field'ları güvenli şekilde parse et
-                              final isRead = notification['isRead'] ?? false;
+                              final isRead = notification['isRead'] ?? notification['read'] ?? false;
                               
-                              // createdAt'i güvenli parse et
+                              // createdAt'i güvenli parse et - Java LocalDateTime array format: [year, month, day, hour, minute, second, nano]
                               DateTime createdAt;
                               try {
                                 final createdAtData = notification['createdAt'];
                                 if (createdAtData is String) {
                                   createdAt = DateTime.parse(createdAtData);
-                                } else if (createdAtData is List && createdAtData.isNotEmpty) {
-                                  createdAt = DateTime.parse(createdAtData[0].toString());
+                                } else if (createdAtData is List && createdAtData.length >= 3) {
+                                  // Java LocalDateTime array format: [year, month, day, hour, minute, second, nano]
+                                  createdAt = DateTime(
+                                    createdAtData[0] as int,  // year
+                                    createdAtData[1] as int,  // month
+                                    createdAtData[2] as int,  // day
+                                    createdAtData.length > 3 ? createdAtData[3] as int : 0,  // hour
+                                    createdAtData.length > 4 ? createdAtData[4] as int : 0,  // minute
+                                    createdAtData.length > 5 ? createdAtData[5] as int : 0,  // second
+                                  );
                                 } else {
                                   createdAt = DateTime.now();
                                 }
@@ -262,9 +278,14 @@ class _NotificationModalState extends State<NotificationModal> {
                                 },
                                 child: Container(
                                   padding: const EdgeInsets.all(16),
-                                  color: isRead
-                                      ? Colors.white
-                                      : const Color(0xFF4CAF50).withOpacity(0.1),
+                                  decoration: BoxDecoration(
+                                    color: isRead
+                                        ? (isDark ? Colors.transparent : Colors.white.withOpacity(0.5))
+                                        : const Color(0xFF4CAF50).withOpacity(isDark ? 0.15 : 0.12),
+                                    border: Border(
+                                      bottom: BorderSide(color: const Color(0xFF4CAF50).withOpacity(0.1), width: 0.5),
+                                    ),
+                                  ),
                                   child: Row(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
@@ -296,8 +317,8 @@ class _NotificationModalState extends State<NotificationModal> {
                                                     ? FontWeight.normal
                                                     : FontWeight.bold,
                                                 color: isRead
-                                                    ? Colors.grey[600]
-                                                    : Colors.black87,
+                                                    ? (isDark ? Colors.grey[400] : Colors.grey[600])
+                                                    : (isDark ? Colors.white : const Color(0xFF3A5A40)),
                                               ),
                                             ),
                                             const SizedBox(height: 4),
@@ -305,7 +326,7 @@ class _NotificationModalState extends State<NotificationModal> {
                                               timeago.format(createdAt, locale: 'tr'),
                                               style: TextStyle(
                                                 fontSize: 12,
-                                                color: Colors.grey[500],
+                                                color: isDark ? Colors.grey[500] : Colors.grey[500],
                                               ),
                                             ),
                                           ],

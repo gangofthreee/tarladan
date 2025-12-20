@@ -164,16 +164,25 @@ class SelectedTruckBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        // Light green tint to match gradient background
+        color: isDarkMode 
+            ? const Color(0xFF1E1E1E) 
+            : const Color(0xFFE8F5E9).withOpacity(0.95), // Light green
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        border: Border(
+          top: BorderSide(color: const Color(0xFF4CAF50).withOpacity(0.4), width: 1.5),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 10,
-            offset: const Offset(0, -3),
+            color: Colors.black.withOpacity(0.08),
+            spreadRadius: 0,
+            blurRadius: 15,
+            offset: const Offset(0, -5),
           ),
         ],
       ),

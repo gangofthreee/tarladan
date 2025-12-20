@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/depot_service.dart';
 import 'warehouseman_updateWarehouseInfo_page.dart';
 import '../../widgets/themed_scaffold.dart';
+import '../../utils/page_transitions.dart';
 
 class WarehousemanMyWarehouseDetailPage extends StatefulWidget {
   final int depotId;
@@ -65,22 +66,21 @@ class _State extends State<WarehousemanMyWarehouseDetailPage> {
               ]),
               const SizedBox(height: 12),
               _card('Mevcut Doluluk', [
-                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                  Text('Kapasite: ${_depot!['capacityTon']} ton', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  Text('Alan: ${_depot!['sizeM2']} m²', style: TextStyle(fontSize: 16, color: Colors.grey[600]))
-                ]),
-                const SizedBox(height: 12),
+                Text('Kapasite: ${_depot!['capacityTon']} ton', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Text('Alan: ${_depot!['sizeM2']} m²', style: TextStyle(fontSize: 16, color: Colors.grey[600])),
+                const SizedBox(height: 8),
                 Text('Fiyat: ${_depot!['price']} ₺', style: TextStyle(fontSize: 16, color: Colors.grey[600])),
               ]),
               const SizedBox(height: 30),
               Row(children: [
                 Expanded(child: SizedBox(height: 50, child: ElevatedButton(
                   onPressed: () async {
-                    final res = await Navigator.push(context, MaterialPageRoute(builder: (_) => WarehousemanUpdateWarehouseInfoPage(
+                    final res = await AppNavigator.push(context, WarehousemanUpdateWarehouseInfoPage(
                       depotId: widget.depotId, warehouseName: 'Depo #${widget.depotId}',
                       currentLatitude: _depot!['latitude'], currentLongitude: _depot!['longitude'],
                       currentSize: '${_depot!['sizeM2']}', currentCapacity: '${_depot!['capacityTon']}', currentPrice: '${_depot!['price']}'
-                    )));
+                    ), transition: TransitionType.slideRight);
                     if (res == true) { _updated = true; _load(); }
                   },
                   style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4CAF50), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
@@ -88,7 +88,18 @@ class _State extends State<WarehousemanMyWarehouseDetailPage> {
                 ))),
                 const SizedBox(width: 12),
                 Expanded(child: SizedBox(height: 50, child: ElevatedButton(
-                  onPressed: () => showDialog(context: context, builder: (_) => AlertDialog(title: const Text('Sil'), content: const Text('Emin misiniz?'), actions: [TextButton(onPressed: ()=>Navigator.pop(context), child: const Text('İptal')), ElevatedButton(onPressed: (){Navigator.pop(context); _del();}, style: ElevatedButton.styleFrom(backgroundColor: Colors.red), child: const Text('Sil'))])),
+                  onPressed: () => showDialog(context: context, builder: (_) => AlertDialog(
+                    title: const Text('Sil'),
+                    content: const Text('Emin misiniz?'),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.pop(context), child: Text('İptal', style: TextStyle(color: Colors.grey[700]))),
+                      ElevatedButton(
+                        onPressed: () { Navigator.pop(context); _del(); },
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+                        child: const Text('Sil', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  )),
                   style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE57373), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                   child: const Text('Sil', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
                 ))),

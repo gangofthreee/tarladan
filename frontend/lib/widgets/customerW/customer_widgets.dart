@@ -6,6 +6,7 @@ import '../../screens/Customer/customer_settings_page.dart';
 import '../../screens/Customer/customer_viewProductDetails_page.dart';
 import '../../config/api_config.dart';
 import '../notification_button.dart';
+import '../../utils/page_transitions.dart';
 
 /// Customer için ortak kullanılan sabitler
 class CustomerConstants {
@@ -49,11 +50,11 @@ class CustomerBottomNavBar extends StatelessWidget {
       Navigator.popUntil(context, (r) => r.isFirst);
       if (onHomePressed != null) onHomePressed!();
     } else if (index == 1) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerViewOrdersPage()));
+      AppNavigator.push(context, const CustomerViewOrdersPage(), transition: TransitionType.slideRight);
     } else if (index == 2) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Geliştirme Aşamasında'), duration: Duration(seconds: 1)));
     } else if (index == 3) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerSettingsPage()));
+      AppNavigator.push(context, const CustomerSettingsPage(), transition: TransitionType.slideRight);
     }
   }
 }
@@ -152,22 +153,21 @@ class CustomerProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(
+        AppNavigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => CustomerViewProductDetailsPage(
-              productId: product['id'],
-              depotId: product['depot_id'] ?? 1,
-              productName: product['name'],
-              farmerName: product['farmer'],
-              price: (product['price'] ?? 0).toDouble(),
-              unit: product['unit'],
-              imageUrl: product['image'],
-              availableQuantity: product['stock'] ?? 0,
-              depotLatitude: product['depot_latitude'],
-              depotLongitude: product['depot_longitude'],
-            ),
+          CustomerViewProductDetailsPage(
+            productId: product['id'],
+            depotId: product['depot_id'] ?? 1,
+            productName: product['name'],
+            farmerName: product['farmer'],
+            price: (product['price'] ?? 0).toDouble(),
+            unit: product['unit'],
+            imageUrl: product['image'],
+            availableQuantity: product['stock'] ?? 0,
+            depotLatitude: product['depot_latitude'],
+            depotLongitude: product['depot_longitude'],
           ),
+          transition: TransitionType.fadeScale,
         );
       },
       child: Container(

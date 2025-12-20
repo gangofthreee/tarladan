@@ -4,6 +4,7 @@ import 'trucker_truckSaving_page.dart';
 import '../../services/truck_service.dart';
 import '../../widgets/themed_scaffold.dart';
 import '../../widgets/trucker_widgets.dart';
+import '../../utils/page_transitions.dart';
 
 class TruckerTruckListPage extends StatefulWidget {
   const TruckerTruckListPage({super.key});
@@ -43,7 +44,7 @@ class _TruckerTruckListPageState extends State<TruckerTruckListPage> {
   }
 
   Future<void> _navigateAndRefresh(Widget page) async {
-    final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+    final result = await AppNavigator.push(context, page, transition: TransitionType.slideRight);
     if (result == true) _loadTrucks();
   }
 

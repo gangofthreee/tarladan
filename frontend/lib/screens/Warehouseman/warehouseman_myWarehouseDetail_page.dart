@@ -48,10 +48,13 @@ class _State extends State<WarehousemanMyWarehouseDetailPage> {
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
+      useGradientBackground: true,
       appBar: ThemedAppBar(
         title: const Text('Depo Detayı', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context, _updated)),
-        centerTitle: true, elevation: 0),
+        centerTitle: true, elevation: 0,
+        backgroundColor: Colors.transparent,
+      ),
       body: _loading ? const Center(child: CircularProgressIndicator()) : _depot == null
           ? Center(child: ElevatedButton(onPressed: _load, child: const Text('Tekrar Dene')))
           : SingleChildScrollView(padding: const EdgeInsets.all(20), child: Column(children: [
@@ -96,7 +99,12 @@ class _State extends State<WarehousemanMyWarehouseDetailPage> {
 
   Widget _card(String title, List<Widget> children) => Container(
     width: double.infinity, padding: const EdgeInsets.all(20),
-    decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)]),
+    decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Theme.of(context).cardColor
+            : Colors.white.withOpacity(0.7),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)]),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)), const SizedBox(height: 20), ...children]),
   );
 

@@ -57,7 +57,12 @@ class _FarmerMainPageState extends State<FarmerMainPage> {
   Widget build(BuildContext context) {
     final textColor = Theme.of(context).textTheme.bodyLarge?.color;
     return ThemedScaffold(
-      appBar: ThemedAppBar(elevation: 0, title: const Text('Tarladan', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)), actions: const [NotificationButton()]),
+      useGradientBackground: true,
+      appBar: ThemedAppBar(
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          title: const Text('Tarladan', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          actions: [NotificationButton()]),
       body: RefreshIndicator(
         onRefresh: _loadProducts,
         color: FarmerConstants.primaryColor,
@@ -66,14 +71,22 @@ class _FarmerMainPageState extends State<FarmerMainPage> {
           padding: const EdgeInsets.all(16),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('Merhaba, $_userName', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: textColor)),
-            const SizedBox(height: 24),
-            GridView.count(crossAxisCount: 2, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), mainAxisSpacing: 16, crossAxisSpacing: 16, childAspectRatio: 1.3, children: [
-              FarmerActionCard(title: 'Açık İlanlarım', icon: Icons.format_list_bulleted, onTap: () => _go(const FarmerAllAds(), refresh: true)),
-              FarmerActionCard(title: 'Yeni İlan Aç', icon: Icons.add_circle_outline, onTap: () => _go(const FarmerCreateAd(), refresh: true)),
-              FarmerActionCard(title: 'Siparişlerim', icon: Icons.inventory_2_outlined, onTap: () => _go(const FarmerOrdersScreen())),
-              FarmerActionCard(title: 'Ayarlar', icon: Icons.settings, onTap: () => _go(const FarmerSettingsPage())),
-            ]),
-            const SizedBox(height: 32),
+            const SizedBox(height: 16),
+            GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                padding: EdgeInsets.zero,
+                physics: const NeverScrollableScrollPhysics(),
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+                childAspectRatio: 1.55,
+                children: [
+                  FarmerActionCard(title: 'Açık İlanlarım', icon: Icons.format_list_bulleted, onTap: () => _go(const FarmerAllAds(), refresh: true)),
+                  FarmerActionCard(title: 'Yeni İlan Aç', icon: Icons.add_circle_outline, onTap: () => _go(const FarmerCreateAd(), refresh: true)),
+                  FarmerActionCard(title: 'Siparişlerim', icon: Icons.inventory_2_outlined, onTap: () => _go(const FarmerOrdersScreen())),
+                  FarmerActionCard(title: 'Ayarlar', icon: Icons.settings, onTap: () => _go(const FarmerSettingsPage())),
+                ]),
+            const SizedBox(height: 12),
             Text('Son İlanlar', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: textColor)),
             const SizedBox(height: 16),
             _isLoading ? const Padding(padding: EdgeInsets.symmetric(vertical: 40), child: Center(child: CircularProgressIndicator(color: FarmerConstants.primaryColor)))

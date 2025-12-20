@@ -36,8 +36,14 @@ class _WarehousemanMainPageState extends State<WarehousemanMainPage> {
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
+      useGradientBackground: true,
+      appBar: ThemedAppBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        title: const Text('Tarladan', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+        actions: [NotificationButton()],
+      ),
       body: SafeArea(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Container(padding: const EdgeInsets.all(20), color: Theme.of(context).cardColor, child: const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text('Tarladan', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)), NotificationButton()])),
         const SizedBox(height: 20),
         WarehouseHeader(userName: _name),
         const SizedBox(height: 30),

@@ -31,7 +31,7 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage> with Si
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
-      useCustomerBackground: true,
+      useGradientBackground: true,
       appBar: ThemedAppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,

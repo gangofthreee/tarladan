@@ -26,7 +26,7 @@ String _formatDateRange(String start, String end) {
 }
 
 BoxDecoration _cardBox(BuildContext ctx) => BoxDecoration(
-  color: Theme.of(ctx).cardColor,
+  color: Theme.of(ctx).brightness == Brightness.dark ? Theme.of(ctx).cardColor : Colors.white.withOpacity(0.5),
   borderRadius: BorderRadius.circular(16),
   boxShadow: [BoxShadow(color: Colors.grey.withAlpha(25), spreadRadius: 1, blurRadius: 5, offset: const Offset(0, 2))],
 );
@@ -116,7 +116,7 @@ class TruckerFormField extends StatelessWidget {
       decoration: InputDecoration(
         hintText: hintText, suffixIcon: suffix, filled: true,
         hintStyle: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withAlpha(128)),
-        fillColor: isDark ? Colors.grey[850] : Colors.grey[50],
+        fillColor: isDark ? Colors.grey[850] : Colors.white.withOpacity(0.5),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[300]!)),
         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[300]!)),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: kPrimaryColor, width: 2)),
@@ -398,16 +398,8 @@ class TruckerMainHeader extends StatelessWidget {
   final String userName;
   const TruckerMainHeader({super.key, required this.userName});
   @override
-  Widget build(BuildContext context) => Column(children: [
-    Container(padding: const EdgeInsets.all(20), color: Theme.of(context).cardColor,
-      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Text('Tarladan', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color)),
-        const NotificationButton(),
-      ])),
-    const SizedBox(height: 20),
-    Padding(padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Align(alignment: Alignment.centerLeft, child: Text('Merhaba, $userName', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color)))),
-  ]);
+  Widget build(BuildContext context) => Padding(padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Align(alignment: Alignment.centerLeft, child: Text('Merhaba, $userName', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color))));
 }
 
 // ============================================================================

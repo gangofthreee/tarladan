@@ -46,7 +46,9 @@ class _FarmerAllAdsState extends State<FarmerAllAds> {
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
+      useGradientBackground: true,
       appBar: ThemedAppBar(
+        backgroundColor: Colors.transparent,
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
         title: const Text('İlanlarım', style: TextStyle(fontWeight: FontWeight.bold)),
       ),

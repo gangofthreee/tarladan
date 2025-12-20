@@ -68,7 +68,8 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return ThemedScaffold(
-      appBar: ThemedAppBar(title: const Text('İlan Güncelle'), leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context))),
+      useGradientBackground: true,
+      appBar: ThemedAppBar(title: const Text('İlan Güncelle'), leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)), elevation: 0, backgroundColor: Colors.transparent),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Form(
@@ -79,7 +80,7 @@ class _TruckerTruckUpdatePageState extends State<TruckerTruckUpdatePage> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: isDark ? Colors.grey[850] : Colors.grey[100],
+                color: isDark ? Colors.grey[850] : Colors.white.withOpacity(0.5),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: isDark ? Colors.grey[700]! : Colors.grey[300]!, width: 1.5),
               ),

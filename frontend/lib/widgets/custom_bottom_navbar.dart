@@ -18,7 +18,7 @@ class CustomBottomNavBar extends StatelessWidget {
     
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : Colors.white.withOpacity(0.7),
+        color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFBCE6C9),
         boxShadow: [
           BoxShadow(
             color: isDark ? Colors.black26 : Colors.black.withOpacity(0.05),

@@ -13,7 +13,7 @@ class ThemedScaffold extends StatelessWidget {
   final bool extendBody;
   final bool extendBodyBehindAppBar;
   final FloatingActionButtonLocation? floatingActionButtonLocation;
-  final bool useCustomerBackground;
+  final bool useGradientBackground;
 
   const ThemedScaffold({
     super.key,
@@ -27,7 +27,7 @@ class ThemedScaffold extends StatelessWidget {
     this.extendBody = false,
     this.extendBodyBehindAppBar = false,
     this.floatingActionButtonLocation,
-    this.useCustomerBackground = false,
+    this.useGradientBackground = false,
   });
 
   @override
@@ -35,7 +35,7 @@ class ThemedScaffold extends StatelessWidget {
     Widget? currentBody = body;
     final isLight = Theme.of(context).brightness == Brightness.light;
 
-    if (useCustomerBackground && isLight) {
+    if (useGradientBackground && isLight) {
       currentBody = Container(
         width: double.infinity,
         height: double.infinity,
@@ -54,7 +54,7 @@ class ThemedScaffold extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: (useCustomerBackground && isLight)
+      backgroundColor: (useGradientBackground && isLight)
           ? const Color(0xFFF0F5D1)
           : (backgroundColor ?? Theme.of(context).scaffoldBackgroundColor),
       appBar: appBar,
@@ -63,7 +63,7 @@ class ThemedScaffold extends StatelessWidget {
       bottomNavigationBar: bottomNavigationBar,
       drawer: drawer,
       endDrawer: endDrawer,
-      extendBody: (useCustomerBackground && isLight) ? true : extendBody,
+      extendBody: (useGradientBackground && isLight) ? true : extendBody,
       extendBodyBehindAppBar: extendBodyBehindAppBar,
       floatingActionButtonLocation: floatingActionButtonLocation,
     );

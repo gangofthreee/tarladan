@@ -10,12 +10,12 @@ import 'themed_scaffold.dart';
 
 class BaseSettingsWidget extends StatelessWidget {
   final Color primaryColor;
-  final bool useCustomerBackground;
+  final bool useGradientBackground;
 
   const BaseSettingsWidget({
     super.key,
     required this.primaryColor,
-    this.useCustomerBackground = false,
+    this.useGradientBackground = false,
   });
 
   void _showLogoutDialog(BuildContext context) {
@@ -72,10 +72,10 @@ class BaseSettingsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
-      useCustomerBackground: useCustomerBackground,
+      useGradientBackground: useGradientBackground,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: ThemedAppBar(
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        backgroundColor: useGradientBackground ? Colors.transparent : Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
         leading: IconButton(
           icon: Icon(
@@ -115,9 +115,10 @@ class BaseSettingsWidget extends StatelessWidget {
   }
 
   Widget _buildThemeSection(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: isDark ? Theme.of(context).cardColor : (useGradientBackground ? Colors.white.withOpacity(0.7) : Theme.of(context).cardColor),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -171,9 +172,10 @@ class BaseSettingsWidget extends StatelessWidget {
   }
 
   Widget _buildAccountSection(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: isDark ? Theme.of(context).cardColor : (useGradientBackground ? Colors.white.withOpacity(0.7) : Theme.of(context).cardColor),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -251,9 +253,10 @@ class BaseSettingsWidget extends StatelessWidget {
   }
 
   Widget _buildOtherSection(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: isDark ? Theme.of(context).cardColor : (useGradientBackground ? Colors.white.withOpacity(0.7) : Theme.of(context).cardColor),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(

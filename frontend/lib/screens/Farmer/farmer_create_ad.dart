@@ -73,13 +73,14 @@ class _FarmerCreateAdState extends State<FarmerCreateAd> {
 
   void _msg(String m, {bool ok = false}) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(m), backgroundColor: ok ? Colors.green : Colors.red));
   void _pickDepot() => showDialog(context: context, builder: (_) => AlertDialog(title: const Text('Depo Seç'), content: _depots.isEmpty ? const Text('Yok') : SizedBox(width: double.maxFinite, child: ListView(shrinkWrap: true, children: _depots.map((d) => ListTile(title: Text(_depotAddr[d['id']] ?? 'Depo #${d['id']}'), subtitle: Text('${d['capacityTon'] ?? 0} ton'), onTap: () { setState(() => _depotId = d['id']); Navigator.pop(context); })).toList()))));
-  InputDecoration _deco(String h, {String? s}) => InputDecoration(filled: true, fillColor: Theme.of(context).brightness == Brightness.dark ? Colors.grey[850] : const Color(0xFFF5F5F5), hintText: h, suffixText: s, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none));
+  InputDecoration _deco(String h, {String? s}) => InputDecoration(filled: true, fillColor: Theme.of(context).brightness == Brightness.dark ? Colors.grey[850] : Colors.white.withOpacity(0.7), hintText: h, suffixText: s, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none));
 
   @override
   Widget build(BuildContext context) {
-    final bg = Theme.of(context).brightness == Brightness.dark ? Colors.grey[850] : const Color(0xFFF5F5F5);
+    final bg = Theme.of(context).brightness == Brightness.dark ? Colors.grey[850] : Colors.white.withOpacity(0.7);
     return ThemedScaffold(
-      appBar: ThemedAppBar(elevation: 0, leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)), title: const Text('Yeni İlan', style: TextStyle(fontWeight: FontWeight.bold))),
+      useGradientBackground: true,
+      appBar: ThemedAppBar(elevation: 0, backgroundColor: Colors.transparent, leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)), title: const Text('Yeni İlan', style: TextStyle(fontWeight: FontWeight.bold))),
       body: Form(key: _formKey, child: ListView(padding: const EdgeInsets.all(20), children: [
         _f('Ürün adı', TextFormField(controller: _name, decoration: _deco('Örn: Elma'), validator: (v) => v == null || v.isEmpty ? 'Ürün adı boş olamaz' : null)),
         _f('Miktar (kg)', TextFormField(controller: _qty, keyboardType: TextInputType.number, decoration: _deco('400', s: 'kg'), validator: (v) => _valNum(v, 'Miktar'))),

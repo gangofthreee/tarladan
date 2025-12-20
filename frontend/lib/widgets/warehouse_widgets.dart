@@ -47,7 +47,7 @@ class WarehouseFormField extends StatelessWidget {
             hintText: hintText,
             hintStyle: TextStyle(color: Colors.grey[400]),
             filled: true,
-            fillColor: isDark ? Colors.grey[850] : Colors.white,
+            fillColor: isDark ? Colors.grey[850] : Colors.white.withOpacity(0.7),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
@@ -113,7 +113,7 @@ class WarehouseLocationSelector extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: isDark ? Colors.grey[850] : Colors.white,
+              color: isDark ? Colors.grey[850] : Colors.white.withOpacity(0.7),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: selectedLocation != null

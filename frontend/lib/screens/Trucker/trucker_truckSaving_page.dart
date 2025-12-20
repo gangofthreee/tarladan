@@ -80,7 +80,8 @@ class _TruckerTruckSavingPageState extends State<TruckerTruckSavingPage> {
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
-      appBar: ThemedAppBar(title: const Text('Araç Kaydet'), leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context))),
+      useGradientBackground: true,
+      appBar: ThemedAppBar(title: const Text('Araç Kaydet'), leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)), elevation: 0, backgroundColor: Colors.transparent),
       body: _isLoading
           ? const TruckerLoadingWidget(message: 'Kaydediliyor...')
           : SingleChildScrollView(

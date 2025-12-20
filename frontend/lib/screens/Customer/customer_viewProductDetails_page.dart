@@ -20,7 +20,7 @@ class CustomerViewProductDetailsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
-      useCustomerBackground: true,
+      useGradientBackground: true,
       appBar: ThemedAppBar(
         elevation: 0, centerTitle: true, backgroundColor: Colors.transparent,
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),

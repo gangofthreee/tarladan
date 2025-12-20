@@ -38,7 +38,8 @@ class _FarmerOrdersScreenState extends State<FarmerOrdersScreen> {
 
   @override
   Widget build(BuildContext context) => ThemedScaffold(
-    appBar: ThemedAppBar(leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)), title: const Text('Siparişlerim', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20))),
+    useGradientBackground: true,
+    appBar: ThemedAppBar(backgroundColor: Colors.transparent, leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)), title: const Text('Siparişlerim', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20))),
     body: Column(children: [
       const SizedBox(height: 16),
       Expanded(child: _loading ? const Center(child: CircularProgressIndicator(color: FarmerConstants.primaryColor))

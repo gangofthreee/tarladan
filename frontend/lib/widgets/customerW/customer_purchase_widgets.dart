@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/geocoding_service.dart';
-import '../screens/Customer/customer_selectTruck_page.dart';
-import 'location_picker_widget.dart';
+import '../../screens/Customer/customer_selectTruck_page.dart';
+import '../location_picker_widget.dart';
 
 // Private utility components
 class _PurchaseSectionTitle extends StatelessWidget {

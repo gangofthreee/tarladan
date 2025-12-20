@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'custom_bottom_navbar.dart';
-import '../screens/Customer/customer_viewOrders.dart';
-import '../screens/Customer/customer_settings_page.dart';
-import '../screens/Customer/customer_viewProductDetails_page.dart';
-import '../config/api_config.dart';
-import 'notification_button.dart';
+import '../custom_bottom_navbar.dart';
+import '../../screens/Customer/customer_viewOrders.dart';
+import '../../screens/Customer/customer_settings_page.dart';
+import '../../screens/Customer/customer_viewProductDetails_page.dart';
+import '../../config/api_config.dart';
+import '../notification_button.dart';
 
 /// Customer için ortak kullanılan sabitler
 class CustomerConstants {

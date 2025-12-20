@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/user_service.dart';
 import '../../services/farmer_product_service.dart';
 import '../../widgets/themed_scaffold.dart';
-import '../../widgets/customer_widgets.dart';
+import '../../widgets/customerW/customer_widgets.dart';
 
 class CustomerMainPage extends StatefulWidget {
   const CustomerMainPage({super.key});

@@ -13,6 +13,7 @@ class ThemedScaffold extends StatelessWidget {
   final bool extendBody;
   final bool extendBodyBehindAppBar;
   final FloatingActionButtonLocation? floatingActionButtonLocation;
+  final bool useCustomerBackground;
 
   const ThemedScaffold({
     super.key,
@@ -26,20 +27,43 @@ class ThemedScaffold extends StatelessWidget {
     this.extendBody = false,
     this.extendBodyBehindAppBar = false,
     this.floatingActionButtonLocation,
+    this.useCustomerBackground = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    Widget? currentBody = body;
+    final isLight = Theme.of(context).brightness == Brightness.light;
+
+    if (useCustomerBackground && isLight) {
+      currentBody = Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFF0F5D1), // Pastel sarı-yeşil
+              Color(0xFFBCE6C9), // Nane yeşili
+            ],
+          ),
+        ),
+        child: currentBody ?? const SizedBox.shrink(),
+      );
+    }
+
     return Scaffold(
-      backgroundColor:
-          backgroundColor ?? Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: (useCustomerBackground && isLight)
+          ? const Color(0xFFF0F5D1)
+          : (backgroundColor ?? Theme.of(context).scaffoldBackgroundColor),
       appBar: appBar,
-      body: body,
+      body: currentBody,
       floatingActionButton: floatingActionButton,
       bottomNavigationBar: bottomNavigationBar,
       drawer: drawer,
       endDrawer: endDrawer,
-      extendBody: extendBody,
+      extendBody: (useCustomerBackground && isLight) ? true : extendBody,
       extendBodyBehindAppBar: extendBodyBehindAppBar,
       floatingActionButtonLocation: floatingActionButtonLocation,
     );

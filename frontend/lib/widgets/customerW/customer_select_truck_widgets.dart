@@ -17,7 +17,7 @@ class TruckAdCard extends StatelessWidget {
   Widget build(BuildContext context) {
     // Determine background color based on selection and theme
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColor = isDarkMode ? const Color(0xFF1E1E1E) : Colors.white;
+    final backgroundColor = isDarkMode ? const Color(0xFF1E1E1E) : Colors.white.withOpacity(0.7);
     
     return GestureDetector(
       onTap: onTap,

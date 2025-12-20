@@ -10,8 +10,9 @@ class CustomerViewOrderDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
+      useCustomerBackground: true,
       appBar: ThemedAppBar(
-        elevation: 0, centerTitle: true,
+        elevation: 0, centerTitle: true, backgroundColor: Colors.transparent,
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
         title: const Text('Sipariş Detayı', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
       ),
@@ -32,7 +33,18 @@ class CustomerViewOrderDetailPage extends StatelessWidget {
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(16)),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Theme.of(context).cardColor
+                      : Colors.white.withOpacity(0.7),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 5,
+                    ),
+                  ],
+                ),
                 child: Row(children: [
                    ClipRRect(borderRadius: BorderRadius.circular(12), child: Image.network(imageUrl, width: 80, height: 80, fit: BoxFit.cover, errorBuilder: (_,__,___)=>const Icon(Icons.error))),
                    const SizedBox(width: 16),
@@ -46,7 +58,18 @@ class CustomerViewOrderDetailPage extends StatelessWidget {
               const SizedBox(height: 20),
               Container(
                 padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(16)),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Theme.of(context).cardColor
+                      : Colors.white.withOpacity(0.7),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 5,
+                    ),
+                  ],
+                ),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   const Text('Sipariş Detayları', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 20),

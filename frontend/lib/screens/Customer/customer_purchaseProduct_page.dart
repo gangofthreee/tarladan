@@ -76,8 +76,9 @@ class _CustomerPurchaseProductPageState extends State<CustomerPurchaseProductPag
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
+      useCustomerBackground: true,
       appBar: ThemedAppBar(
-        elevation: 0, centerTitle: true,
+        elevation: 0, centerTitle: true, backgroundColor: Colors.transparent,
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
         title: const Text('Satın Alma', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
       ),

@@ -31,8 +31,10 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage> with Si
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
+      useCustomerBackground: true,
       appBar: ThemedAppBar(
         elevation: 0,
+        backgroundColor: Colors.transparent,
         centerTitle: true,
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
         title: const Text('Siparişlerim', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
@@ -72,7 +74,7 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage> with Si
   }
 
   Widget _buildTabBar() => Container(
-    color: Theme.of(context).cardColor,
+    color: Colors.transparent,
     child: TabBar(
       controller: _tabController,
       indicatorColor: const Color(0xFF4CAF50),

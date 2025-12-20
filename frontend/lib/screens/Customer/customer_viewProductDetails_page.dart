@@ -20,8 +20,9 @@ class CustomerViewProductDetailsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
+      useCustomerBackground: true,
       appBar: ThemedAppBar(
-        elevation: 0, centerTitle: true,
+        elevation: 0, centerTitle: true, backgroundColor: Colors.transparent,
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
         title: const Text('Ürün Detayları', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
       ),
@@ -31,7 +32,7 @@ class CustomerViewProductDetailsPage extends StatelessWidget {
           children: [
             Container(
               height: 300,
-              color: Theme.of(context).cardColor,
+              color: Colors.transparent,
               child: Image.network(imageUrl, fit: BoxFit.contain, errorBuilder: (_,__,___) => const Icon(Icons.image_not_supported, size: 100, color: Colors.grey)),
             ),
             Padding(
@@ -54,7 +55,15 @@ class CustomerViewProductDetailsPage extends StatelessWidget {
                 const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)]),
+                  decoration: BoxDecoration(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Theme.of(context).cardColor
+                          : Colors.white.withOpacity(0.7),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                            color: Colors.black.withOpacity(0.05), blurRadius: 5)
+                      ]),
                   child: Row(children: [
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Text(farmerName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),

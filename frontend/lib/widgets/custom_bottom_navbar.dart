@@ -18,10 +18,10 @@ class CustomBottomNavBar extends StatelessWidget {
     
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor, // Ensure background matches
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white.withOpacity(0.7),
         boxShadow: [
           BoxShadow(
-            color: isDark ? Colors.black26 : Colors.grey.withOpacity(0.2),
+            color: isDark ? Colors.black26 : Colors.black.withOpacity(0.05),
             spreadRadius: 1,
             blurRadius: 10,
             offset: const Offset(0, -3),
@@ -30,7 +30,7 @@ class CustomBottomNavBar extends StatelessWidget {
       ),
       child: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        backgroundColor: Theme.of(context).cardColor, // Use theme card color for proper dark mode support
+        backgroundColor: Colors.transparent,
         selectedItemColor: const Color(0xFF4CAF50),
         unselectedItemColor: isDark ? Colors.grey[500] : Colors.grey[400],
         selectedLabelStyle: const TextStyle(
@@ -41,7 +41,7 @@ class CustomBottomNavBar extends StatelessWidget {
         currentIndex: currentIndex,
         onTap: onTap,
         items: items,
-        elevation: 0, // We use the Container's shadow instead
+        elevation: 0,
       ),
     );
   }

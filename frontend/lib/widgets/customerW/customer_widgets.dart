@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../custom_bottom_navbar.dart';
 import '../../screens/Customer/customer_viewOrders.dart';
 import '../../screens/Customer/customer_settings_page.dart';
@@ -74,8 +75,8 @@ class CustomerHeader extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Tarladan', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color)),
-              Text('Merhaba, $userName', style: TextStyle(fontSize: 16, color: Theme.of(context).textTheme.bodyMedium?.color)),
+              Text('Tarladan', style: GoogleFonts.spaceMono(fontSize: 28, fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color)),
+              Text('Merhaba, $userName', style: GoogleFonts.spaceMono(fontSize: 16, color: Theme.of(context).textTheme.bodyMedium?.color)),
             ],
           ),
           const NotificationButton(),
@@ -100,10 +101,10 @@ class CustomerSearchBar extends StatelessWidget {
           boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), spreadRadius: 1, blurRadius: 5, offset: const Offset(0, 2))],
         ),
         child: TextField(
-          style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
+          style: GoogleFonts.spaceMono(color: Theme.of(context).textTheme.bodyLarge?.color),
           decoration: InputDecoration(
             hintText: 'Ürün ara...',
-            hintStyle: TextStyle(color: Colors.grey[400]),
+            hintStyle: GoogleFonts.spaceMono(color: Colors.grey[400]),
             prefixIcon: const Icon(Icons.search),
             border: InputBorder.none,
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -214,7 +215,7 @@ class CustomerProductCard extends StatelessWidget {
                 children: [
                   Text(
                     product['name'],
-                    style: TextStyle(
+                    style: GoogleFonts.spaceMono(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).textTheme.bodyLarge?.color,
@@ -225,7 +226,7 @@ class CustomerProductCard extends StatelessWidget {
                   const SizedBox(height: 3),
                   Text(
                     product['farmer'],
-                    style: TextStyle(
+                    style: GoogleFonts.spaceMono(
                       fontSize: 12,
                       color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
                     ),
@@ -233,7 +234,7 @@ class CustomerProductCard extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text(
                     '${product['price']} ${product['unit']}',
-                    style: const TextStyle(
+                    style: GoogleFonts.spaceMono(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                       color: CustomerConstants.primaryColor,

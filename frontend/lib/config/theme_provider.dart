@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class ThemeProvider extends ChangeNotifier {
   bool _isDarkMode = false;
@@ -28,12 +29,19 @@ class ThemeProvider extends ChangeNotifier {
     brightness: Brightness.light,
     primaryColor: const Color(0xFF4CAF50),
     scaffoldBackgroundColor: const Color(0xFFF5F5F5),
-    appBarTheme: const AppBarTheme(
+    fontFamily: GoogleFonts.spaceMono().fontFamily,
+    appBarTheme: AppBarTheme(
       backgroundColor: Colors.white,
       foregroundColor: Colors.black,
       elevation: 0,
+      titleTextStyle: GoogleFonts.spaceMono(
+        color: Colors.black,
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+      ),
     ),
     cardColor: Colors.white,
+    textTheme: GoogleFonts.spaceMonoTextTheme(ThemeData.light().textTheme),
     colorScheme: ColorScheme.light(
       primary: const Color(0xFF4CAF50),
       secondary: const Color(0xFF00D563),
@@ -46,12 +54,19 @@ class ThemeProvider extends ChangeNotifier {
     brightness: Brightness.dark,
     primaryColor: const Color(0xFF4CAF50),
     scaffoldBackgroundColor: const Color(0xFF121212),
-    appBarTheme: const AppBarTheme(
+    fontFamily: GoogleFonts.spaceMono().fontFamily,
+    appBarTheme: AppBarTheme(
       backgroundColor: const Color(0xFF1E1E1E),
       foregroundColor: Colors.white,
       elevation: 0,
+      titleTextStyle: GoogleFonts.spaceMono(
+        color: Colors.white,
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+      ),
     ),
     cardColor: const Color(0xFF1E1E1E),
+    textTheme: GoogleFonts.spaceMonoTextTheme(ThemeData.dark().textTheme),
     colorScheme: ColorScheme.dark(
       primary: const Color(0xFF4CAF50),
       secondary: const Color(0xFF00D563),

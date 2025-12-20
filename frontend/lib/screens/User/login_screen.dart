@@ -237,7 +237,7 @@ class _LoginPageState extends State<LoginPage> {
             children: [
               Text(
                 'tarladan',
-                style: GoogleFonts.macondo(
+                style: GoogleFonts.spaceMono(
                   fontSize: 64,
                   color: const Color(0xFF3A5A40),
                   fontWeight: FontWeight.bold,

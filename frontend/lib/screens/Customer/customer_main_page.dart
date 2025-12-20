@@ -46,6 +46,7 @@ class _CustomerMainPageState extends State<CustomerMainPage> {
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
+      useCustomerBackground: true,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(

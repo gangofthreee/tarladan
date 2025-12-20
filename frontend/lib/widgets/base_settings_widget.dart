@@ -10,8 +10,13 @@ import 'themed_scaffold.dart';
 
 class BaseSettingsWidget extends StatelessWidget {
   final Color primaryColor;
+  final bool useCustomerBackground;
 
-  const BaseSettingsWidget({super.key, required this.primaryColor});
+  const BaseSettingsWidget({
+    super.key,
+    required this.primaryColor,
+    this.useCustomerBackground = false,
+  });
 
   void _showLogoutDialog(BuildContext context) {
     showDialog(
@@ -67,6 +72,7 @@ class BaseSettingsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
+      useCustomerBackground: useCustomerBackground,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: ThemedAppBar(
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,

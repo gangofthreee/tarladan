@@ -6,6 +6,6 @@ class FarmerSettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BaseSettingsWidget(primaryColor: const Color(0xFF00D563));
+    return BaseSettingsWidget(primaryColor: const Color(0xFF00D563), useGradientBackground: true);
   }
 }

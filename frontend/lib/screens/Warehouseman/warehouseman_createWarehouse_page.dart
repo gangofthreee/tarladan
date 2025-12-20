@@ -60,10 +60,12 @@ class _WarehousemanCreateWarehousePageState extends State<WarehousemanCreateWare
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
+      useGradientBackground: true,
       appBar: ThemedAppBar(
         title: const Text('Depo Ekle', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
         centerTitle: true, elevation: 0,
+        backgroundColor: Colors.transparent,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),

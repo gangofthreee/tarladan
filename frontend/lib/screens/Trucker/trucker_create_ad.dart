@@ -70,7 +70,8 @@ class _TruckerCreateAdPageState extends State<TruckerCreateAdPage> {
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
-      appBar: ThemedAppBar(title: const Text('İlan Aç'), leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context))),
+      useGradientBackground: true,
+      appBar: ThemedAppBar(title: const Text('İlan Aç'), leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)), elevation: 0, backgroundColor: Colors.transparent),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(children: [

@@ -72,8 +72,9 @@ class _State extends State<WarehousemanUpdateWarehouseInfoPage> {
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
+      useGradientBackground: true,
       appBar: ThemedAppBar(
-        title: const Text('Depo Güncelle', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)), leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)), centerTitle: true, elevation: 0),
+        title: const Text('Depo Güncelle', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)), leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)), centerTitle: true, elevation: 0, backgroundColor: Colors.transparent),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Form(key: _formKey, child: Column(children: [

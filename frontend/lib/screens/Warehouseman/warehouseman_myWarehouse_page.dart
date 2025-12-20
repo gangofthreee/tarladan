@@ -39,7 +39,8 @@ class _WarehousemanMyWarehousePageState extends State<WarehousemanMyWarehousePag
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
-      appBar: ThemedAppBar(title: const Text('Depolarım', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)), leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)), centerTitle: true, elevation: 0),
+      useGradientBackground: true,
+      appBar: ThemedAppBar(title: const Text('Depolarım', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)), leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)), centerTitle: true, elevation: 0, backgroundColor: Colors.transparent),
       body: _isLoading ? const Center(child: CircularProgressIndicator(color: Color(0xFF4CAF50))) : _err != null ? _ErrView(err: _err!, onRetry: _load) : _depots.isEmpty ? const _EmptyView() : RefreshIndicator(onRefresh: _load, child: ListView.builder(padding: const EdgeInsets.all(16), itemCount: _depots.length, itemBuilder: (_, i) => _DepotCard(depot: _depots[i], onUpdate: _load))),
       bottomNavigationBar: CustomBottomNavBar(currentIndex: _idx, onTap: _nav, items: const [BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Anasayfa'), BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: 'Siparişler'), BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: 'Cüzdan'), BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Ayarlar')]),
     );
@@ -59,7 +60,18 @@ class _DepotCard extends StatelessWidget {
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16), padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.1), spreadRadius: 1, blurRadius: 5, offset: const Offset(0, 2))]),
+        decoration: BoxDecoration(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Theme.of(context).cardColor
+                : Colors.white.withOpacity(0.5),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  spreadRadius: 1,
+                  blurRadius: 5,
+                  offset: const Offset(0, 2))
+            ]),
         child: Row(
           children: [
             Container(width: 70, height: 70, decoration: BoxDecoration(color: Colors.grey[800], borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.warehouse, size: 40, color: Colors.white)),

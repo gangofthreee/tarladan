@@ -36,10 +36,27 @@ class FarmerBottomNavBar extends StatelessWidget {
   const FarmerBottomNavBar({super.key, required this.currentIndex, this.onHomePressed});
 
   @override
-  Widget build(BuildContext context) => Container(
-    decoration: BoxDecoration(color: Theme.of(context).cardColor, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)]),
-    child: BottomNavigationBar(currentIndex: currentIndex, type: BottomNavigationBarType.fixed, selectedItemColor: FarmerConstants.primaryColor, unselectedItemColor: Colors.grey, elevation: 0, backgroundColor: Theme.of(context).cardColor, items: FarmerConstants.bottomNavItems, onTap: (i) => _handleNavTap(context, i)),
-  );
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      decoration: BoxDecoration(
+          color: isDark ? Theme.of(context).cardColor : const Color(0xFFBCE6C9),
+          boxShadow: [
+            BoxShadow(
+                color: isDark ? Colors.black26 : Colors.black.withOpacity(0.05),
+                blurRadius: 10)
+          ]),
+      child: BottomNavigationBar(
+          currentIndex: currentIndex,
+          type: BottomNavigationBarType.fixed,
+          selectedItemColor: FarmerConstants.primaryColor,
+          unselectedItemColor: Colors.grey,
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          items: FarmerConstants.bottomNavItems,
+          onTap: (i) => _handleNavTap(context, i)),
+    );
+  }
 
   void _handleNavTap(BuildContext context, int index) {
     if (index == currentIndex) return;
@@ -85,7 +102,12 @@ class FarmerProductItemCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(12)),
+        decoration: BoxDecoration(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Theme.of(context).cardColor
+              : Colors.white.withOpacity(0.7),
+          borderRadius: BorderRadius.circular(12),
+        ),
         child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(name, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor)),
@@ -135,7 +157,9 @@ class FarmerProductDetailCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Theme.of(context).cardColor
+              : Colors.white.withOpacity(0.7),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -238,7 +262,9 @@ class FarmerOrderCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Theme.of(context).cardColor
+            : Colors.white.withOpacity(0.7),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -342,7 +368,9 @@ class FarmerActionCard extends StatelessWidget {
     final c = color ?? FarmerConstants.primaryColor;
     return Material(
       borderRadius: BorderRadius.circular(16),
-      color: Theme.of(context).cardColor,
+      color: Theme.of(context).brightness == Brightness.dark
+          ? Theme.of(context).cardColor
+          : Colors.white.withOpacity(0.7),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: onTap,
@@ -352,9 +380,16 @@ class FarmerActionCard extends StatelessWidget {
           decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 2))]),
           padding: const EdgeInsets.all(16),
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Icon(icon, size: 48, color: c),
-            const SizedBox(height: 12),
-            Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Theme.of(context).textTheme.bodyLarge?.color), textAlign: TextAlign.center),
+            Icon(icon, size: 36, color: c),
+            const SizedBox(height: 8),
+            Text(title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).textTheme.bodyLarge?.color),
+                textAlign: TextAlign.center),
           ]),
         ),
       ),
@@ -386,7 +421,7 @@ class FarmerTabSelector extends StatelessWidget {
     ));
 
     return Container(
-      color: Theme.of(context).cardColor,
+      color: Colors.transparent,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(children: [tab(firstTabLabel, isFirstTabSelected, () => onTabChanged(true)), const SizedBox(width: 8), tab(secondTabLabel, !isFirstTabSelected, () => onTabChanged(false))]),
     );
@@ -550,13 +585,20 @@ class FarmerEditableField extends StatelessWidget {
                 controller: controller,
                 keyboardType: isNumeric ? TextInputType.number : TextInputType.text,
                 decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.grey[850]
+                      : Colors.white.withOpacity(0.7),
                   suffixText: suffix.isNotEmpty ? suffix.trim() : null,
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(
                     vertical: 8,
                     horizontal: 8,
                   ),
-                  border: const OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
                 validator: validator ?? _defaultValidator,
               )
@@ -731,7 +773,7 @@ class FarmerNoLocationPlaceholder extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).brightness == Brightness.dark
             ? Colors.grey[800]
-            : Colors.grey[300],
+            : Colors.white.withOpacity(0.7),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Center(
@@ -786,7 +828,7 @@ class FarmerProductImageSection extends StatelessWidget {
             width: double.infinity,
             height: height,
             decoration: BoxDecoration(
-              color: isDarkMode ? Colors.grey[800] : const Color(0xFFFFE8D6),
+              color: isDarkMode ? Colors.grey[800] : Colors.transparent,
             ),
             child: _buildContent(),
           ),

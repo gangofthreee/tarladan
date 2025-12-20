@@ -95,9 +95,9 @@ class _FarmerAdDetailState extends State<FarmerAdDetail> {
   @override
   Widget build(BuildContext context) => PopScope(
     canPop: false, onPopInvokedWithResult: (d, _) { if (!d) Navigator.pop(context); },
-    child: Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: ThemedAppBar(elevation: 0, leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)), title: Text(_product?['name'] ?? 'Detay', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color, fontWeight: FontWeight.bold))),
+    child: ThemedScaffold(
+      useGradientBackground: true,
+      appBar: ThemedAppBar(elevation: 0, backgroundColor: Colors.transparent, leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)), title: Text(_product?['name'] ?? 'Detay', style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color, fontWeight: FontWeight.bold))),
       body: _isLoading ? const Center(child: CircularProgressIndicator(color: FarmerConstants.primaryColor)) : _errorMessage != null ? FarmerErrorState(message: _errorMessage!, onRetry: _load) : _form(),
     ),
   );

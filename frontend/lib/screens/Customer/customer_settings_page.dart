@@ -8,7 +8,7 @@ class CustomerSettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BaseSettingsWidget(
       primaryColor: const Color(0xFF4CAF50),
-      useCustomerBackground: true,
+      useGradientBackground: true,
     );
   }
 }

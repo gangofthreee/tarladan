@@ -8,6 +8,7 @@ import '../../services/user_service.dart';
 import '../../widgets/themed_scaffold.dart';
 import '../../widgets/trucker_widgets.dart';
 import '../../widgets/custom_bottom_navbar.dart';
+import '../../widgets/notification_button.dart';
 
 class TruckerMainPage extends StatefulWidget {
   const TruckerMainPage({super.key});
@@ -54,10 +55,17 @@ class _TruckerMainPageState extends State<TruckerMainPage> {
   @override
   Widget build(BuildContext context) {
     return ThemedScaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      useGradientBackground: true,
+      appBar: ThemedAppBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        title: const Text('Tarladan', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+        actions: [NotificationButton()],
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(children: [
+            const SizedBox(height: 16),
             TruckerMainHeader(userName: _userName),
             const SizedBox(height: 30),
             Padding(

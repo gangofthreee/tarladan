@@ -3,6 +3,7 @@ import '../../config/api_config.dart';
 import '../../services/farmer_product_service.dart';
 import '../../widgets/themed_scaffold.dart';
 import '../../widgets/farmer_widgets.dart';
+import '../../utils/page_transitions.dart';
 import 'farmer_ad_detail.dart';
 
 class FarmerAllAds extends StatefulWidget {
@@ -36,9 +37,10 @@ class _FarmerAllAdsState extends State<FarmerAllAds> {
   }
 
   void _navigateToDetail(int productId) async {
-    final result = await Navigator.push(
+    final result = await AppNavigator.push(
       context,
-      MaterialPageRoute(builder: (_) => FarmerAdDetail(productId: productId)),
+      FarmerAdDetail(productId: productId),
+      transition: TransitionType.slideRight,
     );
     if (result == true) _fetchProducts();
   }

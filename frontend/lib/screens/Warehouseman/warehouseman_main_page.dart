@@ -7,6 +7,7 @@ import '../../widgets/themed_scaffold.dart';
 import '../../widgets/notification_button.dart';
 import '../../widgets/warehouse_main_widgets.dart';
 import '../../widgets/custom_bottom_navbar.dart';
+import '../../utils/page_transitions.dart';
 
 class WarehousemanMainPage extends StatefulWidget {
   const WarehousemanMainPage({super.key});
@@ -28,7 +29,7 @@ class _WarehousemanMainPageState extends State<WarehousemanMainPage> {
   }
 
   void _tap(int i) {
-    if (i == 3) Navigator.push(context, MaterialPageRoute(builder: (_) => const WarehousemanSettingsPage()));
+    if (i == 3) AppNavigator.push(context, const WarehousemanSettingsPage(), transition: TransitionType.slideRight);
     else if (i == 0) setState(() => _idx = i);
     else ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Geliştirme Aşamasında'), duration: Duration(seconds: 1)));
   }
@@ -48,9 +49,9 @@ class _WarehousemanMainPageState extends State<WarehousemanMainPage> {
         WarehouseHeader(userName: _name),
         const SizedBox(height: 30),
         Padding(padding: const EdgeInsets.symmetric(horizontal: 20), child: Column(children: [
-          WarehouseMenuButton(label: 'Mevcut Depolarım', icon: Icons.warehouse, isPrimary: true, onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WarehousemanMyWarehousePage()))),
+          WarehouseMenuButton(label: 'Mevcut Depolarım', icon: Icons.warehouse, isPrimary: true, onPressed: () => AppNavigator.push(context, const WarehousemanMyWarehousePage(), transition: TransitionType.slideRight)),
           const SizedBox(height: 16),
-          WarehouseMenuButton(label: 'Depo Ekle', icon: Icons.add_business, isPrimary: false, onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WarehousemanCreateWarehousePage(depoOwnerId: 1)))),
+          WarehouseMenuButton(label: 'Depo Ekle', icon: Icons.add_business, isPrimary: false, onPressed: () => AppNavigator.push(context, const WarehousemanCreateWarehousePage(depoOwnerId: 1), transition: TransitionType.slideRight)),
         ])),
       ])),
       bottomNavigationBar: CustomBottomNavBar(currentIndex: _idx, onTap: _tap, items: const [

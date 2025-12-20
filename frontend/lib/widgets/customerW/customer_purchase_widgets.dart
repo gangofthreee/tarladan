@@ -121,10 +121,29 @@ class PurchaseSummarySection extends StatelessWidget {
                     Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       const _PurchaseInfoText('Miktar'),
                       const SizedBox(height: 4),
-                      SizedBox(width: 100, child: _PurchaseTextField(controller: quantityController, label: '', hint: '0', keyboardType: const TextInputType.numberWithOptions(decimal: true))),
+                      SizedBox(
+                        width: 80,
+                        height: 45,
+                        child: TextField(
+                          controller: quantityController,
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Theme.of(context).textTheme.bodyLarge?.color),
+                          decoration: InputDecoration(
+                            hintText: '0',
+                            hintStyle: TextStyle(color: Colors.grey[400]),
+                            filled: true,
+                            fillColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E1E1E) : Colors.white,
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey[300]!)),
+                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey[300]!)),
+                            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFF4CAF50), width: 2)),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          ),
+                        ),
+                      ),
                     ]),
                     const SizedBox(height: 12),
-                    Text('Toplam: \$${totalPrice.toStringAsFixed(2)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF4CAF50))),
+                    Text('Toplam: ${totalPrice.toStringAsFixed(2)} ₺', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF4CAF50))),
                   ],
                 ),
               ),
@@ -212,17 +231,60 @@ class PurchaseLogisticsSection extends StatelessWidget {
     );
   }
 
-  Widget _buildTruckSelectionButton(BuildContext context) => SizedBox(
-    width: double.infinity, height: 50,
-    child: ElevatedButton(
-      onPressed: () async {
-        final data = await Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerSelectTruckPage()));
-        if (data != null) onTruckSelected(data);
-      },
-      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4CAF50).withOpacity(0.2), foregroundColor: const Color(0xFF4CAF50), elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-      child: Text(selectedTruckId == null ? 'Tır Listesine Git' : '$selectedTruckerName - $selectedTruckVehicle ($selectedTruckPlate)', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-    ),
-  );
+  Widget _buildTruckSelectionButton(BuildContext context) {
+    if (selectedTruckId != null) {
+      // Show selected truck info in a card
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF4CAF50).withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFF4CAF50), width: 1.5),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Araç: $selectedTruckVehicle', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Theme.of(context).textTheme.bodyLarge?.color)),
+            const SizedBox(height: 6),
+            Text('Plaka: $selectedTruckPlate', style: TextStyle(fontSize: 15, color: Theme.of(context).textTheme.bodyMedium?.color)),
+            const SizedBox(height: 6),
+            Text('Araç Sahibi: $selectedTruckerName', style: TextStyle(fontSize: 15, color: Theme.of(context).textTheme.bodyMedium?.color)),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              height: 40,
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  final data = await Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerSelectTruckPage()));
+                  if (data != null) onTruckSelected(data);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF4CAF50),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                icon: const Icon(Icons.swap_horiz, size: 18),
+                label: const Text('Değiştir', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    
+    return SizedBox(
+      width: double.infinity, height: 50,
+      child: ElevatedButton(
+        onPressed: () async {
+          final data = await Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomerSelectTruckPage()));
+          if (data != null) onTruckSelected(data);
+        },
+        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4CAF50).withOpacity(0.2), foregroundColor: const Color(0xFF4CAF50), elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+        child: const Text('Tır Listesine Git', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+      ),
+    );
+  }
 }
 
 class PurchaseLocationSection extends StatefulWidget {

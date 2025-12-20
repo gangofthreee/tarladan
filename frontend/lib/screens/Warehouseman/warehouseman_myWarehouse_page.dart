@@ -4,6 +4,7 @@ import 'warehouseman_myWarehouseDetail_page.dart';
 import 'warehouseman_settings_page.dart';
 import '../../widgets/themed_scaffold.dart';
 import '../../widgets/custom_bottom_navbar.dart';
+import '../../utils/page_transitions.dart';
 
 class WarehousemanMyWarehousePage extends StatefulWidget {
   const WarehousemanMyWarehousePage({super.key});
@@ -32,7 +33,7 @@ class _WarehousemanMyWarehousePageState extends State<WarehousemanMyWarehousePag
 
   void _nav(int i) {
     if (i == 0) Navigator.pop(context);
-    else if (i == 3) Navigator.push(context, MaterialPageRoute(builder: (_) => const WarehousemanSettingsPage()));
+    else if (i == 3) AppNavigator.push(context, const WarehousemanSettingsPage(), transition: TransitionType.slideRight);
     else setState(() => _idx = i);
   }
 
@@ -56,7 +57,7 @@ class _DepotCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () async {
-        if (await Navigator.push(context, MaterialPageRoute(builder: (_) => WarehousemanMyWarehouseDetailPage(depotId: depot['id']))) == true) onUpdate();
+        if (await AppNavigator.push(context, WarehousemanMyWarehouseDetailPage(depotId: depot['id']), transition: TransitionType.slideRight) == true) onUpdate();
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 16), padding: const EdgeInsets.all(16),

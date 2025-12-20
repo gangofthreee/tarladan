@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../services/customer_order_service.dart';
 import '../../widgets/themed_scaffold.dart';
 import '../../widgets/customerW/customer_order_widgets.dart';
+import '../../widgets/customerW/customer_widgets.dart';
+import '../../utils/page_transitions.dart';
 import 'customer_viewOrderDetail_page.dart';
 
 class CustomerViewOrdersPage extends StatefulWidget {
@@ -70,6 +72,7 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage> with Si
           ),
         ],
       ),
+      bottomNavigationBar: const CustomerBottomNavBar(currentIndex: 1),
     );
   }
 
@@ -106,9 +109,10 @@ class _CustomerViewOrdersPageState extends State<CustomerViewOrdersPage> with Si
       itemCount: orders.length,
       itemBuilder: (context, index) => OrderCard(
         order: orders[index],
-        onTap: () => Navigator.push(
+        onTap: () => AppNavigator.push(
           context,
-          MaterialPageRoute(builder: (_) => CustomerViewOrderDetailPage(orderId: orders[index]['id'] ?? 0)),
+          CustomerViewOrderDetailPage(orderId: orders[index]['id'] ?? 0),
+          transition: TransitionType.slideRight,
         ),
       ),
     );

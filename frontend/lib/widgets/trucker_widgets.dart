@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'notification_button.dart';
+import 'custom_bottom_navbar.dart';
 
 // ============================================================================
 // CONSTANTS & UTILITIES
@@ -489,4 +490,49 @@ class TruckerAdForm extends StatelessWidget {
         return p == null ? 'Geçerli sayı giriniz' : p <= 0 ? 'Fiyat 0\'dan büyük olmalı' : null;
       }),
   ]));
+}
+
+// ============================================================================
+// TRUCKER BOTTOM NAVIGATION BAR
+// ============================================================================
+
+class TruckerBottomNavBar extends StatelessWidget {
+  final int currentIndex;
+  final VoidCallback? onHomePressed;
+
+  const TruckerBottomNavBar({
+    super.key,
+    required this.currentIndex,
+    this.onHomePressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomBottomNavBar(
+      currentIndex: currentIndex,
+      onTap: (index) => _handleNavTap(context, index),
+      items: const [
+        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Anasayfa'),
+        BottomNavigationBarItem(icon: Icon(Icons.local_shipping), label: 'İş Teklifleri'),
+        BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Siparişler'),
+        BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Ayarlar'),
+      ],
+    );
+  }
+
+  void _handleNavTap(BuildContext context, int index) {
+    if (index == currentIndex) return;
+    if (index == 0) {
+      Navigator.popUntil(context, (r) => r.isFirst);
+      if (onHomePressed != null) onHomePressed!();
+    } else if (index == 1) {
+      // İş Teklifleri - şimdilik snackbar
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Geliştirme Aşamasında'), duration: Duration(seconds: 1)));
+    } else if (index == 2) {
+      // Siparişler - şimdilik snackbar
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Geliştirme Aşamasında'), duration: Duration(seconds: 1)));
+    } else if (index == 3) {
+      // Ayarlar sayfasındayız, bir şey yapma
+    }
+  }
 }

@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:async';
 import '../../config/api_config.dart';
 import 'login_screen.dart';
+import '../../widgets/user_base_screen.dart';
 
 class VerificationScreen extends StatefulWidget {
   final String email;
@@ -246,22 +247,21 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white, // Force white background
+    return UserBaseScreen(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black), // Force black icon
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF3A5A40)),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           "E-posta Doğrulama",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold), // Force black text
+          style: TextStyle(color: Color(0xFF3A5A40), fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
       ),
-      body: SingleChildScrollView( // Added scroll view to prevent overflow
+      child: SingleChildScrollView( // Added scroll view to prevent overflow
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -269,7 +269,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
             const SizedBox(height: 24),
             const Text(
               "Doğrulama Kodu",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black), // Force black
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF3A5A40)),
             ),
             const SizedBox(height: 16),
             Text(
@@ -282,21 +282,21 @@ class _VerificationScreenState extends State<VerificationScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE3F2FD), // Light blue explicitly
+                  color: Colors.white.withOpacity(0.8),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF2196F3), width: 1), // Blue border
+                  border: Border.all(color: const Color(0xFF7CB342), width: 1.5),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.timer, color: Color(0xFF1976D2)), // Darker blue icon
+                    const Icon(Icons.timer, color: Color(0xFF3A5A40)),
                     const SizedBox(width: 8),
                     Text(
                       'Kalan süre: ${_formatTime(_remainingSeconds)}',
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1976D2), // Darker blue text
+                        color: Color(0xFF3A5A40),
                       ),
                     ),
                   ],
@@ -305,28 +305,28 @@ class _VerificationScreenState extends State<VerificationScreen> {
             const SizedBox(height: 24),
             TextField(
               controller: _codeController,
-              style: const TextStyle(color: Colors.black), // Input text color black
-              cursorColor: Colors.black,
+              style: const TextStyle(color: Color(0xFF3A5A40), fontSize: 16),
+              cursorColor: const Color(0xFF3A5A40),
               decoration: InputDecoration(
                 labelText: 'Doğrulama Kodu',
                 labelStyle: TextStyle(color: Colors.grey[700]),
                 hintText: '6 haneli kod',
                 hintStyle: TextStyle(color: Colors.grey[500]),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: Colors.white.withOpacity(0.9),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Colors.black54),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF7CB342)),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Colors.black87),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF7CB342)),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Colors.black, width: 2),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF3A5A40), width: 2),
                 ),
-                prefixIcon: Icon(Icons.lock_outline, color: Colors.grey[700]),
+                prefixIcon: Icon(Icons.lock_outline, color: Colors.grey[600]),
               ),
               keyboardType: TextInputType.number,
               maxLength: 6,

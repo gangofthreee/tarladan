@@ -14,6 +14,7 @@ import '../Warehouseman/warehouseman_main_page.dart';
 import '../Customer/customer_main_page.dart';
 import '../../widgets/user_base_screen.dart';
 import '../../widgets/farm_mascots.dart';
+import '../../utils/page_transitions.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -88,30 +89,16 @@ class _LoginPageState extends State<LoginPage> {
 
         switch (role) {
           case 'FARMER':
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const FarmerMainPage()),
-            );
+            AppNavigator.pushReplacement(context, const FarmerMainPage(), transition: TransitionType.fade);
             break;
           case 'TRUCKER':
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const TruckerMainPage()),
-            );
+            AppNavigator.pushReplacement(context, const TruckerMainPage(), transition: TransitionType.fade);
             break;
           case 'CUSTOMER':
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const CustomerMainPage()),
-            );
+            AppNavigator.pushReplacement(context, const CustomerMainPage(), transition: TransitionType.fade);
             break;
           case 'DEPOT_OWNER':
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const WarehousemanMainPage(),
-              ),
-            );
+            AppNavigator.pushReplacement(context, const WarehousemanMainPage(), transition: TransitionType.fade);
             break;
           default:
             _showError('Bilinmeyen kullanıcı rolü');
@@ -212,10 +199,7 @@ class _LoginPageState extends State<LoginPage> {
         _showError('Bilinmeyen kullanıcı rolü');
         return;
     }
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => destination),
-    );
+    AppNavigator.pushReplacement(context, destination, transition: TransitionType.fade);
   }
 
   void _showError(String message) {

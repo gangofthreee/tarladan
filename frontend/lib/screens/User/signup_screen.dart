@@ -30,10 +30,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isLoading = false;
 
   final roles = [
-    {'label': 'Farmer', 'icon': '🌾', 'value': 'FARMER'},
-    {'label': 'Customer', 'icon': '🛒', 'value': 'CUSTOMER'},
-    {'label': 'Trucker', 'icon': '🚚', 'value': 'TRUCKER'},
-    {'label': 'Warehouse\nOwner', 'icon': '🏭', 'value': 'DEPOT_OWNER'},
+    {'label': 'Çiftçi', 'icon': '🌾', 'value': 'FARMER'},
+    {'label': 'Müşteri', 'icon': '🛒', 'value': 'CUSTOMER'},
+    {'label': 'Nakliyeci', 'icon': '🚚', 'value': 'TRUCKER'},
+    {'label': 'Depo\nSahibi', 'icon': '🏭', 'value': 'DEPOT_OWNER'},
   ];
 
   @override
@@ -262,7 +262,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          "Join Tarladan",
+          "Hesap Oluştur",
           style: TextStyle(
             color: Color(0xFF3A5A40),
             fontWeight: FontWeight.bold,
@@ -278,10 +278,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
             // Form Fields
             TextFormField(
               controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Name'),
+              style: const TextStyle(color: Color(0xFF3A5A40)),
+              decoration: InputDecoration(
+                labelText: 'Ad',
+                labelStyle: TextStyle(color: Colors.grey[700], fontWeight: FontWeight.w500),
+                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey[600]!)),
+                focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF3A5A40), width: 2)),
+              ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter your name';
+                  return 'Lütfen adınızı girin';
                 }
                 return null;
               },
@@ -289,10 +295,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
             const SizedBox(height: 12),
             TextFormField(
               controller: _surnameController,
-              decoration: const InputDecoration(labelText: 'Surname'),
+              style: const TextStyle(color: Color(0xFF3A5A40)),
+              decoration: InputDecoration(
+                labelText: 'Soyad',
+                labelStyle: TextStyle(color: Colors.grey[700], fontWeight: FontWeight.w500),
+                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey[600]!)),
+                focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF3A5A40), width: 2)),
+              ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter your surname';
+                  return 'Lütfen soyadınızı girin';
                 }
                 return null;
               },
@@ -300,9 +312,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
             const SizedBox(height: 12),
             TextFormField(
               controller: _phoneController,
-              decoration: const InputDecoration(
-                labelText: 'Phone',
+              style: const TextStyle(color: Color(0xFF3A5A40)),
+              decoration: InputDecoration(
+                labelText: 'Telefon',
                 hintText: '0 5XX XXX XX XX',
+                labelStyle: TextStyle(color: Colors.grey[700], fontWeight: FontWeight.w500),
+                hintStyle: TextStyle(color: Colors.grey[500]),
+                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey[600]!)),
+                focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF3A5A40), width: 2)),
               ),
               keyboardType: TextInputType.phone,
               maxLength: 15,
@@ -313,20 +330,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ],
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter your phone number';
+                  return 'Lütfen telefon numaranızı girin';
                 }
                 final digitsOnly = value.replaceAll(' ', '');
-                // Only digits check
                 if (!RegExp(r'^[0-9]+$').hasMatch(digitsOnly)) {
-                  return 'Only digits allowed';
+                  return 'Sadece rakam giriniz';
                 }
-                // Must start with 05
                 if (!digitsOnly.startsWith('05')) {
-                  return 'Phone number must start with 05';
+                  return 'Telefon numarası 05 ile başlamalı';
                 }
-                // 11 digits check (05 + 9 more)
                 if (digitsOnly.length != 11) {
-                  return 'Phone number must be 11 digits';
+                  return 'Telefon numarası 11 haneli olmalı';
                 }
                 return null;
               },
@@ -334,14 +348,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
             const SizedBox(height: 12),
             TextFormField(
               controller: _emailController,
-              decoration: const InputDecoration(labelText: 'Email'),
+              style: const TextStyle(color: Color(0xFF3A5A40)),
+              decoration: InputDecoration(
+                labelText: 'E-posta',
+                labelStyle: TextStyle(color: Colors.grey[700], fontWeight: FontWeight.w500),
+                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey[600]!)),
+                focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF3A5A40), width: 2)),
+              ),
               keyboardType: TextInputType.emailAddress,
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter your email address';
+                  return 'Lütfen e-posta adresinizi girin';
                 }
                 if (!value.contains('@')) {
-                  return 'Enter a valid email address';
+                  return 'Geçerli bir e-posta adresi girin';
                 }
                 return null;
               },
@@ -349,11 +369,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
             const SizedBox(height: 12),
             TextFormField(
               controller: _passwordController,
-              decoration: const InputDecoration(labelText: 'Password'),
+              style: const TextStyle(color: Color(0xFF3A5A40)),
+              decoration: InputDecoration(
+                labelText: 'Şifre',
+                labelStyle: TextStyle(color: Colors.grey[700], fontWeight: FontWeight.w500),
+                enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey[600]!)),
+                focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF3A5A40), width: 2)),
+              ),
               obscureText: true,
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter password';
+                  return 'Lütfen şifre girin';
                 }
                 if (value.length < 8) {
                   return 'En az 8 karakter';
@@ -371,8 +397,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
             _PasswordRequirements(password: _passwordController.text),
             const SizedBox(height: 24),
             const Text(
-              "Select Role",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              "Rol Seçin",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF3A5A40)),
             ),
             if (_showRoleError)
               Padding(
@@ -386,7 +412,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      "Please select a role",
+                      "Lütfen bir rol seçin",
                       style: TextStyle(
                         color: Colors.red[700],
                         fontSize: 13,
@@ -438,7 +464,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       )
                     : const Text(
-                        "Register",
+                        "Kayıt Ol",
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,

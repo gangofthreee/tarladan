@@ -245,6 +245,7 @@ class _PasswordResetVerificationScreenState
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
+                        color: Color(0xFF3A5A40),
                       ),
                       decoration: InputDecoration(
                         counterText: '',
@@ -256,15 +257,19 @@ class _PasswordResetVerificationScreenState
                                 : const Color(0xFF7CB342),
                           ),
                         ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFF7CB342)),
+                        ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(
-                            color: Color(0xFF7CB342),
+                            color: Color(0xFF3A5A40),
                             width: 2,
                           ),
                         ),
                         filled: true,
-                        fillColor: Colors.white,
+                        fillColor: Colors.white.withOpacity(0.9),
                       ),
                       onChanged: (value) {
                         if (value.isNotEmpty && index < 5) {

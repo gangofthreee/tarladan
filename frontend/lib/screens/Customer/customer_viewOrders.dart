@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/customer_order_service.dart';
 import '../../widgets/themed_scaffold.dart';
-import '../../widgets/customer_order_widgets.dart';
+import '../../widgets/customerW/customer_order_widgets.dart';
 import 'customer_viewOrderDetail_page.dart';
 
 class CustomerViewOrdersPage extends StatefulWidget {

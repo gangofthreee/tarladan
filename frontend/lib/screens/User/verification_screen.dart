@@ -247,21 +247,21 @@ class _VerificationScreenState extends State<VerificationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Colors.white, // Force white background
       appBar: AppBar(
-        backgroundColor: Colors.grey[50],
+        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          icon: const Icon(Icons.arrow_back, color: Colors.black), // Force black icon
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           "E-posta Doğrulama",
-          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold), // Force black text
         ),
         centerTitle: true,
       ),
-      body: Padding(
+      body: SingleChildScrollView( // Added scroll view to prevent overflow
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -269,7 +269,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
             const SizedBox(height: 24),
             const Text(
               "Doğrulama Kodu",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black), // Force black
             ),
             const SizedBox(height: 16),
             Text(
@@ -282,21 +282,21 @@ class _VerificationScreenState extends State<VerificationScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.blue[50],
+                  color: const Color(0xFFE3F2FD), // Light blue explicitly
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.blue, width: 1),
+                  border: Border.all(color: const Color(0xFF2196F3), width: 1), // Blue border
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.timer, color: Colors.blue),
+                    const Icon(Icons.timer, color: Color(0xFF1976D2)), // Darker blue icon
                     const SizedBox(width: 8),
                     Text(
                       'Kalan süre: ${_formatTime(_remainingSeconds)}',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.blue,
+                        color: Color(0xFF1976D2), // Darker blue text
                       ),
                     ),
                   ],
@@ -305,11 +305,28 @@ class _VerificationScreenState extends State<VerificationScreen> {
             const SizedBox(height: 24),
             TextField(
               controller: _codeController,
-              decoration: const InputDecoration(
+              style: const TextStyle(color: Colors.black), // Input text color black
+              cursorColor: Colors.black,
+              decoration: InputDecoration(
                 labelText: 'Doğrulama Kodu',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.lock_outline),
+                labelStyle: TextStyle(color: Colors.grey[700]),
                 hintText: '6 haneli kod',
+                hintStyle: TextStyle(color: Colors.grey[500]),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: Colors.black54),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: Colors.black87),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: Colors.black, width: 2),
+                ),
+                prefixIcon: Icon(Icons.lock_outline, color: Colors.grey[700]),
               ),
               keyboardType: TextInputType.number,
               maxLength: 6,
@@ -321,12 +338,13 @@ class _VerificationScreenState extends State<VerificationScreen> {
               child: ElevatedButton(
                 onPressed: (_isLoading || _isTimerExpired) ? null : _verifyCode,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  disabledBackgroundColor: Colors.grey,
+                  backgroundColor: const Color(0xFF4CAF50), // Green
+                  disabledBackgroundColor: Colors.grey[300],
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
+                  elevation: 0,
                 ),
                 child: _isLoading
                     ? const SizedBox(
@@ -334,9 +352,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                         width: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
-                          ),
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       )
                     : const Text(
@@ -360,18 +376,20 @@ class _VerificationScreenState extends State<VerificationScreen> {
                     ? const SizedBox(
                         width: 16,
                         height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.grey),
                       )
-                    : const Icon(Icons.refresh),
+                    : Icon(Icons.refresh, color: _canResend ? Colors.grey[700] : Colors.grey[400]),
                 label: Text(
                   !_canResend
                       ? 'Tekrar gönder ($_resendCooldown sn)'
                       : 'Kodu Tekrar Gönder',
-                  style: const TextStyle(fontSize: 16),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: _canResend ? Colors.grey[700] : Colors.grey[400],
+                  ),
                 ),
                 style: TextButton.styleFrom(
-                  foregroundColor: Colors.green,
-                  disabledForegroundColor: Colors.grey,
+                  foregroundColor: Colors.grey[800],
                 ),
               ),
             ),
@@ -420,7 +438,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.orange[50],
+                  color: Colors.orange[50], // Light orange
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: Colors.orange, width: 1),
                 ),

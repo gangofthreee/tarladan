@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'login_screen.dart';
+import '../../widgets/user_base_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -13,8 +14,8 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Navigate to login screen after 3 seconds
-    Timer(const Duration(seconds: 1), () {
+    // Navigate to login screen after 2 seconds
+    Timer(const Duration(seconds: 2), () {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const LoginPage()),
@@ -24,11 +25,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(
-        0xFF00C853,
-      ), // Yeşil arka plan (#00C853 gibi)
-      body: Center(
+    return UserBaseScreen(
+      child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -36,20 +34,20 @@ class _SplashScreenState extends State<SplashScreen> {
             Container(
               width: 120,
               height: 120,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black26,
+                    color: Colors.black.withOpacity(0.1),
                     blurRadius: 10,
-                    offset: Offset(0, 5),
+                    offset: const Offset(0, 5),
                   ),
                 ],
               ),
-              child: Center(
+              child: const Center(
                 // Using an icon instead of missing logo.png asset
-                child: Icon(Icons.agriculture, size: 60, color: Colors.green),
+                child: Icon(Icons.agriculture, size: 60, color: Color(0xFF3A5A40)),
               ),
             ),
             const SizedBox(height: 24),
@@ -59,14 +57,19 @@ class _SplashScreenState extends State<SplashScreen> {
               style: TextStyle(
                 fontSize: 36,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: Color(0xFF3A5A40),
+                letterSpacing: 1.2,
               ),
             ),
             const SizedBox(height: 8),
             // Alt metin
-            const Text(
+            Text(
               'Üreticiden Tüketiciye',
-              style: TextStyle(fontSize: 18, color: Colors.white70),
+              style: TextStyle(
+                fontSize: 18,
+                color: const Color(0xFF3A5A40).withOpacity(0.8),
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ],
         ),

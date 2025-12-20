@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../config/api_config.dart';
 import '../../services/token_service.dart';
+import '../../widgets/user_base_screen.dart';
 
 class GoogleRegisterScreen extends StatefulWidget {
   final String idToken;
@@ -114,197 +115,196 @@ class _GoogleRegisterScreenState extends State<GoogleRegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: ThemeData.light(),
-      child: Scaffold(
-        backgroundColor: Colors.grey[50],
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: () => Navigator.pop(context),
-          ),
-          title: const Text(
-            'Google ile Kayıt',
-            style: TextStyle(color: Colors.black),
+    return UserBaseScreen(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF3A5A40)),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Google ile Kayıt',
+          style: TextStyle(
+            color: Color(0xFF3A5A40),
+            fontWeight: FontWeight.bold,
           ),
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Hesap Türünüzü Seçin',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF0D1117),
+        centerTitle: true,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Hesap Türünüzü Seçin',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF0D1117),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Tarladan\'da nasıl kullanmak istediğinizi seçin',
+              style: TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+            const SizedBox(height: 24),
+
+            // Role seçimi
+            Expanded(
+              child: GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 1.2,
                 ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Tarladan\'da nasıl kullanmak istediğinizi seçin',
-                style: TextStyle(fontSize: 14, color: Colors.grey),
-              ),
-              const SizedBox(height: 24),
+                itemCount: _roles.length,
+                itemBuilder: (context, index) {
+                  final role = _roles[index];
+                  final isSelected = _selectedRole == role['value'];
 
-              // Role seçimi
-              Expanded(
-                child: GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 1.2,
-                  ),
-                  itemCount: _roles.length,
-                  itemBuilder: (context, index) {
-                    final role = _roles[index];
-                    final isSelected = _selectedRole == role['value'];
-
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _selectedRole = role['value'];
-                        });
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedRole = role['value'];
+                      });
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? Colors.green.shade50.withOpacity(0.8)
+                            : Colors.white,
+                        border: Border.all(
                           color: isSelected
-                              ? Colors.green.shade50
-                              : Colors.white,
-                          border: Border.all(
-                            color: isSelected
-                                ? Colors.green
-                                : Colors.grey.shade300,
-                            width: isSelected ? 2 : 1,
-                          ),
-                          borderRadius: BorderRadius.circular(16),
+                              ? const Color(0xFF7CB342)
+                              : Colors.grey.shade300,
+                          width: isSelected ? 2 : 1,
                         ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              role['icon']!,
-                              style: const TextStyle(fontSize: 48),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              role['label']!,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: isSelected
-                                    ? Colors.green
-                                    : Colors.black87,
-                              ),
-                            ),
-                          ],
-                        ),
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                    );
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            role['icon']!,
+                            style: const TextStyle(fontSize: 48),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            role['label']!,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: isSelected
+                                  ? const Color(0xFF3A5A40)
+                                  : Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Telefon numarası
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Telefon',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF6B7280),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  maxLength: 17,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    _PhoneNumberFormatter(),
+                  ],
+                  decoration: InputDecoration(
+                    hintText: '0 5XX XXX XX XX',
+                    hintStyle: TextStyle(
+                      color: Colors.grey[400],
+                      fontSize: 16,
+                    ),
+                    counterText:
+                        '${_phoneController.text.replaceAll(' ', '').length}/11',
+                    counterStyle: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF6B7280),
+                    ),
+                    enabledBorder: const UnderlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Color(0xFF7CB342),
+                        width: 2,
+                      ),
+                    ),
+                    focusedBorder: const UnderlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Color(0xFF7CB342),
+                        width: 2,
+                      ),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 0,
+                    ),
+                  ),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 1.2,
+                  ),
+                  onChanged: (value) {
+                    setState(() {});
                   },
                 ),
-              ),
+              ],
+            ),
 
-              const SizedBox(height: 24),
+            const SizedBox(height: 24),
 
-              // Telefon numarası
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Telefon',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF6B7280),
-                      fontWeight: FontWeight.w500,
-                    ),
+            // Kayıt butonu
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF7CB342),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _phoneController,
-                    keyboardType: TextInputType.phone,
-                    maxLength:
-                        17, // 0 5XX XXX XX XX = 17 karakter (boşluklarla)
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      _PhoneNumberFormatter(),
-                    ],
-                    decoration: InputDecoration(
-                      hintText: '0 5XX XXX XX XX',
-                      hintStyle: const TextStyle(
-                        color: Color(0xFFD1D5DB),
-                        fontSize: 16,
-                      ),
-                      counterText:
-                          '${_phoneController.text.replaceAll(' ', '').length}/11',
-                      counterStyle: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF6B7280),
-                      ),
-                      enabledBorder: const UnderlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Color(0xFF6366F1),
-                          width: 2,
-                        ),
-                      ),
-                      focusedBorder: const UnderlineInputBorder(
-                        borderSide: BorderSide(
-                          color: Color(0xFF6366F1),
-                          width: 2,
-                        ),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 0,
-                      ),
-                    ),
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 1.2,
-                    ),
-                    onChanged: (value) {
-                      setState(() {}); // Counter'ı güncellemek için
-                    },
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 24),
-
-              // Kayıt butonu
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                  onPressed: _isLoading ? null : _register,
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Text(
-                          'Kaydı Tamamla',
-                          style: TextStyle(fontSize: 18, color: Colors.white),
-                        ),
                 ),
+                onPressed: _isLoading ? null : _register,
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        'Kaydı Tamamla',
+                        style: TextStyle(fontSize: 18, color: Colors.white),
+                      ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

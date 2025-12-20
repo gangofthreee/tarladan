@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'verification_screen.dart';
 import '../../config/api_config.dart';
+import '../../widgets/user_base_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -209,25 +210,40 @@ class _RegisterScreenState extends State<RegisterScreen> {
           _showRoleError = false; // Remove error when role is selected
         });
       },
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.green.shade50 : Colors.transparent,
+          color: isSelected ? Colors.white.withOpacity(0.9) : Colors.white.withOpacity(0.4),
           border: Border.all(
-            color: isSelected ? Colors.green : Colors.grey.shade300,
-            width: isSelected ? 2 : 1,
+            color: isSelected ? const Color(0xFF3A5A40) : const Color(0xFF3A5A40).withOpacity(0.5),
+            width: isSelected ? 3.0 : 1.5,
           ),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFF3A5A40).withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  )
+                ]
+              : [],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(icon, style: const TextStyle(fontSize: 40)),
             const SizedBox(height: 8),
             Text(
               role,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontWeight: FontWeight.w600),
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: isSelected ? const Color(0xFF3A5A40) : Colors.black87,
+              ),
             ),
           ],
         ),
@@ -237,210 +253,204 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: ThemeData.light(),
-      child: Scaffold(
-        backgroundColor: Colors.grey[50],
-        appBar: AppBar(
-          backgroundColor: Colors.grey[50],
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black87),
-            onPressed: () => Navigator.pop(context),
-          ),
-          title: const Text(
-            "Join Tarladan",
-            style: TextStyle(
-              color: Colors.black87,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          centerTitle: true,
+    return UserBaseScreen(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF3A5A40)),
+          onPressed: () => Navigator.pop(context),
         ),
-        body: Padding(
+        title: const Text(
+          "Join Tarladan",
+          style: TextStyle(
+            color: Color(0xFF3A5A40),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
+      ),
+      child: Form(
+        key: _formKey,
+        child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-          child: Form(
-            key: _formKey,
-            child: ListView(
-              children: [
-                // Form Fields
-                TextFormField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(labelText: 'Name'),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your name';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _surnameController,
-                  decoration: const InputDecoration(labelText: 'Surname'),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your surname';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _phoneController,
-                  decoration: const InputDecoration(
-                    labelText: 'Phone',
-                    hintText: '0 5XX XXX XX XX',
-                  ),
-                  keyboardType: TextInputType.phone,
-                  maxLength: 15,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(11),
-                    _SignupPhoneNumberFormatter(),
-                  ],
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your phone number';
-                    }
-                    final digitsOnly = value.replaceAll(' ', '');
-                    // Only digits check
-                    if (!RegExp(r'^[0-9]+$').hasMatch(digitsOnly)) {
-                      return 'Only digits allowed';
-                    }
-                    // Must start with 05
-                    if (!digitsOnly.startsWith('05')) {
-                      return 'Phone number must start with 05';
-                    }
-                    // 11 digits check (05 + 9 more)
-                    if (digitsOnly.length != 11) {
-                      return 'Phone number must be 11 digits';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(labelText: 'Email'),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your email address';
-                    }
-                    if (!value.contains('@')) {
-                      return 'Enter a valid email address';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _passwordController,
-                  decoration: const InputDecoration(labelText: 'Password'),
-                  obscureText: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter password';
-                    }
-                    if (value.length < 8) {
-                      return 'En az 8 karakter';
-                    }
-                    if (!RegExp(r'[A-Z]').hasMatch(value)) {
-                      return 'Bir büyük harf (A-Z)';
-                    }
-                    if (!RegExp(r'[0-9]').hasMatch(value)) {
-                      return 'Bir sayı (0-9)';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 8),
-                _PasswordRequirements(password: _passwordController.text),
-                const SizedBox(height: 24),
-                const Text(
-                  "Select Role",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                if (_showRoleError)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          color: Colors.red[700],
-                          size: 18,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          "Please select a role",
-                          style: TextStyle(
-                            color: Colors.red[700],
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
+          children: [
+            // Form Fields
+            TextFormField(
+              controller: _nameController,
+              decoration: const InputDecoration(labelText: 'Name'),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter your name';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _surnameController,
+              decoration: const InputDecoration(labelText: 'Surname'),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter your surname';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _phoneController,
+              decoration: const InputDecoration(
+                labelText: 'Phone',
+                hintText: '0 5XX XXX XX XX',
+              ),
+              keyboardType: TextInputType.phone,
+              maxLength: 15,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(11),
+                _SignupPhoneNumberFormatter(),
+              ],
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter your phone number';
+                }
+                final digitsOnly = value.replaceAll(' ', '');
+                // Only digits check
+                if (!RegExp(r'^[0-9]+$').hasMatch(digitsOnly)) {
+                  return 'Only digits allowed';
+                }
+                // Must start with 05
+                if (!digitsOnly.startsWith('05')) {
+                  return 'Phone number must start with 05';
+                }
+                // 11 digits check (05 + 9 more)
+                if (digitsOnly.length != 11) {
+                  return 'Phone number must be 11 digits';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _emailController,
+              decoration: const InputDecoration(labelText: 'Email'),
+              keyboardType: TextInputType.emailAddress,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter your email address';
+                }
+                if (!value.contains('@')) {
+                  return 'Enter a valid email address';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _passwordController,
+              decoration: const InputDecoration(labelText: 'Password'),
+              obscureText: true,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter password';
+                }
+                if (value.length < 8) {
+                  return 'En az 8 karakter';
+                }
+                if (!RegExp(r'[A-Z]').hasMatch(value)) {
+                  return 'Bir büyük harf (A-Z)';
+                }
+                if (!RegExp(r'[0-9]').hasMatch(value)) {
+                  return 'Bir sayı (0-9)';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 8),
+            _PasswordRequirements(password: _passwordController.text),
+            const SizedBox(height: 24),
+            const Text(
+              "Select Role",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            if (_showRoleError)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      color: Colors.red[700],
+                      size: 18,
                     ),
-                  ),
-                const SizedBox(height: 16),
-
-                // Role Selection Grid
-                GridView.count(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 1.0,
-                  children: roles
-                      .map(
-                        (r) => buildRoleCard(
-                          r['label'] as String,
-                          r['icon'] as String,
-                        ),
-                      )
-                      .toList(),
-                ),
-                const SizedBox(height: 32),
-
-                // Register Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _register,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                    const SizedBox(width: 6),
+                    Text(
+                      "Please select a role",
+                      style: TextStyle(
+                        color: Colors.red[700],
+                        fontSize: 13,
                       ),
                     ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : const Text(
-                            "Register",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
+                  ],
+                ),
+              ),
+            const SizedBox(height: 16),
+
+            // Role Selection Grid
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: 1.0,
+              children: roles
+                  .map(
+                    (r) => buildRoleCard(
+                      r['label'] as String,
+                      r['icon'] as String,
+                    ),
+                  )
+                  .toList(),
+            ),
+            const SizedBox(height: 32),
+
+            // Register Button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _register,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF7CB342), // Green from login
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-              ],
-            ), // ListView
-          ), // Form
-        ), // Padding (body of Scaffold)
-      ), // Scaffold (child of Theme)
-    ); // Theme
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        "Register",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

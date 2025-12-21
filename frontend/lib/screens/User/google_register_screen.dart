@@ -5,368 +5,99 @@ import 'dart:convert';
 import '../../config/api_config.dart';
 import '../../services/token_service.dart';
 import '../../widgets/user_base_screen.dart';
+import '../../widgets/user_widgets.dart';
 
 class GoogleRegisterScreen extends StatefulWidget {
   final String idToken;
-
   const GoogleRegisterScreen({super.key, required this.idToken});
-
   @override
   State<GoogleRegisterScreen> createState() => _GoogleRegisterScreenState();
 }
 
-class _GoogleRegisterScreenState extends State<GoogleRegisterScreen> {
-  final TextEditingController _phoneController = TextEditingController(
-    text: '0 5',
-  );
-  String? _selectedRole;
+class _GoogleRegisterScreenState extends State<GoogleRegisterScreen> with SnackBarHelper {
+  final _phone = TextEditingController(text: '0 5');
+  String? _role;
   bool _isLoading = false;
 
-  final List<Map<String, String>> _roles = [
-    {'value': 'FARMER', 'label': 'Çiftçi', 'icon': '🌾'},
-    {'value': 'TRUCKER', 'label': 'Nakliyeci', 'icon': '🚚'},
-    {'value': 'CUSTOMER', 'label': 'Müşteri', 'icon': '🛒'},
-    {'value': 'DEPOT_OWNER', 'label': 'Depo Sahibi', 'icon': '🏭'},
-  ];
-
   Future<void> _register() async {
-    if (_selectedRole == null) {
-      _showError('Lütfen bir rol seçin');
-      return;
-    }
+    if (_role == null) return showErrorSnackBar('Lütfen bir rol seçin');
+    final phone = _phone.text.replaceAll(' ', '');
+    if (phone.length <= 2) return showErrorSnackBar('Telefon numaranızı girin');
+    if (phone.length != 11 || !phone.startsWith('0')) return showErrorSnackBar('Geçerli telefon girin');
 
-    if (_phoneController.text.isEmpty ||
-        _phoneController.text.replaceAll(' ', '').length <= 2) {
-      _showError('Lütfen telefon numaranızı girin');
-      return;
-    }
-
-    final phone = _phoneController.text.replaceAll(' ', '');
-    if (phone.length != 11) {
-      _showError('Telefon numarası 11 haneli olmalıdır (0 5XX XXX XX XX)');
-      return;
-    }
-
-    if (!phone.startsWith('0')) {
-      _showError('Telefon numarası 0 ile başlamalıdır');
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
+    setState(() => _isLoading = true);
     try {
-      final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/google/auth'),
+      final res = await http.post(Uri.parse('${ApiConfig.baseUrl}/google/auth'),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'idToken': widget.idToken,
-          'desiredRole': _selectedRole,
-          'phone': _phoneController.text.replaceAll(' ', '').trim(),
-        }),
-      );
+        body: json.encode({'idToken': widget.idToken, 'desiredRole': _role, 'phone': phone.trim()}));
 
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        final data = json.decode(response.body);
-
-        // Token'ları kaydet
-        if (data['accessToken'] != null) {
-          await TokenService.saveAccessToken(data['accessToken']);
-        }
-        if (data['refreshToken'] != null) {
-          await TokenService.saveRefreshToken(data['refreshToken']);
-        }
-
+      if (res.statusCode == 201 || res.statusCode == 200) {
+        final data = json.decode(res.body);
+        if (data['accessToken'] != null) await TokenService.saveAccessToken(data['accessToken']);
+        if (data['refreshToken'] != null) await TokenService.saveRefreshToken(data['refreshToken']);
         if (!mounted) return;
-
-        // Başarılı kayıt - Geri dön ve role bilgisini gönder
-        Navigator.pop(context, {
-          'success': true,
-          'role': data['role'] ?? _selectedRole,
-        });
+        Navigator.pop(context, {'success': true, 'role': data['role'] ?? _role});
       } else {
-        final data = json.decode(response.body);
-        _showError(data['message'] ?? 'Kayıt başarısız');
+        showErrorSnackBar(json.decode(res.body)['message'] ?? 'Kayıt başarısız');
       }
-    } catch (e) {
-      _showError('Bir hata oluştu: $e');
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  void _showError(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
-    );
+    } catch (e) { showErrorSnackBar('Hata: $e'); }
+    finally { if (mounted) setState(() => _isLoading = false); }
   }
 
   @override
-  void dispose() {
-    _phoneController.dispose();
-    super.dispose();
-  }
+  void dispose() { _phone.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
     return UserBaseScreen(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF3A5A40)),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Google ile Kayıt',
-          style: TextStyle(
-            color: Color(0xFF3A5A40),
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
-      ),
+      appBar: UserAppBar(title: 'Google ile Kayıt', onBack: () => Navigator.pop(context)),
       child: Padding(
         padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Hesap Türünüzü Seçin',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF0D1117),
-              ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text('Hesap Türünüzü Seçin', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.darkText)),
+          const SizedBox(height: 8),
+          const Text('Tarladan\'da nasıl kullanmak istediğinizi seçin', style: TextStyle(fontSize: 14, color: Colors.grey)),
+          const SizedBox(height: 24),
+          Expanded(child: GridView.count(
+            crossAxisCount: 2, crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 1.2,
+            children: kRoles.map((r) => _roleCard(r['label']!, r['icon']!, r['value']!, _role == r['value'])).toList(),
+          )),
+          const SizedBox(height: 24),
+          const Text('Telefon', style: TextStyle(fontSize: 14, color: Color(0xFF6B7280), fontWeight: FontWeight.w500)),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _phone, keyboardType: TextInputType.phone, maxLength: 17,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly, PhoneNumberFormatter()],
+            decoration: InputDecoration(
+              hintText: '0 5XX XXX XX XX', hintStyle: TextStyle(color: Colors.grey[400], fontSize: 16),
+              counterText: '${_phone.text.replaceAll(' ', '').length}/11', counterStyle: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+              enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: AppColors.lightGreen, width: 2)),
+              focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: AppColors.lightGreen, width: 2)),
+              contentPadding: const EdgeInsets.symmetric(vertical: 12),
             ),
-            const SizedBox(height: 8),
-            const Text(
-              'Tarladan\'da nasıl kullanmak istediğinizi seçin',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
-            ),
-            const SizedBox(height: 24),
-
-            // Role seçimi
-            Expanded(
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 1.2,
-                ),
-                itemCount: _roles.length,
-                itemBuilder: (context, index) {
-                  final role = _roles[index];
-                  final isSelected = _selectedRole == role['value'];
-
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedRole = role['value'];
-                      });
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? Colors.green.shade50.withOpacity(0.8)
-                            : Colors.white,
-                        border: Border.all(
-                          color: isSelected
-                              ? const Color(0xFF7CB342)
-                              : Colors.grey.shade300,
-                          width: isSelected ? 2 : 1,
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            role['icon']!,
-                            style: const TextStyle(fontSize: 48),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            role['label']!,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: isSelected
-                                  ? const Color(0xFF3A5A40)
-                                  : Colors.black87,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Telefon numarası
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Telefon',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF6B7280),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _phoneController,
-                  keyboardType: TextInputType.phone,
-                  maxLength: 17,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    _PhoneNumberFormatter(),
-                  ],
-                  decoration: InputDecoration(
-                    hintText: '0 5XX XXX XX XX',
-                    hintStyle: TextStyle(
-                      color: Colors.grey[400],
-                      fontSize: 16,
-                    ),
-                    counterText:
-                        '${_phoneController.text.replaceAll(' ', '').length}/11',
-                    counterStyle: const TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF6B7280),
-                    ),
-                    enabledBorder: const UnderlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Color(0xFF7CB342),
-                        width: 2,
-                      ),
-                    ),
-                    focusedBorder: const UnderlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Color(0xFF7CB342),
-                        width: 2,
-                      ),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 12,
-                      horizontal: 0,
-                    ),
-                  ),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 1.2,
-                  ),
-                  onChanged: (value) {
-                    setState(() {});
-                  },
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 24),
-
-            // Kayıt butonu
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF7CB342),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
-                onPressed: _isLoading ? null : _register,
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : const Text(
-                        'Kaydı Tamamla',
-                        style: TextStyle(fontSize: 18, color: Colors.white),
-                      ),
-              ),
-            ),
-          ],
-        ),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500, letterSpacing: 1.2),
+            onChanged: (_) => setState(() {}),
+          ),
+          const SizedBox(height: 24),
+          PrimaryButton(text: 'Kaydı Tamamla', onPressed: _register, isLoading: _isLoading, borderRadius: 20),
+        ]),
       ),
     );
   }
-}
 
-/// Türkiye telefon numarası formatter'ı
-/// Format: 0 5XX XXX XX XX
-class _PhoneNumberFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    final text = newValue.text.replaceAll(' ', '');
-
-    // Minimum '0 5' olmalı
-    if (text.length < 2) {
-      return const TextEditingValue(
-        text: '0 5',
-        selection: TextSelection.collapsed(offset: 3),
-      );
-    }
-
-    // '0 5' ile başlamalı
-    if (!text.startsWith('05')) {
-      return oldValue;
-    }
-
-    // Maksimum 11 rakam
-    if (text.length > 11) {
-      return oldValue;
-    }
-
-    final buffer = StringBuffer();
-
-    for (int i = 0; i < text.length; i++) {
-      buffer.write(text[i]);
-
-      // 1. rakamdan sonra boşluk (0 5XX)
-      if (i == 0 && text.length > 1) {
-        buffer.write(' ');
-      }
-      // 4. rakamdan sonra boşluk (0 5XX XXX)
-      else if (i == 3 && text.length > 4) {
-        buffer.write(' ');
-      }
-      // 7. rakamdan sonra boşluk (0 5XX XXX XX)
-      else if (i == 6 && text.length > 7) {
-        buffer.write(' ');
-      }
-      // 9. rakamdan sonra boşluk (0 5XX XXX XX XX)
-      else if (i == 8 && text.length > 9) {
-        buffer.write(' ');
-      }
-    }
-
-    final formatted = buffer.toString();
-
-    return TextEditingValue(
-      text: formatted,
-      selection: TextSelection.collapsed(offset: formatted.length),
-    );
-  }
+  Widget _roleCard(String label, String icon, String value, bool selected) => GestureDetector(
+    onTap: () => setState(() => _role = value),
+    child: Container(
+      decoration: BoxDecoration(
+        color: selected ? Colors.green.shade50.withOpacity(0.8) : Colors.white,
+        border: Border.all(color: selected ? AppColors.lightGreen : Colors.grey.shade300, width: selected ? 2 : 1),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Text(icon, style: const TextStyle(fontSize: 48)),
+        const SizedBox(height: 8),
+        Text(label, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: selected ? AppColors.primaryGreen : Colors.black87)),
+      ]),
+    ),
+  );
 }

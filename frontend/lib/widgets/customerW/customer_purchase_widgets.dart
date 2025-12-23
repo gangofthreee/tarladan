@@ -78,6 +78,7 @@ class PurchaseSummarySection extends StatelessWidget {
   final String productName;
   final double price;
   final int availableQuantity;
+  final int minBuy;
   final String imageUrl;
   final TextEditingController quantityController;
 
@@ -86,6 +87,7 @@ class PurchaseSummarySection extends StatelessWidget {
     required this.productName,
     required this.price,
     required this.availableQuantity,
+    this.minBuy = 1,
     required this.imageUrl,
     required this.quantityController,
   });
@@ -115,8 +117,10 @@ class PurchaseSummarySection extends StatelessWidget {
                   children: [
                     Text(productName, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Theme.of(context).textTheme.bodyLarge?.color)),
                     const SizedBox(height: 8),
+                    const SizedBox(height: 8),
                     _PurchaseInfoText('Birim Fiyat: $price ₺/kg'),
                     _PurchaseInfoText('Stok: $availableQuantity kg'),
+                    if (minBuy > 1) _PurchaseInfoText('Min. Alım: $minBuy kg'),
                     const SizedBox(height: 12),
                     Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       const _PurchaseInfoText('Miktar'),

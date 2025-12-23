@@ -6,7 +6,7 @@ import '../../utils/page_transitions.dart';
 import 'customer_purchaseProduct_page.dart';
 
 class CustomerViewProductDetailsPage extends StatelessWidget {
-  final int productId, depotId, availableQuantity, reviewCount;
+  final int productId, depotId, availableQuantity, reviewCount, minBuy;
   final String productName, farmerName, unit, imageUrl;
   final double price, rating;
   final double? depotLatitude, depotLongitude;
@@ -14,7 +14,7 @@ class CustomerViewProductDetailsPage extends StatelessWidget {
   const CustomerViewProductDetailsPage({
     super.key, required this.productId, required this.depotId, required this.productName,
     required this.farmerName, required this.price, required this.unit, required this.imageUrl,
-    this.availableQuantity = 500, this.rating = 4.8, this.reviewCount = 120,
+    this.availableQuantity = 500, this.minBuy = 1, this.rating = 4.8, this.reviewCount = 120,
     this.depotLatitude, this.depotLongitude,
   });
 
@@ -102,7 +102,7 @@ class CustomerViewProductDetailsPage extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: () => AppNavigator.push(context, CustomerPurchaseProductPage(
                       productId: productId, depotId: depotId, productName: productName, imageUrl: imageUrl,
-                      price: price, unit: unit, availableQuantity: availableQuantity,
+                      price: price, unit: unit, availableQuantity: availableQuantity, minBuy: minBuy,
                       depotLatitude: depotLatitude, depotLongitude: depotLongitude,
                     ), transition: TransitionType.slideUp),
                     style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF4CAF50), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),

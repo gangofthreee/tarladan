@@ -164,6 +164,7 @@ class CustomerProductCard extends StatelessWidget {
             unit: product['unit'],
             imageUrl: product['image'],
             availableQuantity: product['stock'] ?? 0,
+            minBuy: product['minBuy'] ?? 1,
             depotLatitude: product['depot_latitude'],
             depotLongitude: product['depot_longitude'],
           ),

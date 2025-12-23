@@ -49,7 +49,7 @@ class MyApp extends StatelessWidget {
           themeMode: themeProvider.isDarkMode
               ? ThemeMode.dark
               : ThemeMode.light,
-          home: const LoginPage(), // Login page başlangıç
+          home: const SplashScreen(), // Splash screen başlangıç
           routes: {
             '/splash': (context) => const SplashScreen(),
             '/login': (context) => const LoginPage(),

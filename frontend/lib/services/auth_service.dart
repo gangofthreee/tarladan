@@ -21,6 +21,7 @@ class AuthService {
         final data = json.decode(response.body);
         await TokenService.saveAccessToken(data['accessToken'] ?? '');
         await TokenService.saveRefreshToken(data['refreshToken'] ?? '');
+        await TokenService.saveUserRole(data['role'] ?? '');
         return AuthResult.success(data['role']);
       }
       return AuthResult.error('Giriş başarısız. Lütfen bilgilerinizi kontrol edin.');
@@ -47,6 +48,7 @@ class AuthService {
           final tokenResponse = data['tokenResponse'];
           await TokenService.saveAccessToken(tokenResponse['accessToken']);
           await TokenService.saveRefreshToken(tokenResponse['refreshToken']);
+          await TokenService.saveUserRole(tokenResponse['role'] ?? '');
           await Future.delayed(const Duration(milliseconds: 500));
           return GoogleAuthResult.success(tokenResponse['role']);
         }
@@ -56,6 +58,17 @@ class AuthService {
     } catch (e) {
       return GoogleAuthResult.error('Google giriş hatası: $e');
     }
+  }
+
+  /// Login durumunu kontrol et
+  static Future<AuthResult> checkLoginStatus() async {
+    final token = await TokenService.getAccessToken();
+    final role = await TokenService.getUserRole();
+
+    if (token != null && token.isNotEmpty && role != null && role.isNotEmpty) {
+      return AuthResult.success(role);
+    }
+    return AuthResult.error('Not logged in');
   }
 }
 

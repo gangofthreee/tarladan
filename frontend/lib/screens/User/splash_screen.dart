@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
+import '../../services/auth_service.dart';
 import 'login_screen.dart';
 import '../../widgets/user_base_screen.dart';
+import '../Farmer/farmer_main_page.dart';
+import '../Trucker/trucker_main_page.dart';
+import '../Warehouseman/warehouseman_main_page.dart';
+import '../Customer/customer_main_page.dart';
+import '../../utils/page_transitions.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -14,13 +19,41 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Navigate to login screen after 2 seconds
-    Timer(const Duration(seconds: 2), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginPage()),
-      );
-    });
+    _checkAuth();
+  }
+
+  Future<void> _checkAuth() async {
+    // Minimum 1.5 saniye bekle (Splash görünsün)
+    await Future.delayed(const Duration(milliseconds: 1500));
+    
+    if (!mounted) return;
+
+    final result = await AuthService.checkLoginStatus();
+    
+    if (!mounted) return;
+
+    if (result.isSuccess && result.role != null) {
+      Widget dest;
+      switch (result.role) {
+        case 'FARMER':
+          dest = const FarmerMainPage();
+          break;
+        case 'TRUCKER':
+          dest = const TruckerMainPage();
+          break;
+        case 'CUSTOMER':
+          dest = const CustomerMainPage();
+          break;
+        case 'DEPOT_OWNER':
+          dest = const WarehousemanMainPage();
+          break;
+        default:
+          dest = const LoginPage();
+      }
+      AppNavigator.pushReplacement(context, dest, transition: TransitionType.fade);
+    } else {
+      AppNavigator.pushReplacement(context, const LoginPage(), transition: TransitionType.fade);
+    }
   }
 
   @override

@@ -64,17 +64,7 @@ services:
     networks:
       - tarladan-net
 
-  visualizer:
-    image: bretfisher/visualizer
-    ports:
-      - "8081:8080"
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock"
-    deploy:
-      placement:
-        constraints: [node.role == manager]
-    networks:
-      - tarladan-net
+
 
 volumes:
   postgres_data:

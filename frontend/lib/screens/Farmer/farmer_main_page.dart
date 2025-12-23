@@ -69,7 +69,7 @@ class _FarmerMainPageState extends State<FarmerMainPage> {
         color: FarmerConstants.primaryColor,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 100),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('Merhaba, $_userName', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: textColor)),
             const SizedBox(height: 16),

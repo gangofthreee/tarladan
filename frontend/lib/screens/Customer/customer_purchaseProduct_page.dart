@@ -5,7 +5,7 @@ import '../../widgets/themed_scaffold.dart';
 import '../../widgets/customerW/customer_purchase_widgets.dart';
 
 class CustomerPurchaseProductPage extends StatefulWidget {
-  final int productId, depotId, availableQuantity;
+  final int productId, depotId, availableQuantity, minBuy;
   final String productName, imageUrl, unit;
   final double price;
   final double? depotLatitude, depotLongitude;
@@ -13,7 +13,7 @@ class CustomerPurchaseProductPage extends StatefulWidget {
   const CustomerPurchaseProductPage({
     super.key, required this.productId, required this.depotId, required this.productName,
     required this.imageUrl, required this.price, required this.unit,
-    required this.availableQuantity, this.depotLatitude, this.depotLongitude,
+    required this.availableQuantity, this.minBuy = 1, this.depotLatitude, this.depotLongitude,
   });
 
   @override
@@ -54,6 +54,7 @@ class _CustomerPurchaseProductPageState extends State<CustomerPurchaseProductPag
   Future<void> _handleBuyAndPay() async {
     final quantity = double.tryParse(_quantityController.text) ?? 0;
     if (quantity <= 0) return _snack('Lütfen geçerli bir miktar giriniz');
+    if (quantity < widget.minBuy) return _snack('Minimum alım miktarı: ${widget.minBuy} kg');
     if (quantity > widget.availableQuantity) return _snack('Stok yetersiz! Max: ${widget.availableQuantity} kg');
     if (_locFromController.text.isEmpty || _locToController.text.isEmpty) return _snack('Lütfen konum bilgilerini girin');
     if (_selectedLogistic == 'no_truck' && _selectedTruckId == null) return _snack('Lütfen bir tır seçin');
@@ -88,7 +89,7 @@ class _CustomerPurchaseProductPageState extends State<CustomerPurchaseProductPag
           children: [
             PurchaseSummarySection(
               productName: widget.productName, price: widget.price, availableQuantity: widget.availableQuantity,
-              imageUrl: widget.imageUrl, quantityController: _quantityController,
+              minBuy: widget.minBuy, imageUrl: widget.imageUrl, quantityController: _quantityController,
             ),
             const SizedBox(height: 30),
             PurchaseLogisticsSection(

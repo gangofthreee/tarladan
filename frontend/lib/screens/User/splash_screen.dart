@@ -78,9 +78,13 @@ class _SplashScreenState extends State<SplashScreen> {
                   ),
                 ],
               ),
-              child: const Center(
-                // Using an icon instead of missing logo.png asset
-                child: Icon(Icons.agriculture, size: 60, color: Color(0xFF3A5A40)),
+              child: ClipOval(
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  width: 120,
+                  height: 120,
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
             const SizedBox(height: 24),

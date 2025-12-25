@@ -10,7 +10,8 @@ class ApiConfig {
   static String get baseUrl {
     if (useRemoteServer) {
         // Azure VM HTTPS (Release Modunda burası çalışır)
-        return 'https://4.178.64.98';
+        // Azure DNS Label: tarladan
+        return 'https://tarladan.francecentral.cloudapp.azure.com';
     }
 
     // Local Development (Debug Modunda burası çalışır)

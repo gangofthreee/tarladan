@@ -1,13 +1,22 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart'; // kReleaseMode için gerekli
 
 class ApiConfig {
-  static String get baseUrl {
-    // TLS ile nginx reverse proxy kullanılıyor (443 port)
-    // nginx → backend:8080 yönlendirmesi yapıyor
+  // OTOMATİK MOD:
+  // Debug (Simulator/Emulator) -> false (Local Server)
+  // Release (APK/Mağaza) -> true (Azure VM Remote Server)
+  static const bool useRemoteServer = kReleaseMode;
 
+  static String get baseUrl {
+    if (useRemoteServer) {
+        // Azure VM HTTPS (Release Modunda burası çalışır)
+        return 'https://4.178.64.98';
+    }
+
+    // Local Development (Debug Modunda burası çalışır)
+    
     // Android emulator için özel mapping
     if (Platform.isAndroid) {
-      // Android emulator'da localhost yerine 10.0.2.2 kullan
       return 'https://10.0.2.2';
     }
 
@@ -15,13 +24,9 @@ class ApiConfig {
     if (Platform.isIOS || Platform.isMacOS) {
       return 'https://localhost';
     }
-
-    // Web ve diğer platformlar
+    
+    // Web ve diğerleri
     return 'https://localhost';
-
-    // Fiziksel cihaz test için (aynı WiFi'de):
-    // Backend çalıştıran makinenin IP'sini kullan
-    // return 'https://192.168.1.98';
   }
 
   static const String registerEndpoint = '/api/users/register';

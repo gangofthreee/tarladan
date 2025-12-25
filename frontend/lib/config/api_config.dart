@@ -18,16 +18,16 @@ class ApiConfig {
     
     // Android emulator için özel mapping
     if (Platform.isAndroid) {
-      return 'https://10.0.2.2';
+      return 'https://10.0.2.2:8443';
     }
 
     // iOS simulator ve macOS için localhost
     if (Platform.isIOS || Platform.isMacOS) {
-      return 'https://localhost';
+      return 'https://localhost:8443';
     }
     
     // Web ve diğerleri
-    return 'https://localhost';
+    return 'https://localhost:8443';
   }
 
   static const String registerEndpoint = '/api/users/register';

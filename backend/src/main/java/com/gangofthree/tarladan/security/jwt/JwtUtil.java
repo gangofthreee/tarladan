@@ -43,7 +43,17 @@ public class JwtUtil {
      * kriptografik işlemlerde kullanılabilecek gerçek bir 'Key' nesnesine çevirir.
      */
     private Key getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
+        byte[] keyBytes;
+        try {
+            // Önce mevcut anahtarı Base64 olarak çözmeye çalış
+            keyBytes = Decoders.BASE64.decode(SECRET_KEY);
+        } catch (Exception e) {
+            // Eğer Base64 değilse (Örn: Düz metin "my_secret_key_123"), 
+            // o zaman bu düz metni Base64'e çevirip öyle kullan.
+            // Bu güvenlik için bir "Fallback" meknizmasıdır.
+            System.out.println("Warning: Falling back to plain text secret key due to: " + e.getMessage());
+            keyBytes = SECRET_KEY.getBytes();
+        }
         return Keys.hmacShaKeyFor(keyBytes);
     }
 

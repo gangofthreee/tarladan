@@ -20,11 +20,13 @@ import com.gangofthree.tarladan.modules.farmer.repository.FarmerRepository;
 import com.gangofthree.tarladan.modules.verification.service.VerificationService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -96,7 +98,13 @@ public class UserServiceImpl implements UserService {
 
         }
 
-        verificationService.sendCode(savedUser);
+        try {
+            verificationService.sendCode(savedUser);
+        } catch (Exception e) {
+            log.error("Failed to send verification email to user: {}. Error: {}", savedUser.getEmail(), e.getMessage());
+            // We do not re-throw the exception here to ensure the user is persisted.
+            // The user will remain unverified, but we can verify them manually or fix SMTP and resend.
+        }
 
         return savedUser;
     }

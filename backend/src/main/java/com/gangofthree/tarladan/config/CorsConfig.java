@@ -32,12 +32,9 @@ public class CorsConfig {
         // Hangi adreslerden (Domain/Port) istek gelebilir?
         // setAllowedOrigins("*") yerine Pattern kullanıyoruz çünkü Credentials(true) olduğunda
         // joker karakter (*) kullanımı kısıtlanmıştır.
-        // Burada localhost üzerindeki TÜM portlara (3000, 5173, 8081 vb.) izin veriyoruz.
-        // NOT: Canlı ortamda (Production) buraya sadece gerçek domain (örn: https://tarladan.com) yazılmalıdır.
-        config.setAllowedOriginPatterns(Arrays.asList(
-                "http://localhost:*",  // React, Vue vb. local portları
-                "http://127.0.0.1:*"   // Alternatif local IP
-        ));
+        // Ancak mobile app'lerden gelen istekleri kolaylaştırmak ve Azure domain sorununu çözmek için
+        // geçici veya kalıcı olarak tüm (*) pattern'lere izin veriyoruz.
+        config.setAllowedOriginPatterns(Arrays.asList("*"));
 
         // 3. İZİN VERİLEN BAŞLIKLAR (Headers)
         // Frontend'in istek atarken gönderebileceği Header tipleri.

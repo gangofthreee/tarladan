@@ -35,13 +35,11 @@ class DepotTest {
                 .build();
 
         // Note: JPA @Column(nullable=false) is not checked by Bean Validation unless @NotNull is present.
-        // However, we can test the builder and getters.
-        
+        // Depot currently has no Bean Validation annotations, so this only exercises the builder/getters.
+        Set<ConstraintViolation<Depot>> violations = validator.validate(depot);
+        assertThat(violations).isEmpty();
+
         assertThat(depot.getAddress()).isEqualTo("123 Main St");
         assertThat(depot.getLatitude()).isEqualTo(40.0);
     }
-    
-    // If you add @NotNull to your entity fields, you can test validation here.
-    // Currently Depot entity uses @Column(nullable=false) which is for DB schema, 
-    // but good practice is to add @NotNull for application level validation too.
 }

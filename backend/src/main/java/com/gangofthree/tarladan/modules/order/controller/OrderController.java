@@ -4,6 +4,7 @@ import com.gangofthree.tarladan.modules.order.dto.OrderCreateRequest;
 import com.gangofthree.tarladan.modules.order.dto.OrderResponse;
 import com.gangofthree.tarladan.modules.order.dto.OrderStatusUpdateRequest;
 import com.gangofthree.tarladan.modules.order.service.OrderService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,16 +18,16 @@ public class OrderController {
 
     private final OrderService orderService;
 
-    // 🔥 Order oluştururken customerId sadece JWT’den alınır
+    // customerId is only ever taken from the JWT when creating an order
     @PostMapping("/create")
     public ResponseEntity<OrderResponse> createOrder(
             @RequestAttribute("domainId") Long customerId,
-            @RequestBody OrderCreateRequest request
+            @Valid @RequestBody OrderCreateRequest request
     ) {
         return ResponseEntity.ok(orderService.createOrder(request, customerId));
     }
 
-    // 🔥 Customer kendi siparişlerini görür
+    // Customer sees their own orders
     @GetMapping("/my-orders")
     public ResponseEntity<List<OrderResponse>> getMyOrders(
             @RequestAttribute("domainId") Long customerId
@@ -34,7 +35,7 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getOrdersByCustomer(customerId));
     }
 
-    // 🔥 Customer kendi sipariş detayını görür (güvenlik kontrolü service katmanında)
+    // Customer sees the detail of their own order (ownership check happens in the service layer)
     @GetMapping("/{id}")
     public ResponseEntity<OrderResponse> getOrderById(
             @PathVariable Long id,
@@ -43,17 +44,17 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getOrderByIdForCustomer(id, customerId));
     }
 
-    // ⚠ Admin veya Manager tarafından kullanılabilir
+    // Intended for admin/manager use
     @GetMapping
     public ResponseEntity<List<OrderResponse>> getAllOrders() {
         return ResponseEntity.ok(orderService.getAllOrders());
     }
 
-    // ⚠ Sipariş durumu sadece admin/trucker tarafından güncellenebilir
+    // Intended for admin/trucker use to update order status
     @PutMapping("/{id}/status")
     public ResponseEntity<OrderResponse> updateStatus(
             @PathVariable Long id,
-            @RequestBody OrderStatusUpdateRequest request
+            @Valid @RequestBody OrderStatusUpdateRequest request
     ) {
         return ResponseEntity.ok(orderService.updateStatus(id, request.getStatus()));
     }

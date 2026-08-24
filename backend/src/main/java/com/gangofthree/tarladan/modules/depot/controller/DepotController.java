@@ -19,8 +19,8 @@ public class DepotController {
 
     private final DepotService depotService;
 
-    // JWT'den depot owner ID alınıyor
-    @CacheEvict(value = "depots", allEntries = true) //depots onbellegindegi her seyi temizle CREATE, UPDATE, DELETE
+    // The depot owner ID is derived from the JWT
+    @CacheEvict(value = "depots", allEntries = true) // clear everything in the "depots" cache on CREATE, UPDATE, DELETE
     @PostMapping("/create")
     public ResponseEntity<DepotResponse> createDepot(
             @RequestBody DepotCreateRequest request,

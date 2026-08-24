@@ -12,7 +12,9 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -43,13 +45,29 @@ class NotificationServiceTest {
     @Test
     void whenMarkAsRead_thenNotificationIsUpdated() {
         Notification notification = new Notification();
+        notification.setRecipientId(1L);
         notification.setRead(false);
-        
+
         when(notificationRepository.findById(1L)).thenReturn(Optional.of(notification));
 
-        notificationService.markAsRead(1L);
+        notificationService.markAsRead(1L, 1L);
 
         assertThat(notification.isRead()).isTrue();
         verify(notificationRepository).save(notification);
+    }
+
+    @Test
+    void whenMarkAsRead_byNonOwner_thenThrowsAndDoesNotSave() {
+        Notification notification = new Notification();
+        notification.setRecipientId(1L);
+        notification.setRead(false);
+
+        when(notificationRepository.findById(1L)).thenReturn(Optional.of(notification));
+
+        assertThatThrownBy(() -> notificationService.markAsRead(1L, 2L))
+                .isInstanceOf(SecurityException.class);
+
+        assertThat(notification.isRead()).isFalse();
+        verify(notificationRepository, never()).save(any(Notification.class));
     }
 }

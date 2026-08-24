@@ -11,6 +11,6 @@ public class TokenResponse {
     private String refreshToken;
     private Long userId;
     private UserRole role;
-    private Long roleBasedId; // FarmerId, CustomerId vb.
+    private Long roleBasedId; // FarmerId, CustomerId, etc.
     private String message;
 }

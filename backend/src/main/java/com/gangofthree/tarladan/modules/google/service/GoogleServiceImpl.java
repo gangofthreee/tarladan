@@ -17,21 +17,24 @@ import com.gangofthree.tarladan.modules.google.dto.GoogleAuthRequest;
 import com.gangofthree.tarladan.modules.google.dto.GoogleRegisterRequest;
 import com.gangofthree.tarladan.modules.google.repository.GoogleRepository;
 import com.gangofthree.tarladan.modules.user.entity.User;
-import com.gangofthree.tarladan.modules.user.repository.UserRepository;
 import com.gangofthree.tarladan.modules.depotOwner.repository.DepotOwnerRepository;
 import com.gangofthree.tarladan.modules.farmer.repository.FarmerRepository;
 import com.gangofthree.tarladan.modules.trucker.repository.TruckerRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class GoogleServiceImpl implements GoogleService {
 
     private final GoogleRepository googleRepository;
@@ -43,24 +46,20 @@ public class GoogleServiceImpl implements GoogleService {
     private final DepotOwnerRepository depotOwnerRepository;
     private final CustomerRepository customerRepository;
     private final TruckerRepository truckerRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public AuthStatusResponse verifyStatus(GoogleAuthRequest request) {
         GoogleUserResponse googleUserResponse = verifyGoogleToken.verify(request.getIdToken());
         Optional<User> existingUser = googleRepository.findByEmail(googleUserResponse.getEmail());
         User user;
-        if (existingUser.isPresent()) { // kullanici kayitli
-            user = existingUser.get();
+        if (existingUser.isPresent()) { // user already registered
+            user = linkExistingUserToGoogle(existingUser.get());
 
-            if (!user.isGoogleVerified()) { //isGoogleVerified false ise simdi true yap
-                user.setGoogleVerified(true);
-                user = googleRepository.save(user);
-            }
-
-            TokenResponse tokenResponse = createTokenResponse(user); //token olustur
+            TokenResponse tokenResponse = createTokenResponse(user); // issue tokens
             return new AuthStatusResponse(true, tokenResponse);
         }else {
-            return new AuthStatusResponse(false, null); //kullanici yok, token yok
+            return new AuthStatusResponse(false, null); // user does not exist yet, no tokens
         }
     }
 
@@ -68,29 +67,43 @@ public class GoogleServiceImpl implements GoogleService {
     @Transactional
     public TokenResponse processAuth(GoogleRegisterRequest request){
         GoogleUserResponse googleUserResponse = verifyGoogleToken.verify(request.getIdToken());
-        System.out.println(googleUserResponse);
+        log.debug("Google auth verified for email: {}", googleUserResponse.getEmail());
 
-        User user = registerNewGoogleUser(googleUserResponse, request.getDesiredRole(), request.getPhone());
+        // A client could call this endpoint for an email that is already registered
+        // (e.g. it skipped /verify-status, or the account was created in the meantime).
+        // Guard against that instead of hitting the unique constraint on email/phone.
+        Optional<User> existingUser = googleRepository.findByEmail(googleUserResponse.getEmail());
+        User user = existingUser.isPresent()
+                ? linkExistingUserToGoogle(existingUser.get())
+                : registerNewGoogleUser(googleUserResponse, request.getDesiredRole(), request.getPhone());
 
         return createTokenResponse(user);
+    }
+
+    private User linkExistingUserToGoogle(User user) {
+        if (!user.isGoogleVerified()) {
+            user.setGoogleVerified(true);
+            user = googleRepository.save(user);
+        }
+        return user;
     }
 
     private TokenResponse createTokenResponse(User user) {
 
         String roleString = user.getRole().name();
 
-        Long domainId = roleBasedIdService.getDomainId(user);// RoleBasedId için varsayılan değer
+        Long domainId = roleBasedIdService.getDomainId(user);
 
-        // 1. Access Token üret
+        // 1. Generate the access token
         String accessToken = jwtUtil.generateAccessToken(user.getId(), roleString, domainId);
 
-        // 2. Access Token'ı Redis'e kaydet (ÖNEMLİ!)
+        // 2. Store the access token in Redis (tracks the active session)
         tokenService.saveAccessToken(user.getId(), accessToken);
 
-        // 3. Refresh Token üret/güncelle
+        // 3. Generate/refresh the refresh token
         String refreshToken = tokenService.createOrUpdateRefreshToken(user.getId(), domainId, accessToken);
 
-        // 4. TokenResponse DTO'sunu oluştur
+        // 4. Build the TokenResponse DTO
         return TokenResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
@@ -104,16 +117,22 @@ public class GoogleServiceImpl implements GoogleService {
     private User registerNewGoogleUser(GoogleUserResponse googleInfo, String desiredRole, String phone) {
         UserRole finalRole;
         try {
-            finalRole = UserRole.valueOf(desiredRole.toUpperCase());//enum karsilastirma
+            finalRole = UserRole.valueOf(desiredRole.toUpperCase()); // case-insensitive enum match
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("Geçersiz veya desteklenmeyen kullanıcı rolü: " + desiredRole);
         }
+
+        // Google-authenticated accounts never log in with a password, but the column is
+        // NOT NULL, so store an unguessable, already-hashed value rather than a fixed
+        // literal (which would otherwise be a predictable, shared "password" for every
+        // Google account).
+        String unusablePassword = passwordEncoder.encode(UUID.randomUUID().toString());
 
         User user = User.builder()
                 .email(googleInfo.getEmail())
                 .name(googleInfo.getName())
                 .surname(googleInfo.getSurname())
-                .password("GOOGLE_AUTH_PLACEHOLDER")
+                .password(unusablePassword)
                 .phone(phone)
                 .role(finalRole)
                 .isMailVerified(true)

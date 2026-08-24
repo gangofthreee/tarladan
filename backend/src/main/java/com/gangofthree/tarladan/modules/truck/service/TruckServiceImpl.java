@@ -9,6 +9,7 @@ import com.gangofthree.tarladan.modules.trucker.repository.TruckerRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import com.gangofthree.tarladan.modules.truck.dto.TruckResponse; 
 import java.util.stream.Collectors; 
@@ -49,6 +50,7 @@ public class TruckServiceImpl implements TruckService {
     }
 
     @Override
+    @Transactional
     public Truck addTruck(AddTruckRequest addTruckRequest, Long truckerId) {
         try {
             Trucker trucker = truckerRepository.findById(truckerId)
@@ -58,25 +60,24 @@ public class TruckServiceImpl implements TruckService {
                 throw new IllegalArgumentException("Bu plaka zaten sistemde kayıtlı: " + addTruckRequest.getPlate());
             }
 
-            // Önce truck'ı kaydet ki ID'sini alalım
+            // Save the truck first to obtain its generated ID
             Truck truck = Truck.builder()
                     .trucker(trucker)
                     .vehicle(addTruckRequest.getVehicle())
                     .capacityTon(addTruckRequest.getCapacityTon())
                     .plate(addTruckRequest.getPlate())
-//                    .basePrice(addTruckRequest.getBasePrice())
                     .build();
-            
+
             truck = truckRepository.save(truck);
 
-            // Şimdi truck ID'si ile dosya adı oluştur
+            // Now build the file name using the truck ID
             MultipartFile photo = addTruckRequest.getPhoto();
             String fileName = "truckPhoto_" + truck.getId() + "_" + System.currentTimeMillis();
             Path filePath = Paths.get(UPLOAD_DIR, fileName);
             Files.createDirectories(filePath.getParent());
             photo.transferTo(filePath.toFile());
 
-            // imageUrl'i güncelle
+            // Update imageUrl now that the file has been stored
             truck.setImageUrl("/uploads/truckPhotos/" + fileName);
             return truckRepository.save(truck);
         } catch (IOException e) {
@@ -101,22 +102,24 @@ public class TruckServiceImpl implements TruckService {
 
         if (updateRequest.getVehicle() != null) existingTruck.setVehicle(updateRequest.getVehicle());
         if (updateRequest.getCapacityTon() != null) existingTruck.setCapacityTon(updateRequest.getCapacityTon());
-//        if (updateRequest.getBasePrice() != null) existingTruck.setBasePrice(updateRequest.getBasePrice());
         if (updateRequest.getPlate() != null) existingTruck.setPlate(updateRequest.getPlate());
 
         MultipartFile newPhoto = updateRequest.getPhoto();
         if (newPhoto != null && !newPhoto.isEmpty()) {
             try {
+                // Write the new photo first so a failed upload never leaves the truck
+                // pointing at an imageUrl whose file has already been deleted.
+                String fileName = "truckPhoto_" + existingTruck.getId() + "_" + System.currentTimeMillis();
+                Path newPath = Paths.get(UPLOAD_DIR, fileName);
+                Files.createDirectories(newPath.getParent());
+                newPhoto.transferTo(newPath.toFile());
+
                 if (existingTruck.getImageUrl() != null) {
                     Path oldPath = Paths.get(UPLOAD_DIR,
                             Paths.get(existingTruck.getImageUrl()).getFileName().toString());
                     Files.deleteIfExists(oldPath);
                 }
 
-                String fileName = "truckPhoto_" + existingTruck.getId() + "_" + System.currentTimeMillis();
-                Path newPath = Paths.get(UPLOAD_DIR, fileName);
-                Files.createDirectories(newPath.getParent());
-                newPhoto.transferTo(newPath.toFile());
                 existingTruck.setImageUrl("/uploads/truckPhotos/" + fileName);
 
             } catch (IOException e) {
@@ -160,7 +163,7 @@ public class TruckServiceImpl implements TruckService {
 
     @Override
     public List<TruckResponse> getAllTrucks() {
-        return truckRepository.findAll().stream()
+        return truckRepository.findAllWithTruckerAndUser().stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }

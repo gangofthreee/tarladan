@@ -58,7 +58,7 @@ public class DepotServiceImpl implements DepotService {
         Depot depot = depotRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Depot not found with id: " + id));
 
-        // JWT'den gelen owner id ile depot owner id eşleşiyor mu kontrolü
+        // Check whether the JWT-derived owner id matches the depot's owner id
         if (!depot.getDepotOwner().getId().equals(depotOwnerId)) {
             throw new SecurityException("You are not authorized to update this depot.");
         }

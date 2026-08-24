@@ -13,7 +13,7 @@ import java.math.BigInteger;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "orders") // order SQL'de keyword olduğu için çoğul kullanmak güvenli
+@Table(name = "orders") // plural is used because "order" is a reserved SQL keyword
 @Getter
 @Setter
 @AllArgsConstructor
@@ -25,22 +25,22 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Customer ilişkisi
+    // Customer relationship
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id_FK", referencedColumnName = "id", nullable = false)
     private Customer customer;
 
-    // Product ilişkisi
+    // Product relationship
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id_FK", referencedColumnName = "id", nullable = false)
     private Product product;
 
-    // Depot ilişkisi
+    // Depot relationship
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "depot_id_FK", referencedColumnName = "id", nullable = false)
     private Depot depot;
 
-    // Shipment ilişkisi
+    // Shipment relationship
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "shipment_id_FK", referencedColumnName = "id")
     private Shipment shipment;
@@ -51,9 +51,12 @@ public class Order {
     @NotNull
     private BigInteger totalPrice;
 
+    @Builder.Default
     private LocalDateTime orderDate = LocalDateTime.now();
 
+    @NotNull
     @Enumerated(EnumType.STRING)
+    @Builder.Default
     private OrderStatus status = OrderStatus.PENDING;
 }
 

@@ -17,5 +17,4 @@ public class UpdateTruckRequest {
     private BigInteger capacityTon;
     private String plate;
     private MultipartFile photo;
-//    private BigInteger basePrice;
 }

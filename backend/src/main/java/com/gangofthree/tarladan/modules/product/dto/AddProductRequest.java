@@ -10,7 +10,7 @@ import java.math.BigInteger;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AddProductRequest {
-    private Long id_depot;      // client bunu göndermeye devam edecek
+    private Long id_depot;      // client keeps sending this field
     private String name;
     private BigInteger quantity_kg;
     private BigInteger price_per_kg;

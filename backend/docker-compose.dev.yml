@@ -5,16 +5,15 @@ services:
     build: .
     container_name: tarladan-backend-dev
     environment:
-      #- SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/tarladan
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/tarladan?user=postgres&password=1234
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=1234
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/${POSTGRES_DB}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
       - SERVER_PORT=8080
-      - JWT_SECRET_KEY=dev_secret_key_sadece_lokal_icin
-      - MAIL_USERNAME=kocberra3@gmail.com
-      - MAIL_PASSWORD=grnv mpsz qpnb gudw
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
     ports:
       - "8080:8080"
     volumes:
@@ -28,9 +27,9 @@ services:
   db:
     image: postgres:15
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 1234
-      POSTGRES_DB: tarladan
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres_data_dev:/var/lib/postgresql/data
     networks:

@@ -1,6 +1,8 @@
 package com.gangofthree.tarladan.security.service;
 
 import com.gangofthree.tarladan.security.jwt.JwtUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -10,29 +12,31 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Token Yönetim Servisi (Redis Entegrasyonu)
- * * Bu sınıf, JWT'lerin (Access ve Refresh) yaşam döngüsünü Redis üzerinde yönetir.
- * * Normalde JWT sunucuda saklanmaz ama biz "Logout" (Çıkış) özelliği ve
- * "Güvenli Yenileme" (Refresh) yapabilmek için tokenları Redis'e kaydediyoruz (Whitelist yöntemi).
+ * Token management service (Redis-backed).
+ * * This class manages the lifecycle of JWTs (access and refresh) in Redis.
+ * * A JWT is normally stateless, but we store tokens in Redis (a whitelist approach)
+ * so we can support "logout" and "secure refresh" semantics.
  */
 @Service
 public class TokenService {
 
+    private static final Logger log = LoggerFactory.getLogger(TokenService.class);
+
     private final StringRedisTemplate redisTemplate;
     private final JwtUtil jwtUtil;
 
-    // Access Token ömrü (Örn: 15 dk)
+    // Access token lifetime (e.g. 15 min)
     @Value("${jwt.access-token-ttl-minutes}")
     private long accessTokenTtlMinutes;
 
-    // Refresh Token ömrü (Örn: 7 gün)
+    // Refresh token lifetime (e.g. 7 days)
     @Value("${jwt.refresh-token-ttl-days}")
     private long refreshTokenTtlDays;
 
-    // Redis Anahtar Ön Ekleri (Key Prefixes)
-    // Access Tokenlar: "access:123" (userId) şeklinde saklanır.
+    // Redis key prefixes.
+    // Access tokens are stored as "access:123" (userId).
     private static final String ACCESS_TOKEN_KEY_PREFIX = "access:";
-    // Refresh Tokenlar: "refresh:uuid-string" şeklinde saklanır.
+    // Refresh tokens are stored as "refresh:uuid-string".
     private static final String REFRESH_TOKEN_KEY_PREFIX = "refresh:";
 
     public TokenService(StringRedisTemplate redisTemplate, JwtUtil jwtUtil) {
@@ -41,32 +45,32 @@ public class TokenService {
     }
 
     /**
-     * Access Token'ı Redis'e Kaydet (Whitelist)
-     * * Kullanıcı giriş yaptığında veya token yenilediğinde çağrılır.
-     * * Token'ı Redis'e yazarız. Filtre (JwtAuthFilter) her istekte buraya bakar.
-     * Eğer token Redis'te yoksa (süresi bitmiş veya silinmişse), istek reddedilir.
+     * Save the access token to Redis (whitelist).
+     * * Called when the user logs in or a token is refreshed.
+     * * We write the token to Redis. JwtAuthFilter looks it up on every request;
+     * if the token isn't in Redis (expired or deleted), the request is rejected.
      */
     public void saveAccessToken(Long userId, String accessToken) {
         String key = ACCESS_TOKEN_KEY_PREFIX + userId;
-        // Token'ı kullanıcının ID'si ile eşleştirip süreli olarak kaydediyoruz.
+        // Store the token keyed by the user's id, with a TTL.
         redisTemplate.opsForValue().set(key, accessToken, accessTokenTtlMinutes, TimeUnit.MINUTES);
     }
 
     /**
-     * Refresh Token Oluştur veya Güncelle (Session Management)
-     * * Access Token kısa ömürlüdür (15-30 dk). Refresh Token ise uzun ömürlüdür (7-30 gün).
-     * * Kullanıcının Access Token'ı bittiğinde, Refresh Token sayesinde tekrar şifre girmeden
-     * yeni Access Token alır.
+     * Create or update the refresh token (session management).
+     * * The access token is short-lived (15-30 min). The refresh token is long-lived (7-30 days).
+     * * Once the access token expires, the refresh token lets the user obtain a new one
+     * without re-entering their password.
      */
     public String createOrUpdateRefreshToken(Long userId, Long domainId, String accessToken) {
-        // 1. Kontrol: Bu kullanıcının zaten aktif bir oturumu (Refresh Token'ı) var mı?
+        // 1. Check whether this user already has an active session (refresh token).
         String existingRefreshToken = findRefreshTokenByUserId(userId);
 
         String refreshToken;
         if (existingRefreshToken != null) {
-            // 2. Senaryo: Var olan oturumu güncelle (Rotation/Extension)
-            // Refresh Token ID'si (UUID) değişmez ama işaret ettiği Access Token güncellenir.
-            // Böylece kullanıcının oturum süresi uzar.
+            // 2. Update the existing session (rotation/extension).
+            // The refresh token id (UUID) stays the same, but the access token it points
+            // to is updated, extending the user's session.
             refreshToken = existingRefreshToken;
 
             // Format: "userId:domainId:accessToken"
@@ -74,7 +78,7 @@ public class TokenService {
 
             redisTemplate.opsForValue().set(REFRESH_TOKEN_KEY_PREFIX + refreshToken, newValue, refreshTokenTtlDays, TimeUnit.DAYS);
         } else {
-            // 3. Senaryo: İlk defa oturum açıyor, yeni Refresh Token üret.
+            // 3. First-time login: generate a new refresh token.
             refreshToken = UUID.randomUUID().toString();
             String value = userId + ":" + domainId + ":" + accessToken;
             redisTemplate.opsForValue().set(REFRESH_TOKEN_KEY_PREFIX + refreshToken, value, refreshTokenTtlDays, TimeUnit.DAYS);
@@ -84,21 +88,21 @@ public class TokenService {
     }
 
     /**
-     * Kullanıcı ID'sine göre Refresh Token Bul
-     * * NOT: Redis'te 'keys' komutu performansı etkileyebilir (O(N)).
-     * Prod ortamında binlerce kullanıcı varsa 'SCAN' komutu veya Set yapısı kullanmak daha iyidir.
-     * Şimdilik development için uygundur.
+     * Find the refresh token belonging to a given user id.
+     * * NOTE: Redis's 'keys' command can hurt performance (O(N)). In production, with
+     * thousands of users, 'SCAN' or a Set-based index would be preferable.
+     * Acceptable for now during development.
      */
     private String findRefreshTokenByUserId(Long userId) {
-        // "refresh:*" ile başlayan tüm anahtarları getir (Pahalı işlem!)
+        // Fetch all keys starting with "refresh:" (an expensive operation!).
         Set<String> keys = redisTemplate.keys(REFRESH_TOKEN_KEY_PREFIX + "*");
         if (keys == null) return null;
 
-        // Tüm anahtarları gez, değeri "userId:" ile başlayan var mı bak.
+        // Walk all keys and check whether the value starts with "userId:".
         for (String key : keys) {
             String value = redisTemplate.opsForValue().get(key);
             if (value != null && value.startsWith(userId + ":")) {
-                // Bulduysan "refresh:" öneki olmadan UUID'yi döndür.
+                // Found it: return the UUID without the "refresh:" prefix.
                 return key.replace(REFRESH_TOKEN_KEY_PREFIX, "");
             }
         }
@@ -106,21 +110,21 @@ public class TokenService {
     }
 
     /**
-     * Access Token Geçerlilik Kontrolü (The Gatekeeper Check)
-     * * JwtAuthFilter bu metodu çağırır.
-     * * Gelen token, Redis'te kayıtlı olan token ile birebir aynı mı?
-     * * Eğer kullanıcı "Logout" yapmışsa Redis'teki silinmiştir ve bu metot false döner.
+     * Access token validity check (the gatekeeper check).
+     * * Called by JwtAuthFilter.
+     * * Does the incoming token match the one stored in Redis exactly?
+     * * If the user has logged out, the Redis entry is gone and this method returns false.
      */
     public boolean isAccessTokenValidInRedis(Long userId, String token) {
         String key = ACCESS_TOKEN_KEY_PREFIX + userId;
         String storedToken = redisTemplate.opsForValue().get(key);
-        // Token var mı VE gelen token ile eşleşiyor mu?
+        // Does a token exist AND does it match the incoming one?
         return storedToken != null && storedToken.equals(token);
     }
 
     /**
-     * Access Token'a karşılık gelen Refresh Token'ı bul
-     * * Token yenileme (Refresh) işlemi sırasında, eski access token'ı kimin oluşturduğunu bulmak için kullanılır.
+     * Find the refresh token corresponding to an access token.
+     * * Used during token refresh to determine which session the expired access token belongs to.
      */
     public String findRefreshTokenByAccessToken(String accessToken) {
         Set<String> keys = redisTemplate.keys(REFRESH_TOKEN_KEY_PREFIX + "*");
@@ -128,8 +132,8 @@ public class TokenService {
 
         for (String key : keys) {
             String value = redisTemplate.opsForValue().get(key);
-            // Value formatı: "userId:domainId:accessToken"
-            // Sonu bizim accessToken ile bitiyor mu?
+            // Value format: "userId:domainId:accessToken"
+            // Does it end with our access token?
             if (value != null && value.endsWith(":" + accessToken)) {
                 return key.replace(REFRESH_TOKEN_KEY_PREFIX, "");
             }
@@ -138,8 +142,8 @@ public class TokenService {
     }
 
     /**
-     * Helper: Refresh Token değerini parse et
-     * @return [userId, domainId, accessToken] dizisi
+     * Helper: parse a refresh token's stored value.
+     * @return array of [userId, domainId, accessToken]
      */
     public String[] getRefreshData(String refreshToken) {
         String value = redisTemplate.opsForValue().get(REFRESH_TOKEN_KEY_PREFIX + refreshToken);
@@ -147,30 +151,30 @@ public class TokenService {
     }
 
     /**
-     * SESSİZ YENİLEME (Silent Refresh Logic)
-     * * Kullanıcının Access Token süresi bitmişse (JwtAuthFilter yakalar),
-     * * Bu metot devreye girer ve Refresh Token'ı kontrol eder.
-     * * Refresh Token hala sağlamsa, kullanıcıya hissettirmeden yeni bir Access Token üretir.
+     * Silent refresh logic.
+     * * When the user's access token has expired (caught by JwtAuthFilter), this method
+     * checks the refresh token.
+     * * If the refresh token is still valid, a new access token is issued transparently.
      */
     public String refreshAccessTokenIfValid(String expiredAccessToken, String role) {
-        // 1. Bu bitmiş token'a ait bir refresh token var mı?
+        // 1. Is there a refresh token associated with this expired access token?
         String refreshToken = findRefreshTokenByAccessToken(expiredAccessToken);
-        if (refreshToken == null) return null; // Yoksa, oturum tamamen bitmiş. Login'e git.
+        if (refreshToken == null) return null; // No session left; the user must log in again.
 
-        // 2. Refresh token verilerini çöz
+        // 2. Decode the refresh token's stored data.
         String[] data = getRefreshData(refreshToken);
         if (data == null || data.length < 3) return null;
 
         Long userId = Long.parseLong(data[0]);
         Long domainId = Long.parseLong(data[1]);
 
-        // 3. YENİ Access Token üret
+        // 3. Issue a new access token.
         String newAccessToken = jwtUtil.generateAccessToken(userId, role, domainId);
 
-        // 4. Redis'i güncelle (Eski access token silinir, yenisi yazılır)
+        // 4. Update Redis (the old access token is replaced with the new one).
         saveAccessToken(userId, newAccessToken);
 
-        // 5. Refresh Token'ın içindeki access token bilgisini de güncelle
+        // 5. Also update the access token embedded in the refresh token's value.
         String newValue = userId + ":" + domainId + ":" + newAccessToken;
         redisTemplate.opsForValue().set(REFRESH_TOKEN_KEY_PREFIX + refreshToken, newValue, refreshTokenTtlDays, TimeUnit.DAYS);
 
@@ -178,10 +182,10 @@ public class TokenService {
     }
 
     /**
-     * ÇIKIŞ YAP (Logout)
-     * * Kullanıcı çıkış dediğinde Redis'teki hem Access hem Refresh tokenları silinir.
-     * * Böylece o tokenlar teknik olarak geçerli görünse bile (JWT süresi bitmese bile),
-     * * Redis'te olmadıkları için JwtAuthFilter onları reddeder.
+     * Logout.
+     * * When the user logs out, both the access and refresh tokens are deleted from Redis.
+     * * Even though those tokens may still look valid (the JWT itself hasn't expired),
+     * * JwtAuthFilter rejects them because they're no longer present in Redis.
      */
     public void logoutByAccessToken(String accessToken) {
         if (accessToken == null || accessToken.isEmpty()) return;
@@ -189,20 +193,21 @@ public class TokenService {
         try {
             Long userId = jwtUtil.extractAllClaims(accessToken).get(JwtUtil.USER_ID, Long.class);
 
-            // Access token sil (Whitelist'ten çıkar)
+            // Delete the access token (remove it from the whitelist).
             redisTemplate.delete(ACCESS_TOKEN_KEY_PREFIX + userId);
 
-            // Bu access token’a bağlı refresh token’ı da bul ve sil
+            // Also find and delete the refresh token tied to this access token.
             String refreshToken = findRefreshTokenByAccessToken(accessToken);
             if (refreshToken != null) {
                 redisTemplate.delete(REFRESH_TOKEN_KEY_PREFIX + refreshToken);
             }
 
-            // Garanti olsun diye kullanıcıya ait kalan tüm kırıntıları temizle
+            // Clean up any remaining tokens belonging to this user, just in case.
             removeAllUserTokensFromRedis(userId);
 
         } catch (Exception e) {
-            // Token bozuksa bile Redis'ten temizlemeye çalış
+            // Even if the token itself can't be parsed, still try to clean up Redis.
+            log.warn("Failed to parse access token during logout, falling back to lookup-by-token cleanup: {}", e.getMessage());
             String refreshToken = findRefreshTokenByAccessToken(accessToken);
             if (refreshToken != null)
                 redisTemplate.delete(REFRESH_TOKEN_KEY_PREFIX + refreshToken);
@@ -210,9 +215,9 @@ public class TokenService {
     }
 
     /**
-     * Temizlik Robotu
-     * * Bir kullanıcıya ait olası tüm refresh tokenları siler.
-     * * "Tüm cihazlardan çıkış yap" özelliği için kullanılabilir.
+     * Cleanup helper.
+     * * Deletes every refresh token that may belong to a given user.
+     * * Can be used for a "log out from all devices" feature.
      */
     private void removeAllUserTokensFromRedis(Long userId) {
         if (userId == null) return;

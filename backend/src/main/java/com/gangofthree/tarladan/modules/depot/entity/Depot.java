@@ -17,8 +17,10 @@ public class Depot {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // ManyToOne çünkü birden fazla depo aynı DepotOwner'a ait olabilir
-    @ManyToOne
+    // ManyToOne because multiple depots can belong to the same DepotOwner.
+    // Lazy-fetched: listing/detail responses only need the owner's id, and Hibernate can
+    // resolve getId() from an uninitialized proxy without hitting the database, avoiding N+1 selects.
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "depo_owner_id", referencedColumnName = "id", nullable = false)
     private DepotOwner depotOwner;
 

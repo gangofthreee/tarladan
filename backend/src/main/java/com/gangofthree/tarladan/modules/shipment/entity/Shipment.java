@@ -22,7 +22,7 @@ public class Shipment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Truck tablosuyla ilişki (Foreign Key)
+    // Relationship to the Truck table (Foreign Key)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "truck_id", referencedColumnName = "id", nullable = false)
     private Truck truck;

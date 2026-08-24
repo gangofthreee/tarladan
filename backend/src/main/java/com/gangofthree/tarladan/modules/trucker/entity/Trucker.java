@@ -18,6 +18,6 @@ public class Trucker {
     private Long id;
 
     @OneToOne
-    @JoinColumn(name="user_id", referencedColumnName = "id")
-            private User user;
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    private User user;
 }

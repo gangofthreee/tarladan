@@ -59,7 +59,10 @@ class VerificationServiceTest {
     }
 
     @Test
-    void whenVerifyCodeIsIncorrect_thenUserIsDeleted() {
+    void whenVerifyCodeIsIncorrect_thenRejectedAndAccountAndCodeAreKept() {
+        // A wrong code must not destroy the account or consume the stored code,
+        // otherwise a single typo (or one unauthenticated guess) would permanently
+        // lock the user out of an unverified account.
         VerifyCodeRequest request = new VerifyCodeRequest();
         request.setEmail("test@example.com");
         request.setVerificationCode("wrongCode");
@@ -69,7 +72,7 @@ class VerificationServiceTest {
         boolean result = verificationService.verifyCode(request);
 
         assertThat(result).isFalse();
-        verify(userRepository).deleteByEmail("test@example.com");
-        verify(redisService).deleteCode("test@example.com");
+        verify(userRepository, never()).deleteByEmail(anyString());
+        verify(redisService, never()).deleteCode(anyString());
     }
 }

@@ -6,16 +6,19 @@ import com.gangofthree.tarladan.infrastructure.mail.MailService;
 import com.gangofthree.tarladan.modules.user.entity.User;
 import com.gangofthree.tarladan.modules.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.util.Map;
-import java.util.Random;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PasswordResetServiceImpl implements PasswordResetService {
 
     private final UserRepository userRepository;
@@ -23,19 +26,24 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     private final MailService mailService;
     private final StringRedisTemplate redis;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final SecureRandom secureRandom = new SecureRandom();
 
 
     @Override
     public void requestReset(String email) {
 
-        // 1. Email var mı kontrol
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("Email not found."));
+        // Look up the account, but never reveal to the caller whether the email exists
+        // (avoids email-enumeration via this endpoint).
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            log.debug("Password reset requested for an email with no matching account.");
+            return;
+        }
 
-        // 2. 6 haneli kod üret
+        // Generate a 6-digit reset code
         String code = generate6DigitCode();
 
-        // 3. Redis’e kaydet
+        // Store the code and its metadata in Redis
         Map<String, Object> data = Map.of(
                 "email", email,
                 "resetCode", code,
@@ -53,7 +61,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             throw new RuntimeException(e);
         }
 
-        // 4. Mail gönder
+        // Send the code by email
         mailService.sendResetCode(email, code);
     }
 
@@ -113,18 +121,11 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             User user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new IllegalArgumentException("User not found."));
 
-            // 1. Yeni şifreyi hashleyip kaydet
+            // Hash and persist the new password
             user.setPassword(passwordEncoder.encode(newPassword));
             userRepository.save(user);
 
-            // 2. used = true yap
-            data.put("used", true);
-
-            redis.opsForValue().set(key,
-                    objectMapper.writeValueAsString(data),
-                    1, TimeUnit.MINUTES);
-
-            // 3. tamamen sil
+            // Invalidate the reset code so it cannot be reused (one-time use)
             redis.delete(key);
 
         } catch (Exception e) {
@@ -135,8 +136,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
 
 
     private String generate6DigitCode() {
-        Random r = new Random();
-        return String.format("%06d", r.nextInt(999999));
+        return String.format("%06d", secureRandom.nextInt(1_000_000));
     }
 }
 

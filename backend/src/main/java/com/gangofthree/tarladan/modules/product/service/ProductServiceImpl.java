@@ -10,6 +10,7 @@ import com.gangofthree.tarladan.modules.product.repository.ProductRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import com.gangofthree.tarladan.modules.product.dto.ProductResponse;
 import java.util.stream.Collectors;
@@ -26,11 +27,16 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
+    // Filesystem directory the photo is written to.
+    private static final String PRODUCT_PHOTO_UPLOAD_DIR = "/app/uploads/productPhotos";
+    // Public URL prefix the photo is served from (see WebConfig's "/uploads/**" resource handler).
+    private static final String PRODUCT_PHOTO_URL_PREFIX = "/uploads/productPhotos/";
+
     private final ProductRepository productRepository;
     private final FarmerRepository farmerRepository;
     private final DepotRepository depotRepository;
 
-    // --- Yardımcı Metot: Entity -> DTO Dönüşümü ---
+    // --- Helper method: Entity -> DTO conversion ---
     private ProductResponse mapToResponse(Product product) {
         String farmerName = null;
         if (product.getFarmer() != null && product.getFarmer().getUser() != null) {
@@ -56,17 +62,18 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public Product addProduct(AddProductRequest addProductRequest, Long farmerId) {
         try {
-            // Farmer'ı JWT domainId ile getir
+            // Look up the Farmer using the JWT domainId
             Farmer farmer = farmerRepository.findById(farmerId)
                     .orElseThrow(() -> new RuntimeException("Farmer not found with id: " + farmerId));
 
-            // Depot kontrolü
+            // Depot check
             Depot depot = depotRepository.findById(addProductRequest.getId_depot())
                     .orElseThrow(() -> new SecurityException("Depot not found with id: " + addProductRequest.getId_depot()));
 
-            // Product entity oluştur (önce ID almak için kaydet)
+            // Build the Product entity (save first so we get an ID to name the photo file with)
             Product product = new Product();
             product.setName(addProductRequest.getName());
             product.setQuantity_kg(addProductRequest.getQuantity_kg());
@@ -75,38 +82,47 @@ public class ProductServiceImpl implements ProductService {
             product.setFarmer(farmer);
             product.setDepot(depot);
 
-            // Önce product'ı kaydet ki ID'yi alalım
+            // Save the product first so we have its ID
             Product savedProduct = productRepository.save(product);
 
-            // Fotoğrafı productId ile kaydet
+            // Save the photo keyed by productId
             MultipartFile photo = addProductRequest.getPhoto();
             if (photo != null && !photo.isEmpty()) {
-                String uploadDir = "/app/uploads/productPhotos";
-                String fileName = "product_" + savedProduct.getId() + "_" + System.currentTimeMillis();
-                Path filePath = Paths.get(uploadDir, fileName);
+                String extension = extractExtension(photo.getOriginalFilename());
+                String fileName = "product_" + savedProduct.getId() + "_" + System.currentTimeMillis() + extension;
+                Path filePath = Paths.get(PRODUCT_PHOTO_UPLOAD_DIR, fileName);
 
                 Files.createDirectories(filePath.getParent());
                 photo.transferTo(filePath.toFile());
 
-                // Image path'i güncelle
-                savedProduct.setImage_path("/app/uploads/productPhotos/" + fileName);
+                // Update the image path to the public URL (served via WebConfig's "/uploads/**" handler)
+                savedProduct.setImage_path(PRODUCT_PHOTO_URL_PREFIX + fileName);
                 productRepository.save(savedProduct);
             }
 
             return savedProduct;
 
         } catch (IOException e) {
-            throw new RuntimeException("Fotoğraf yükleme sırasında hata oluştu", e);
+            throw new RuntimeException("Failed to upload photo", e);
         }
+    }
+
+    private String extractExtension(String originalFilename) {
+        if (originalFilename == null) {
+            return "";
+        }
+        int dotIndex = originalFilename.lastIndexOf('.');
+        return dotIndex >= 0 ? originalFilename.substring(dotIndex) : "";
     }
 
 
     @Override
+    @Transactional
     public Product updateProduct(Long id, Map<String, Object> updates, Long farmerId) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id));
 
-        // JWT domainId kontrolü
+        // JWT domainId ownership check
         if (!product.getFarmer().getId().equals(farmerId)) {
             throw new SecurityException("You are not authorized to modify this product.");
         }
@@ -126,11 +142,12 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public Product updateProductWithMultipart(Long id, String name, String quantityKg, String pricePerKg, String minBuy, MultipartFile photo, Long farmerId) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id));
 
-        // JWT domainId kontrolü
+        // JWT domainId ownership check
         if (!product.getFarmer().getId().equals(farmerId)) {
             throw new SecurityException("You are not authorized to modify this product.");
         }
@@ -150,28 +167,29 @@ public class ProductServiceImpl implements ProductService {
             }
 
             if (photo != null && !photo.isEmpty()) {
-                String uploadDir = "/app/uploads/productPhotos";
                 String fileName = System.currentTimeMillis() + "_" + photo.getOriginalFilename();
-                Path filePath = Paths.get(uploadDir, fileName);
+                Path filePath = Paths.get(PRODUCT_PHOTO_UPLOAD_DIR, fileName);
 
                 Files.createDirectories(filePath.getParent());
                 photo.transferTo(filePath.toFile());
 
-                product.setImage_path("/app/uploads/" + fileName);
+                // Store the public URL the photo is served from (matches where it was written above)
+                product.setImage_path(PRODUCT_PHOTO_URL_PREFIX + fileName);
             }
 
             return productRepository.save(product);
         } catch (IOException e) {
-            throw new RuntimeException("Fotoğraf güncelleme sırasında hata oluştu", e);
+            throw new RuntimeException("Failed to update photo", e);
         }
     }
 
     @Override
+    @Transactional
     public Product deleteProduct(Long id, Long farmerId) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id));
 
-        // JWT domainId kontrolü
+        // JWT domainId ownership check
         if (!product.getFarmer().getId().equals(farmerId)) {
             throw new SecurityException("You are not authorized to delete this product.");
         }
@@ -181,6 +199,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProductResponse getProduct(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id));
@@ -188,8 +207,9 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProductResponse> getProductsByFarmerId(Long farmerId) {
-        List<Product> products = productRepository.findByFarmerId(farmerId);
+        List<Product> products = productRepository.findByFarmerIdWithDetails(farmerId);
         return products.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -197,8 +217,9 @@ public class ProductServiceImpl implements ProductService {
 
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProductResponse> getAllProducts() {
-        List<Product> products = productRepository.findAll();
+        List<Product> products = productRepository.findAllWithDetails();
         return products.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());

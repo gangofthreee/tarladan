@@ -2,7 +2,7 @@ package com.gangofthree.tarladan.modules.truckAd.service;
 
 import com.gangofthree.tarladan.modules.truck.entity.Truck;
 import com.gangofthree.tarladan.modules.truck.repository.TruckRepository;
-import com.gangofthree.tarladan.modules.truckAd.Entity.TruckAd;
+import com.gangofthree.tarladan.modules.truckAd.entity.TruckAd;
 import com.gangofthree.tarladan.modules.truckAd.dto.AddTruckAdRequest;
 import com.gangofthree.tarladan.modules.truckAd.dto.TruckAdResponse;
 import com.gangofthree.tarladan.modules.truckAd.dto.GetTruckAdsRequest;
@@ -65,12 +65,12 @@ public class TruckAdServiceImpl implements TruckAdService {
                 request.getSearchEndDate()
         );
 
-        // liste bos
+        // list is empty
         if (availableAds.isEmpty()) {
             return List.of();
         }
 
-        // Entity Listesi -> Response DTO Listesine Dönüşüm
+        // Convert the entity list to a response DTO list
         return availableAds.stream()
                 .map(this::convertToResponseDto)
                 .collect(Collectors.toList());
@@ -107,6 +107,10 @@ public class TruckAdServiceImpl implements TruckAdService {
         if (request.getEndDate() != null) ad.setEndDate(request.getEndDate());
         if (request.getPricePerKm() != null) ad.setPricePerKm(request.getPricePerKm());
 
+        if (ad.getStartDate().isAfter(ad.getEndDate())) {
+            throw new IllegalArgumentException("Başlangıç tarihi bitiş tarihinden sonra olamaz.");
+        }
+
         TruckAd updated = truckAdRepository.save(ad);
         return convertToResponseDto(updated);
     }
@@ -127,10 +131,10 @@ public class TruckAdServiceImpl implements TruckAdService {
 
     @Override
     public List<TruckAdResponse> getMyTruckAds(Long truckerId) {
-        // Truckere ait bütün ilanları çek
+        // Fetch all ads belonging to the trucker
         List<TruckAd> ads = truckAdRepository.findByTruckerId(truckerId);
 
-        // Response DTO'ya dönüştür
+        // Convert to response DTOs
         return ads.stream()
                 .map(this::convertToResponseDto)
                 .collect(Collectors.toList());

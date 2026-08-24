@@ -32,7 +32,7 @@ public class ProductController {
             @RequestPart("min_buy") String minBuy,
             @RequestPart("photo") MultipartFile photo,
             @RequestPart("id_depot") String depotId,
-            @RequestAttribute("domainId") Long farmerId  // JWT’den geliyor
+            @RequestAttribute("domainId") Long farmerId  // comes from JWT
     ) {
         AddProductRequest request = new AddProductRequest();
         request.setName(name);
@@ -55,7 +55,7 @@ public class ProductController {
             @RequestPart(value = "price_per_kg", required = false) String pricePerKg,
             @RequestPart(value = "min_buy", required = false) String minBuy,
             @RequestPart(value = "photo", required = false) MultipartFile photo,
-            @RequestAttribute("domainId") Long farmerId  // JWT’den geliyor
+            @RequestAttribute("domainId") Long farmerId  // comes from JWT
     ) {
         Product updatedProduct = productService.updateProductWithMultipart(id, name, quantityKg, pricePerKg, minBuy, photo, farmerId);
         return ResponseEntity.ok(updatedProduct);
@@ -65,7 +65,7 @@ public class ProductController {
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Product> deleteProduct(
             @PathVariable Long id,
-            @RequestAttribute("domainId") Long farmerId  // JWT’den geliyor
+            @RequestAttribute("domainId") Long farmerId  // comes from JWT
     ){
         Product deletedProduct = productService.deleteProduct(id, farmerId);
         return ResponseEntity.ok(deletedProduct);

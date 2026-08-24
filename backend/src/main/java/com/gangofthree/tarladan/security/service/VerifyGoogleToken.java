@@ -1,56 +1,60 @@
 package com.gangofthree.tarladan.security.service;
 
 import com.gangofthree.tarladan.shared.dto.GoogleUserResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 /**
- * Google Kimlik Doğrulama Servisi (The Interrogator)
- * * Bu sınıf, Frontend'in (React/Flutter) Google'dan aldığı "ID Token"ın
- * geçerliliğini, doğrudan Google sunucularına sorarak doğrular.
- * * "Frontend bana bir token yolladı ama belki de o token sahte?" şüphesini
- * ortadan kaldırmak için kullanılır.
+ * Google authentication service (the interrogator).
+ * * This class verifies the "ID Token" the frontend (React/Flutter) received from Google
+ * by asking Google's own servers whether it's genuine.
+ * * It exists to eliminate the "the frontend sent me a token, but is it real?" doubt.
  */
-@Service // @Component yerine @Service kullanmak iş mantığı için daha uygundur.
+@Service // @Service (rather than @Component) fits better for business-logic classes.
 public class VerifyGoogleToken {
 
-    // Google'ın token doğrulama endpoint'i.
-    // %s yerine gelen token'ı yapıştıracağız.
+    private static final Logger log = LoggerFactory.getLogger(VerifyGoogleToken.class);
+
+    // Google's token verification endpoint. %s is replaced with the incoming token.
     private static final String GOOGLE_TOKEN_INFO_URL =
             "https://oauth2.googleapis.com/tokeninfo?id_token=%s";
 
+    private final RestTemplate restTemplate;
+
+    public VerifyGoogleToken(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
+
     /**
-     * Google ID Token'ı Doğrula
-     * @param idToken Frontend'den gelen upuzun JWT string (Google ID Token)
-     * @return GoogleUserResponse (Google'dan dönen email, isim, resim bilgileri)
+     * Verify a Google ID token.
+     * @param idToken the long JWT string from the frontend (Google ID Token)
+     * @return GoogleUserResponse (email, name, and picture returned by Google)
      */
     public GoogleUserResponse verify(String idToken) {
-        // RestTemplate: Spring'in dış dünyaya HTTP isteği (GET/POST) atmak için kullandığı araçtır.
-        // Not: Best Practice olarak bunu her seferinde 'new'lemek yerine Bean olarak inject etmek daha iyidir.
-        RestTemplate restTemplate = new RestTemplate();
-
-        // URL'i oluştur: https://oauth2....?id_token=eyJhbGci...
         String url = String.format(GOOGLE_TOKEN_INFO_URL, idToken);
 
         ResponseEntity<GoogleUserResponse> response;
 
         try {
-            // 1. Google'a GET isteği at ("Bu token geçerli mi?")
-            // 2. Gelen cevabı GoogleUserResponse sınıfına (DTO) çevir.
+            // 1. Ask Google via GET ("is this token valid?").
+            // 2. Deserialize the response body into our GoogleUserResponse DTO.
             response = restTemplate.getForEntity(url, GoogleUserResponse.class);
         } catch (Exception ex) {
-            // Google sunucularına ulaşılamazsa veya token formatı bozuksa burası çalışır.
+            // Google was unreachable, or the token format was malformed.
+            log.error("Google token verification request failed", ex);
             throw new RuntimeException("Google token doğrulama isteği başarısız oldu: " + ex.getMessage());
         }
 
-        // Token süresi dolmuşsa veya sahteyse Google hata kodu döner.
-        // HTTP 200 (OK) dönmediyse veya body boşsa token geçersizdir.
+        // Google returns a non-2xx status for an expired or forged token.
         if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-            throw new RuntimeException("Geçersiz Google ID Token. Kimlik doğrulanamadı.");
+            // Authentication failure, not a server error: map to 403 via GlobalExceptionHandler.
+            throw new SecurityException("Geçersiz Google ID Token. Kimlik doğrulanamadı.");
         }
 
-        // Her şey yolunda, Google'dan gelen kullanıcı bilgilerini (Email, İsim vb.) dön.
+        // All good — return the user info (email, name, etc.) from Google.
         return response.getBody();
     }
 }

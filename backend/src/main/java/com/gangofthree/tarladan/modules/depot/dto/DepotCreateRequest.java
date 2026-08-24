@@ -6,7 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class DepotCreateRequest {
-    private String address; // nullable - reverse geocoding ile doldurulacak
+    private String address; // nullable - filled in via reverse geocoding
     private Double latitude;
     private Double longitude;
     private Double sizeM2;

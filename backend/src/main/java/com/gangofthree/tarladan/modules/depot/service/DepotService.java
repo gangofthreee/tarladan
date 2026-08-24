@@ -14,7 +14,7 @@ public interface DepotService {
 
     DepotResponse getDepotById(Long id);
 
-    // JWT'den gelen depotOwnerId ile yetki kontrolü yapılacak
+    // Authorization is checked against the depotOwnerId derived from the JWT
     DepotResponse updateDepot(Long id, DepotUpdateRequest request, Long depotOwnerId);
 
     void deleteDepot(Long id, Long depotOwnerId);

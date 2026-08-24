@@ -17,7 +17,7 @@ public class Notification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Bildirimin gideceği kişinin ID'si (Bu User tablosundaki ana ID olmalı)
+    // ID of the recipient (this should be the primary ID from the User table)
     private Long recipientId;
 
     private String title;

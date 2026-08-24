@@ -2,7 +2,6 @@ package com.gangofthree.tarladan.modules.product.entity;
 
 import com.gangofthree.tarladan.modules.depot.entity.Depot;
 import com.gangofthree.tarladan.modules.farmer.entity.Farmer;
-//import com.gangofthree.tarladan.modules.depot.entity.Depot;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 

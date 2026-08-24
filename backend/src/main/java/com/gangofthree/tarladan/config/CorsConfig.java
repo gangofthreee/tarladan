@@ -9,10 +9,9 @@ import org.springframework.web.filter.CorsFilter;
 import java.util.Arrays;
 
 /**
- * CORS (Cross-Origin Resource Sharing) Yapılandırması
- * * Bu sınıf, tarayıcı tabanlı frontend uygulamalarının (React, Angular, Vue vb.)
- * farklı bir domain veya port üzerinde çalışan bu Backend API'ye erişebilmesi için
- * gerekli izinleri tanımlar.
+ * CORS (Cross-Origin Resource Sharing) configuration.
+ * * Defines the permissions that let browser-based frontend applications (React, Angular,
+ * Vue, etc.), served from a different domain or port, access this backend API.
  */
 @Configuration
 public class CorsConfig {
@@ -22,52 +21,51 @@ public class CorsConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
 
-        // 1. KİMLİK BİLGİLERİ İZNİ (Credentials)
-        // Frontend'in Backend'e Cookie veya 'Authorization' (Bearer Token) header'ı
-        // gönderebilmesi için bunun 'true' olması ZORUNLUDUR.
-        // Eğer bu kapalıysa, tarayıcı token içeren istekleri güvenlik nedeniyle engeller.
+        // 1. ALLOW CREDENTIALS
+        // This MUST be true for the frontend to send cookies or an 'Authorization'
+        // (Bearer token) header. If disabled, the browser blocks requests carrying a
+        // token for security reasons.
         config.setAllowCredentials(true);
 
-        // 2. İZİN VERİLEN KAYNAKLAR (Origins)
-        // Hangi adreslerden (Domain/Port) istek gelebilir?
-        // setAllowedOrigins("*") yerine Pattern kullanıyoruz çünkü Credentials(true) olduğunda
-        // joker karakter (*) kullanımı kısıtlanmıştır.
-        // Ancak mobile app'lerden gelen istekleri kolaylaştırmak ve Azure domain sorununu çözmek için
-        // geçici veya kalıcı olarak tüm (*) pattern'lere izin veriyoruz.
+        // 2. ALLOWED ORIGINS
+        // Which addresses (domain/port) can requests come from?
+        // We use origin *patterns* instead of setAllowedOrigins("*") because a wildcard
+        // is restricted once allowCredentials(true) is set.
+        // To simplify requests from mobile apps and work around an Azure-domain issue,
+        // all origins are currently allowed via the wildcard pattern.
         config.setAllowedOriginPatterns(Arrays.asList("*"));
 
-        // 3. İZİN VERİLEN BAŞLIKLAR (Headers)
-        // Frontend'in istek atarken gönderebileceği Header tipleri.
-        // "*" diyerek Content-Type, Authorization, X-Requested-With gibi her şeye izin veriyoruz.
+        // 3. ALLOWED HEADERS
+        // Header types the frontend may send with a request.
+        // "*" allows everything (Content-Type, Authorization, X-Requested-With, etc.).
         config.setAllowedHeaders(Arrays.asList("*"));
 
-        // 4. İZİN VERİLEN HTTP METOTLARI
-        // Backend'in kabul edeceği işlem türleri.
-        // OPTIONS: Tarayıcının gönderdiği "Pre-flight" (Ön kontrol) isteği için gereklidir.
+        // 4. ALLOWED HTTP METHODS
+        // Operation types the backend accepts.
+        // OPTIONS is required for the browser's CORS "preflight" request.
         config.setAllowedMethods(Arrays.asList(
                 "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"
         ));
 
-        // 5. DIŞARIYA AÇILAN BAŞLIKLAR (Exposed Headers)
-        // Normalde tarayıcılar, güvenlik gereği Backend'den dönen bazı özel Header'ları Frontend koduna gizler.
-        // Frontend'in (örneğin Axios'un) bu headerları okuyabilmesi için onları ifşa etmeliyiz.
-        // CORS hatası almamak için bu kısım önemlidir.
+        // 5. EXPOSED HEADERS
+        // Browsers hide certain response headers from frontend JS by default, for security.
+        // These must be explicitly exposed so the frontend (e.g. Axios) can read them.
         config.setExposedHeaders(Arrays.asList(
                 "Access-Control-Allow-Origin",
                 "Access-Control-Allow-Credentials",
-                "Authorization",        // Eğer token'ı header'da dönüyorsanız
-                "X-New-Access-Token",   // JWT Token yenilemesi için - Frontend bu header'ı alıp kaydetmeli
-                "X-Total-Count"         // Eğer sayfalama yapıyorsanız gerekebilir
+                "Authorization",        // in case the token is also returned in a header
+                "X-New-Access-Token",   // JWT refresh — the frontend must read and store this
+                "X-Total-Count"         // useful for pagination
         ));
 
-        // 6. ÖN BELLEK SÜRESİ (Max Age)
-        // Tarayıcı her POST/PUT isteğinden önce bir "OPTIONS" (Pre-flight) isteği atar.
-        // Bu ayar, tarayıcıya "Bu izinleri 3600 saniye (1 saat) boyunca hatırla, her defasında sorma" der.
-        // Bu sayede gereksiz trafik azalır ve uygulama hızlanır.
+        // 6. PREFLIGHT CACHE DURATION (Max Age)
+        // Before every POST/PUT request, the browser first sends an "OPTIONS" preflight
+        // request. This setting tells the browser "remember these permissions for 3600
+        // seconds (1 hour), don't ask again," reducing unnecessary traffic.
         config.setMaxAge(3600L);
 
-        // 7. YOL TANIMLAMASI
-        // Bu kuralların projedeki TÜM endpointler (/**) için geçerli olduğunu belirtir.
+        // 7. PATH SCOPE
+        // These rules apply to every endpoint (/**) in the project.
         source.registerCorsConfiguration("/**", config);
 
         return new CorsFilter(source);

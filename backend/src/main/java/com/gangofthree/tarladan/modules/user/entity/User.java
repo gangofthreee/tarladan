@@ -49,11 +49,14 @@ public class User {
     private UserRole role;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean isMailVerified = false;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean isGoogleVerified = false;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean isPhoneVerified = false;
 }

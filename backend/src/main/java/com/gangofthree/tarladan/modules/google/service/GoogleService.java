@@ -7,9 +7,9 @@ import com.gangofthree.tarladan.shared.dto.TokenResponse;
 
 public interface GoogleService {
 
-    //Aşama 1: Sadece token'ı doğrular ve kullanıcının veritabanında var olup olmadığını kontrol eder.
+    // Step 1: Verifies the Google ID token and checks whether the user already exists in the database.
     AuthStatusResponse verifyStatus(GoogleAuthRequest request);
 
-    //Aşama 2: Yeni kullanıcıları role ve telefon bilgisiyle kaydeder, mevcut kullanıcıların girişini yapar.
+    // Step 2: Registers new users with their role and phone number, logs in existing users.
     TokenResponse processAuth(GoogleRegisterRequest request);
 }

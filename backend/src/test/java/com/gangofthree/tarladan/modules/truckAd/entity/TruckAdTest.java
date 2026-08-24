@@ -1,4 +1,4 @@
-package com.gangofthree.tarladan.modules.truckAd.Entity;
+package com.gangofthree.tarladan.modules.truckAd.entity;
 
 import com.gangofthree.tarladan.modules.truck.entity.Truck;
 import com.gangofthree.tarladan.modules.trucker.entity.Trucker;

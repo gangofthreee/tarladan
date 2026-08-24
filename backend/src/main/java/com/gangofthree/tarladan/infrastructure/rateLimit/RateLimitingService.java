@@ -8,14 +8,14 @@ import io.github.bucket4j.distributed.proxy.ProxyManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.StandardCharsets; // BU IMPORT ÖNEMLİ
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.function.Supplier;
 
 @Service
 public class RateLimitingService {
 
-    // ARTIK <String> DEĞİL <byte[]> BEKLİYORUZ
+    // Bucket keys are byte[] (required by the Lettuce-based ProxyManager), not String.
     private final ProxyManager<byte[]> proxyManager;
 
     @Autowired
@@ -23,7 +23,7 @@ public class RateLimitingService {
         this.proxyManager = proxyManager;
     }
 
-    // --- TASK 1: KRİTİK GÜVENLİK ---
+    // --- TASK 1: CRITICAL SECURITY ---
     public Bucket resolveLoginBucket(String key) {
         return proxyManager.builder().build(getBytes("login_" + key), config(5, Duration.ofMinutes(1)));
     }
@@ -36,7 +36,7 @@ public class RateLimitingService {
         return proxyManager.builder().build(getBytes("pwd_reset_" + key), config(3, Duration.ofHours(1)));
     }
 
-    // --- TASK 2: MALİYET (SMS/EMAIL) ---
+    // --- TASK 2: COST CONTROL (SMS/EMAIL) ---
     public Bucket resolveResendCodeBucket(String key) {
         return proxyManager.builder().build(getBytes("resend_" + key), multiLimitConfig());
     }
@@ -54,22 +54,22 @@ public class RateLimitingService {
         return proxyManager.builder().build(getBytes("order_" + key), config(10, Duration.ofMinutes(1)));
     }
 
-    // --- TASK 4: GENEL (SCRAPING KORUMASI) ---
+    // --- TASK 4: GENERAL (SCRAPING PROTECTION) ---
     public Bucket resolveGeneralBucket(String key) {
         return proxyManager.builder().build(getBytes("general_" + key), config(60, Duration.ofMinutes(1)));
     }
 
-    // --- YARDIMCI METOTLAR ---
+    // --- HELPER METHODS ---
 
-    // String'i byte dizisine çeviren yardımcı metot
+    // Converts a String key into a byte array.
     private byte[] getBytes(String key) {
         return key.getBytes(StandardCharsets.UTF_8);
     }
 
     private Supplier<BucketConfiguration> config(long capacity, Duration period) {
         return () -> BucketConfiguration.builder()
-                // DİKKAT: Burayı 'greedy' yerine 'intervally' yaptık.
-                // Artık damla damla değil, süre dolunca toplu dolduracak.
+                // Uses 'intervally' refill: the full capacity is restored in one batch when
+                // the period elapses, rather than trickling back in gradually ('greedy').
                 .addLimit(Bandwidth.classic(capacity, Refill.intervally(capacity, period)))
                 .build();
     }

@@ -43,7 +43,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User register(UserRegisterRequest request) {
-        // email & phone kontrolü
+        // Check email & phone uniqueness
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("Email already in use");
         }
@@ -51,16 +51,16 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("Phone already in use");
         }
 
-        String roleString = String.valueOf(request.getRole()); // null olsa bile "null" string olur
+        String roleString = String.valueOf(request.getRole()); // becomes the string "null" if role is missing
         UserRole userRole;
         try {
-            userRole = UserRole.valueOf(roleString.toUpperCase()); // büyük harf ile enum karşılaştırması
+            userRole = UserRole.valueOf(roleString.toUpperCase()); // case-insensitive enum match
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid role provided: " + roleString);
         }
 
 
-        // Password Hashleme
+        // Hash the password
         String encodedPassword = passwordEncoder.encode(request.getPassword());
 
         User user = User.builder()
@@ -77,7 +77,7 @@ public class UserServiceImpl implements UserService {
 
         User savedUser = userRepository.save(user);
 
-        // Role göre ilgili tabloya kaydet
+        // Persist the corresponding role-specific entity
         switch (userRole) {
             case FARMER -> {
                 Farmer farmer = Farmer.builder().user(savedUser).build();
@@ -112,33 +112,33 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public TokenResponse login(UserLoginRequest request) {
-        // Email’e göre kullanıcıyı bul
+        // Look up the user by email
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + request.getEmail()));
 
-        // Şifre kontrolü
+        // Verify the password
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new IllegalArgumentException("Invalid password");
         }
 
-        // E-posta doğrulama kontrolü (opsiyonel)
+        // Require a verified email
         if (!user.isMailVerified()) {
             throw new IllegalArgumentException("Email is not verified");
         }
 
-        // 1. Role bağlı domain ID'yi al (farmerId, truckerId, vb.)
+        // 1. Resolve the role-specific domain id (farmerId, truckerId, etc.)
         Long domainId = roleBasedIdService.getDomainId(user);
 
-        // 2. Access Token üret (2 dakika TTL)
+        // 2. Generate the access token (short TTL)
         String accessToken = jwtUtil.generateAccessToken(user.getId(), user.getRole().name(), domainId);
 
-        // 3. Refresh Token üret (UUID, 1 gün TTL) ve Redis'e kaydet
+        // 3. Generate the refresh token (UUID, longer TTL) and store it in Redis
         String refreshToken = tokenService.createOrUpdateRefreshToken(user.getId(), domainId, accessToken);
 
-        // 4. Access Token'ı Redis'e kaydet (manuel olarak oturum başlatma)
+        // 4. Store the access token in Redis (tracks the active session)
         tokenService.saveAccessToken(user.getId(), accessToken);
 
-        // 5. Token'ları ve kullanıcı bilgilerini döndür
+        // 5. Return the tokens and user information
         return TokenResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
@@ -148,6 +148,8 @@ public class UserServiceImpl implements UserService {
                 .message("Login successful. Tokens generated.")
                 .build();
     }
+
+    @Override
     public UserProfileResponse getUserProfile(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));

@@ -1,12 +1,10 @@
-package com.gangofthree.tarladan.modules.truck.Controller;
+package com.gangofthree.tarladan.modules.truck.controller;
 
 import com.gangofthree.tarladan.modules.truck.dto.AddTruckRequest;
 import com.gangofthree.tarladan.modules.truck.dto.UpdateTruckRequest;
 import com.gangofthree.tarladan.modules.truck.entity.Truck;
 import com.gangofthree.tarladan.modules.truck.service.TruckService;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.cache.annotation.CacheEvict;
@@ -28,7 +26,7 @@ public class TruckController {
     @PostMapping(value = "/create", consumes = {"multipart/form-data"})
     public ResponseEntity<Truck> createTruck(@ModelAttribute AddTruckRequest request,
                                              @RequestAttribute("domainId") Long truckerId) {
-        // domainId JwtAuthFilter'da SecurityContext veya request attribute olarak set edilecek
+        // domainId is set as a request attribute (or in the SecurityContext) by the JwtAuthFilter
         Truck createdTruck = truckService.addTruck(request, truckerId);
         return ResponseEntity.ok(createdTruck);
     }
@@ -63,7 +61,7 @@ public class TruckController {
         return truckService.getAllTrucks();
     }
 
-    @Cacheable(value = "trucks", key = "#id")
+    @Cacheable(value = "trucks", key = "#id + '_' + #truckerId")
     @GetMapping("/{id}")
     public TruckResponse getTruckById(@PathVariable Long id,
                                               @RequestAttribute("domainId") Long truckerId) {

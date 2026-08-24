@@ -8,8 +8,8 @@ import java.util.List;
 
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
-    // Kullanıcıya ait okunmamış bildirimleri getir (örnek)
+    // Fetch all notifications for a user, newest first
     List<Notification> findByRecipientIdOrderByCreatedAtDesc(Long recipientId);
-    // "RecipientId'si bu olan VE isRead alanı FALSE olanları say"
+    // Count notifications where recipientId matches AND isRead is false
     long countByRecipientIdAndIsReadFalse(Long recipientId);
 }

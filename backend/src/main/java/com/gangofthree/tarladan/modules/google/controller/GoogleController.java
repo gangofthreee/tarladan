@@ -20,8 +20,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class GoogleController {
     private final GoogleService googleService;
 
-    // kullanici kayitli mi? kayitliysa girisini yap (token uret, tokenresponse dondur)
-    // degil ise false dondur
+    // Is the user already registered? If so, log them in (issue a token and return a TokenResponse).
+    // If not, return false.
     @PostMapping("/verify-status")
     public ResponseEntity<?> verifyStatus(@Valid @RequestBody GoogleAuthRequest request) {
         try {
@@ -33,15 +33,15 @@ public class GoogleController {
         }
     }
 
-    // yeni kullaniciyi save et, token uret girisini yap token response dondur
+    // Save the new user, issue a token, log them in, and return a TokenResponse.
     @PostMapping("/auth")
     public ResponseEntity<TokenResponse> processAuth(@Valid @RequestBody GoogleRegisterRequest request) {
         try {
             TokenResponse response = googleService.processAuth(request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response); // Kayıt olduğu için 201 Created .
+            return ResponseEntity.status(HttpStatus.CREATED).body(response); // 201 Created: a new account was registered.
 
         } catch (RuntimeException e) {
-            // İş mantığı veya doğrulama hataları (örn. geçersiz rol, phone formatı)
+            // Business rule or validation errors (e.g. invalid role, invalid phone format)
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(TokenResponse.builder().message("Yeni kullanıcı kayıt işlemi başarısız: " + e.getMessage()).build());
         }

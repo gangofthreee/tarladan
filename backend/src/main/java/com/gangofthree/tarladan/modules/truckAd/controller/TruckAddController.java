@@ -1,11 +1,12 @@
-package com.gangofthree.tarladan.modules.truckAd.Controller;
+package com.gangofthree.tarladan.modules.truckAd.controller;
 
-import com.gangofthree.tarladan.modules.truckAd.Entity.TruckAd;
+import com.gangofthree.tarladan.modules.truckAd.entity.TruckAd;
 import com.gangofthree.tarladan.modules.truckAd.dto.AddTruckAdRequest;
 import com.gangofthree.tarladan.modules.truckAd.dto.GetTruckAdsRequest;
 import com.gangofthree.tarladan.modules.truckAd.dto.TruckAdResponse;
 import com.gangofthree.tarladan.modules.truckAd.dto.UpdateTruckAdRequest;
 import com.gangofthree.tarladan.modules.truckAd.service.TruckAdService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +31,7 @@ public class TruckAddController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getAvailableTruckAds(@ModelAttribute GetTruckAdsRequest request) {
+    public ResponseEntity<?> getAvailableTruckAds(@Valid @ModelAttribute GetTruckAdsRequest request) {
         List<TruckAdResponse> availableAds = truckAdService.getAvailableTruckAds(request);
 
         if (availableAds.isEmpty()) {

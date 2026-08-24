@@ -25,7 +25,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 
         Bucket tokenBucket;
 
-        // TASK 1: KRİTİK GÜVENLİK
+        // TASK 1: CRITICAL SECURITY
         if (uri.equals("/api/users/login")) {
             tokenBucket = rateLimitingService.resolveLoginBucket(clientIp);
         }
@@ -35,7 +35,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         else if (uri.equals("/auth/password-reset")) {
             tokenBucket = rateLimitingService.resolvePwdResetBucket(clientIp);
         }
-        // TASK 2: MALİYET YÖNETİMİ
+        // TASK 2: COST CONTROL
         else if (uri.equals("/api/verification/resendCode")) {
             tokenBucket = rateLimitingService.resolveResendCodeBucket(clientIp);
         }
@@ -51,12 +51,12 @@ public class RateLimitInterceptor implements HandlerInterceptor {
                 (method.equals("POST") || method.equals("PATCH"))) {
             tokenBucket = rateLimitingService.resolveUploadBucket(clientIp);
         }
-        // TASK 4: GENEL
+        // TASK 4: GENERAL
         else {
             tokenBucket = rateLimitingService.resolveGeneralBucket(clientIp);
         }
 
-        // Token Tüketimi
+        // Consume a token.
         ConsumptionProbe probe = tokenBucket.tryConsumeAndReturnRemaining(1);
 
         if (probe.isConsumed()) {
@@ -85,6 +85,8 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         if (xfHeader == null) {
             return request.getRemoteAddr();
         }
-        return xfHeader.split(",")[0];
+        // X-Forwarded-For is a comma-separated "client, proxy1, proxy2, ..." chain;
+        // trim so a leading space on non-first entries doesn't fragment the rate-limit key.
+        return xfHeader.split(",")[0].trim();
     }
 }

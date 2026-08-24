@@ -37,8 +37,4 @@ public class Truck {
 
     private String imageUrl;
 
-//    @NotNull(message = "taban fiyat bilgisi bos birakilamaz")
-//    @Min(value = 1, message = "taban fiyat bilgisi 0'dan buyuk olmalidir.")
-//    private BigInteger basePrice;
-
 }

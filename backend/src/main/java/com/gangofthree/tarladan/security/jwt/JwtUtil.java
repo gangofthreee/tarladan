@@ -6,6 +6,8 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -15,127 +17,129 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * JWT Yardımcı Sınıfı (Token Factory)
- * * Bu sınıf, JSON Web Token (JWT) oluşturma, çözümleme (parsing) ve doğrulama
- * işlemlerinden sorumlu tek yetkili sınıftır.
- * * Veritabanına gitmez, sadece matematiksel ve kriptografik işlemler yapar.
+ * JWT helper class (token factory).
+ * * This is the single class responsible for creating, parsing, and validating
+ * JSON Web Tokens (JWTs).
+ * * It never talks to the database — only cryptographic and mathematical operations.
  */
 @Component
 public class JwtUtil {
 
-    // application.properties dosyasından gizli anahtarı oku.
-    // Bu anahtar tokenları imzalamak için kullanılır. Kimseyle paylaşılmamalıdır!
+    private static final Logger log = LoggerFactory.getLogger(JwtUtil.class);
+
+    // Read the secret key from application.properties.
+    // This key signs the tokens and must never be shared.
     @Value("${jwt.secret-key}")
     private String SECRET_KEY;
 
-    // Token'ın kaç dakika geçerli olacağı bilgisi.
+    // How many minutes an access token is valid for.
     @Value("${jwt.access-token-ttl-minutes}")
     private long ACCESS_TOKEN_TTL_MINUTES;
 
-    // JWT Payload anahtarları (kısa isimler kullanarak token boyutunu küçük tutuyoruz)
+    // JWT payload claim keys (kept short to minimize token size).
     public static final String USER_ID = "uid";
     public static final String ROLE = "rol";
-    public static final String DOMAIN_ID = "did"; // Role-based ID (farmerId, customerId, vb.)
+    public static final String DOMAIN_ID = "did"; // Role-based id (farmerId, customerId, etc.)
 
     /**
-     * İmzalama Anahtarını Getir (HMAC-SHA)
-     * * application.properties'deki Base64 formatındaki String anahtarı,
-     * kriptografik işlemlerde kullanılabilecek gerçek bir 'Key' nesnesine çevirir.
+     * Build the signing key (HMAC-SHA).
+     * * Converts the Base64-encoded string from application.properties into an
+     * actual 'Key' object usable for cryptographic operations.
      */
     private Key getSigningKey() {
         byte[] keyBytes;
         try {
-            // Önce mevcut anahtarı Base64 olarak çözmeye çalış
+            // First, try to decode the configured key as Base64.
             keyBytes = Decoders.BASE64.decode(SECRET_KEY);
         } catch (Exception e) {
-            // Eğer Base64 değilse (Örn: Düz metin "my_secret_key_123"), 
-            // o zaman bu düz metni Base64'e çevirip öyle kullan.
-            // Bu güvenlik için bir "Fallback" meknizmasıdır.
-            System.out.println("Warning: Falling back to plain text secret key due to: " + e.getMessage());
+            // If it isn't valid Base64 (e.g. a plain string like "my_secret_key_123"),
+            // fall back to using the raw bytes of that plain text.
+            log.warn("Falling back to plain-text secret key, could not Base64-decode jwt.secret-key: {}", e.getMessage());
             keyBytes = SECRET_KEY.getBytes();
         }
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
     /**
-     * Token'ın İçini Oku (Claims Extraction)
-     * * Şifrelenmiş token'ı alır, imzasını doğrular ve içindeki verileri (Claims) çıkarır.
-     * * Eğer imza geçersizse veya token bozulmuşsa Exception fırlatır.
-     * * @param token JWT Access Token
-     * @return Claims (Token içindeki userId, role vb. bilgiler)
+     * Extract all claims from a token.
+     * * Parses the token, verifies its signature, and returns the embedded claims.
+     * * Throws if the signature is invalid or the token is malformed.
+     * @param token JWT access token
+     * @return the claims embedded in the token (userId, role, etc.)
      */
     public Claims extractAllClaims(String token) {
         try {
             return Jwts
                     .parserBuilder()
-                    .setSigningKey(getSigningKey()) // İmzayı doğrula
+                    .setSigningKey(getSigningKey())
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
         } catch (ExpiredJwtException e) {
-            // Token süresi dolmuş olsa bile içindeki bilgileri (Claims) almak isteyebiliriz.
-            // Örneğin: "Refresh Token" işlemi yaparken kullanıcının kim olduğunu öğrenmek için.
+            // Even for an expired token, the claims are still useful — e.g. the refresh-token
+            // flow needs to know who the token belonged to.
             return e.getClaims();
-        } catch (Exception e) {
-            // Geçersiz imza veya değiştirilmiş token
-            throw new IllegalArgumentException("Invalid JWT: " + e.getMessage());
         }
+        // Other exceptions (SignatureException, MalformedJwtException, UnsupportedJwtException,
+        // IllegalArgumentException) are intentionally left to propagate to the caller
+        // (JwtAuthFilter), which maps each one to a specific HTTP response. Wrapping them all
+        // into a single generic exception here would make those distinct cases unreachable.
     }
 
     /**
-     * Yeni Access Token Üret (Create Token)
-     * * Kullanıcı giriş yaptığında veya token yenilendiğinde çağrılır.
-     * * @param userId Kullanıcının ana tablodaki ID'si (Users tablosu)
-     * @param role Kullanıcının rolü (FARMER, CUSTOMER vb.)
-     * @param domainId Kullanıcının rolüne özgü ID'si (Farmers veya Customers tablosu)
-     * @return String formatında imzalanmış JWT (eyGbHbGci...)
+     * Generate a new access token.
+     * * Called on login or when a token is refreshed.
+     * @param userId the user's id in the main Users table
+     * @param role the user's role (FARMER, CUSTOMER, etc.)
+     * @param domainId the user's role-specific id (in the Farmers or Customers table)
+     * @return a signed JWT string (eyJhbGci...)
      */
     public String generateAccessToken(Long userId, String role, Long domainId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put(USER_ID, userId);
         claims.put(ROLE, role);
-        claims.put(DOMAIN_ID, domainId); // Domain ID'sini payload'a ekliyoruz
+        claims.put(DOMAIN_ID, domainId);
 
         return Jwts
                 .builder()
                 .setClaims(claims)
-                .setSubject(userId.toString()) // Standart 'sub' alanı
-                .setIssuedAt(new Date(System.currentTimeMillis())) // Oluşturulma tarihi ('iat')
-                .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_TTL_MINUTES * 60 * 1000)) // Bitiş tarihi ('exp')
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256) // İmzala
+                .setSubject(userId.toString()) // standard 'sub' claim
+                .setIssuedAt(new Date(System.currentTimeMillis())) // 'iat'
+                .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_TTL_MINUTES * 60 * 1000)) // 'exp'
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
     /**
-     * Token Süresi Doldu mu? (Expiration Check)
-     * * Bu metot, JwtAuthFilter içinde "Acaba bu tokenın süresi geçmiş mi?" kontrolü
-     * yapmak için kullanılır. Süresi geçmişse true döner.
+     * Has the token expired?
+     * * Used by JwtAuthFilter to check whether a token's validity window has passed.
+     * Returns true if it has.
      */
     public boolean isTokenExpired(String token) {
         try {
-            // Token'ı parse etmeye çalış. Eğer süresi dolmuşsa kütüphane otomatik olarak
-            // ExpiredJwtException fırlatır.
+            // Try to parse the token. The library throws ExpiredJwtException automatically
+            // if it has expired.
             Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token);
-            return false; // Hata yoksa süre dolmamıştır.
+            return false; // No error: not expired.
         } catch (ExpiredJwtException e) {
-            return true; // Süresi dolmuş!
+            return true; // Expired!
         } catch (Exception e) {
-            // Token bozuksa veya imza yanlışsa da "geçersiz" sayalım.
+            // Treat a malformed or incorrectly signed token as "expired" too, so the caller
+            // rejects it the same way.
             return true;
         }
     }
 
     /**
-     * Token İçinden Domain ID'yi Çıkar
-     * * Controller katmanında veya filtrelerde "Bu isteği yapan Çiftçinin ID'si ne?"
-     * sorusunun cevabını verir.
+     * Extract the domain id from a token.
+     * * Answers "which farmer/trucker/etc. is making this request?" for controllers and filters.
      */
     public Long extractDomainId(String token) {
         Claims claims = extractAllClaims(token);
         Object domainId = claims.get(DOMAIN_ID);
 
         if (domainId == null) {
-            throw new IllegalArgumentException("Token içinde domainId (did) bulunamadı. Token eksik bilgi içeriyor.");
+            throw new IllegalArgumentException("Token does not contain a domainId (did) claim.");
         }
 
         return Long.parseLong(domainId.toString());

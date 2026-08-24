@@ -30,17 +30,15 @@ public class VerificationService {
         String storedCode = redisService.getVerificationCode(email);
 
         if (storedCode == null) {
-            return false; // Kod hiç bulunamadı (expire olmuş ya da hiç gönderilmemiş)
+            return false; // No code found (expired or never sent)
         }
 
         if (!storedCode.equals(request.getVerificationCode())) {
-            // Yanlış kod → redis’ten sil, kullanıcı kaydını da sil
-            userRepository.deleteByEmail(email);
-            redisService.deleteCode(email);
+            // Wrong code: just reject, keep the code and the user account intact so the user can retry.
             return false;
         }
 
-        // ✅ Kod doğru → kullanıcı mailVerified = true yapılır
+        // Code correct: mark the user as mail verified
         Optional<User> userOpt = userRepository.findByEmail(email);
         if (userOpt.isPresent()) {
             User user = userOpt.get();
@@ -48,7 +46,7 @@ public class VerificationService {
             userRepository.save(user);
         }
 
-        // Kullanılan kodu temizle
+        // Clear the used code so it cannot be replayed
         redisService.deleteCode(email);
         return true;
     }

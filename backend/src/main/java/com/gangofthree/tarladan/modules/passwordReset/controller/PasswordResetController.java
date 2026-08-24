@@ -30,7 +30,7 @@ public class PasswordResetController {
     ) {
         passwordResetService.confirmCode(request.getResetCode());
 
-        // session içine kaydet
+        // Store the verified reset code in the session
         session.setAttribute("verified-reset-code", request.getResetCode());
 
         return ResponseEntity.ok("Reset code verified.");

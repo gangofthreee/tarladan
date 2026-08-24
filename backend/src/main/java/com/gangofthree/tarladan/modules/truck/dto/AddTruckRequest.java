@@ -18,6 +18,5 @@ public class AddTruckRequest {
     private BigInteger capacityTon;
     private String plate;
     private MultipartFile photo;
-//    private BigInteger basePrice;
 }
 

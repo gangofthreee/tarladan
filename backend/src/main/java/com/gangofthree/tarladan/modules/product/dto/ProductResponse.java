@@ -28,6 +28,6 @@ public class ProductResponse implements Serializable {
     private Double depot_latitude;
     private Double depot_longitude;
 
-    //status field eklenebilir
+    // a status field could be added here
 
 }

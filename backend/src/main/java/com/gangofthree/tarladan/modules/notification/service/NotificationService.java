@@ -4,6 +4,7 @@ import com.gangofthree.tarladan.modules.notification.entity.Notification;
 import com.gangofthree.tarladan.modules.notification.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -22,25 +23,29 @@ public class NotificationService {
                 .build();
 
         notificationRepository.save(notification);
-        // İleride buraya e-mail veya push notification servisi de eklenebilir.
+        // An email or push notification service could be plugged in here in the future.
     }
 
     public List<Notification> getMyNotifications(Long userId) {
         return notificationRepository.findByRecipientIdOrderByCreatedAtDesc(userId);
     }
 
-    public void markAsRead(Long notificationId) {
+    @Transactional
+    public void markAsRead(Long notificationId, Long userId) {
         Notification notification = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new RuntimeException("Bildirim bulunamadı"));
+                .orElseThrow(() -> new RuntimeException("Notification not found"));
+
+        // A user may only mark their own notifications as read
+        if (!notification.getRecipientId().equals(userId)) {
+            throw new SecurityException("Bu bildirim size ait değil!");
+        }
 
         notification.setRead(true);
         notificationRepository.save(notification);
     }
 
-    // Sadece okunmamış bildirim sayısını getir (Navbar'daki kırmızı ikon için)
+    // Fetch only the unread notification count (for the navbar's red badge)
     public long getUnreadCount(Long userId) {
-        // Repository'e şu metodu eklemen gerekecek:
-        // long countByRecipientIdAndIsReadFalse(Long recipientId);
         return notificationRepository.countByRecipientIdAndIsReadFalse(userId);
     }
 }

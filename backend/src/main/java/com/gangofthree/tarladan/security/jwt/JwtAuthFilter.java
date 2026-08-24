@@ -22,10 +22,10 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * JWT Kimlik Doğrulama Filtresi (The Gatekeeper)
- * * Bu sınıf, sunucuya gelen HER HTTP isteğini (Login/Register hariç) karşılar.
- * * Görevi: "Gelen kişinin elindeki Token (Pasaport) geçerli mi?" kontrolünü yapmaktır.
- * * OncePerRequestFilter: Bir istek için sadece bir kez çalışacağını garanti eder.
+ * JWT authentication filter (the gatekeeper).
+ * * This class intercepts EVERY HTTP request reaching the server (login/register excluded).
+ * * Its job: check whether the caller's token ("passport") is valid.
+ * * OncePerRequestFilter guarantees it runs exactly once per request.
  */
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -43,113 +43,114 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        // 1. HEADER KONTROLÜ
-        // İstek başlığında "Authorization" var mı ve "Bearer " ile başlıyor mu?
+        // 1. HEADER CHECK
+        // Is there an "Authorization" header, and does it start with "Bearer "?
         final String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            // Token yoksa, filtre zincirine devam et (SecurityConfig'deki .permitAll() kuralları devreye girer)
-            // Eğer korumalı bir sayfaya gidiyorsa SecurityConfig zaten 403 verecektir.
+            // No token: continue the filter chain (SecurityConfig's .permitAll() rules apply).
+            // If the target is a protected endpoint, SecurityConfig will already return 403.
             filterChain.doFilter(request, response);
             return;
         }
 
-        // "Bearer " kısmını (ilk 7 karakter) atıp saf token'ı alıyoruz.
+        // Strip the "Bearer " prefix (first 7 characters) to get the raw token.
         final String jwt = authHeader.substring(7);
         Long userId = null;
         String role = null;
         Long domainId = null;
 
         try {
-            // 2. TOKEN ÇÖZÜMLEME (Parsing)
-            // Token içindeki bilgileri (Claims) okuyoruz.
-            // Eğer token sahte ise veya imzası bozuksa burada Exception fırlatır.
+            // 2. TOKEN PARSING
+            // Read the claims embedded in the token.
+            // Throws an exception if the token is forged or its signature is invalid.
             Claims claims = jwtUtil.extractAllClaims(jwt);
             userId = claims.get(JwtUtil.USER_ID, Long.class);
             role = claims.get(JwtUtil.ROLE, String.class);
             domainId = claims.get(JwtUtil.DOMAIN_ID, Long.class);
 
-            // 3. SÜRESİ DOLMUŞ TOKEN YÖNETİMİ (Auto-Refresh Logic)
-            // Token'ın süresi dolmuş mu?
+            // 3. EXPIRED TOKEN HANDLING (auto-refresh logic)
+            // Has the token expired?
             if (jwtUtil.isTokenExpired(jwt)) {
-                // Token bitmiş ama kullanıcının hala geçerli bir oturumu (Redis'te Refresh Token) olabilir.
-                // TokenService'e gidip "Bu eski token karşılığında bana yenisini ver" diyoruz.
+                // The access token is expired, but the user may still have a valid session
+                // (a refresh token in Redis). Ask TokenService for a new access token in
+                // exchange for this expired one.
                 String newAccessToken = tokenService.refreshAccessTokenIfValid(jwt, role);
 
                 if (newAccessToken != null) {
-                    // YENİLEME BAŞARILI!
-                    // Yeni token'ı Response Header'a ekliyoruz ki Frontend bunu alıp güncellesin.
+                    // Refresh succeeded!
+                    // Return the new token via a response header so the frontend can pick it up.
                     response.setHeader("X-New-Access-Token", newAccessToken);
 
-                    // Kullanıcıyı sisteme giriş yapmış sayıyoruz (Authentication).
+                    // Authenticate the user for this request.
                     authenticateUser(request, userId, role, domainId);
 
-                    // İsteği işlemeye devam et
+                    // Continue processing the request.
                     filterChain.doFilter(request, response);
                     return;
                 }
 
-                // Yenileme başarısız (Refresh token da bitmiş veya logout olmuş).
+                // Refresh failed (the refresh token has also expired, or the user logged out).
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("Session expired, please login again");
                 return;
             }
 
-            // 4. REDIS KONTROLÜ (Whitelist / Blacklist)
-            // Token formatı doğru ve süresi var. AMA kullanıcı "Çıkış Yap" demiş olabilir mi?
-            // Redis'te bu token hala "aktif" listesinde mi diye bakıyoruz.
+            // 4. REDIS CHECK (whitelist)
+            // The token's format and expiry are fine, but has the user logged out?
+            // Check whether this token is still on the "active" list in Redis.
             if (!tokenService.isAccessTokenValidInRedis(userId, jwt)) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("Access Token Revoked or Replaced (Logout detected)");
                 return;
             }
 
-            // 5. KİMLİK DOĞRULAMA (Authentication)
-            // Security Context boşsa (yani kullanıcı henüz tanınmamışsa) sisteme tanıtıyoruz.
+            // 5. AUTHENTICATION
+            // If the security context is empty (the user isn't recognized yet), authenticate them.
             if (userId != null && role != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 authenticateUser(request, userId, role, domainId);
             }
 
         } catch (ExpiredJwtException e) {
-            // Token süresi dolmuş ve Refresh edilememişse
+            // Token expired and could not be refreshed.
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Access Token Expired");
             return;
         } catch (SignatureException | MalformedJwtException | UnsupportedJwtException e) {
-            // Token sahte, bozuk veya değiştirilmiş
+            // Token is forged, corrupted, or was tampered with.
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.getWriter().write("Invalid JWT Signature or Structure");
             return;
         } catch (IllegalArgumentException e) {
-            // Token boş veya hatalı argüman
+            // Token is empty or otherwise malformed.
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             response.getWriter().write("Bad Request: " + e.getMessage());
             return;
         }
 
-        // Her şey yolundaysa, isteği Controller'a ilet.
+        // Everything checks out: forward the request to the Controller.
         filterChain.doFilter(request, response);
     }
 
     /**
-     * Yardımcı Metot: Kullanıcıyı Spring Security Context'ine kaydeder.
+     * Helper: registers the user in the Spring Security context.
      */
     private void authenticateUser(HttpServletRequest request, Long userId, String role, Long domainId) {
-        // Rolü ayarla (ROLE_FARMER gibi)
+        // Build the authority (e.g. ROLE_FARMER).
         List<SimpleGrantedAuthority> authorities =
                 Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
 
-        // Kimlik kartını oluştur
+        // Build the authentication token.
         UsernamePasswordAuthenticationToken authToken =
                 new UsernamePasswordAuthenticationToken(userId, null, authorities);
 
-        // Request detaylarını ekle (IP adresi, Session ID vb.)
+        // Attach request details (IP address, session id, etc.).
         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-        // SİSTEME GİRİŞ YAPTIR
+        // Register the authenticated user.
         SecurityContextHolder.getContext().setAuthentication(authToken);
 
-        // Controller'larda "Hangi çiftçi işlem yapıyor?" diye kolayca bulmak için
-        // domainId'yi (farmerId, truckerId) request attribute'una ekliyoruz.
+        // Expose domainId (farmerId, truckerId, ...) as a request attribute so controllers
+        // can easily answer "which farmer/trucker is performing this action?".
         request.setAttribute("domainId", domainId);
         request.setAttribute("uid", userId);
     }

@@ -14,10 +14,9 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
- * Spring Security Ana Yapılandırması
- * * Bu sınıf, uygulamanın güvenlik duvarıdır.
- * HTTP isteklerinin nasıl filtreleneceğini, kimlerin nereye erişebileceğini
- * ve oturum yönetiminin (Session) nasıl yapılacağını belirler.
+ * Main Spring Security configuration.
+ * * This class is the application's firewall. It determines how HTTP requests are
+ * filtered, who can access what, and how session management is handled.
  */
 @Configuration
 @EnableWebSecurity
@@ -25,16 +24,15 @@ public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
 
-    // Kendi yazdığımız JWT Filtresini buraya enjekte ediyoruz.
+    // Inject our own JWT filter.
     public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
         this.jwtAuthFilter = jwtAuthFilter;
     }
 
     /**
-     * Şifreleme Algoritması (BCrypt)
-     * Veritabanında şifreleri asla düz metin (plain-text) olarak saklamayız.
-     * Kullanıcı kayıt olurken şifresini bu Bean ile hashleyip kaydederiz.
-     * Giriş yaparken de girilen şifreyi yine bununla kontrol ederiz.
+     * Password hashing algorithm (BCrypt).
+     * Passwords are never stored in plain text in the database.
+     * We hash the password with this bean at registration, and check it the same way at login.
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -42,54 +40,54 @@ public class SecurityConfig {
     }
 
     /**
-     * Güvenlik Zinciri (Security Filter Chain)
-     * Gelen her HTTP isteği bu zincirden geçer. Kurallar sırayla uygulanır.
+     * Security filter chain.
+     * Every incoming HTTP request passes through this chain; rules are applied in order.
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // 1. CSRF (Cross-Site Request Forgery) İPTAL
-                // Biz JWT (Token) tabanlı stateless bir yapı kurduğumuz için
-                // tarayıcı oturumlarına dayalı CSRF saldırılarına karşı korumaya ihtiyacımız yok.
-                // Bunu kapatmazsak POST/PUT istekleri 403 hatası alabilir.
+                // 1. DISABLE CSRF
+                // We built a stateless, JWT (token) based API, so we don't need protection
+                // against browser-session-based CSRF attacks. Leaving this enabled would make
+                // POST/PUT requests fail with 403.
                 .csrf(AbstractHttpConfigurer::disable)
 
-                // 2. CORS (Cross-Origin Resource Sharing) AKTİF
-                // Frontend (React/Vue) farklı bir porttan geleceği için CORS ayarlarını
-                // 'CorsConfig' sınıfından al ve uygula diyoruz.
+                // 2. ENABLE CORS
+                // The frontend (React/Vue) is served from a different origin, so we apply the
+                // CORS rules defined in 'CorsConfig'.
                 .cors(cors -> cors.configure(http))
 
-                // 3. KLASİK GİRİŞ YÖNTEMLERİ İPTAL
-                // Biz REST API yazıyoruz. HTML login sayfası (FormLogin) istemiyoruz.
-                // Tarayıcı popup'ı ile giriş (HttpBasic) istemiyoruz.
+                // 3. DISABLE THE CLASSIC LOGIN METHODS
+                // We're building a REST API: no HTML login page (form login), and no browser
+                // login popup (HTTP Basic).
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
 
-                // 4. VARSAYILAN USER SERVICE İPTAL
-                // Spring Boot başlangıçta "user" adında ve rastgele şifreli bir kullanıcı oluşturur.
-                // Biz kendi kullanıcı tablomuzu yöneteceğimiz için bu varsayılan davranışı kapatıyoruz.
+                // 4. DISABLE THE DEFAULT USER-DETAILS SERVICE
+                // Spring Boot auto-configures a "user" account with a randomly generated
+                // password at startup unless told otherwise. We manage our own user table,
+                // so this default behavior is disabled.
                 .userDetailsService(username -> null)
 
-                // 5. OTURUM YÖNETİMİ (Stateless) - ÇOK ÖNEMLİ!
-                // Sunucu tarafında hiçbir oturum (Session) tutma diyoruz.
-                // Her istek, kimliğini ispatlamak için kendi Token'ını getirmek zorundadır.
-                // Bu sayede sunucu RAM'i şişmez ve uygulama kolayca ölçeklenebilir.
+                // 5. SESSION MANAGEMENT (STATELESS) - VERY IMPORTANT!
+                // No server-side session is kept. Every request must carry its own token to
+                // prove its identity. This keeps server memory usage flat and the app easy to scale.
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // 6. YETKİLENDİRME KURALLARI (Authorization)
-                // Hangi URL'e kim girebilir? (Yukarıdan aşağıya sırayla işler)
+                // 6. AUTHORIZATION RULES
+                // Who can access which URL? (Rules are evaluated top to bottom.)
                 .authorizeHttpRequests(auth -> auth
 
-                        // --- A. SWAGGER / DOKÜMANTASYON ---
-                        // Dokümantasyon sayfasına herkes girebilmeli (Login olmadan).
+                        // --- A. SWAGGER / DOCUMENTATION ---
+                        // The documentation page is open to everyone (no login required).
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
                         ).permitAll()
 
-                        // --- B. PUBLIC ENDPOINTLER (Herkes Girebilir) ---
-                        // Kayıt ol, Giriş yap, Şifremi unuttum gibi işlemlerde token sorulmaz.
+                        // --- B. PUBLIC ENDPOINTS (open to everyone) ---
+                        // No token is required for register, login, forgot-password, etc.
                         .requestMatchers(
                                 "/api/users/register",
                                 "/api/users/login",
@@ -104,57 +102,62 @@ public class SecurityConfig {
                         ).permitAll()
 
 
-                        // --- C. ROL BAZLI KISITLAMALAR ---
-                        // Not: Veritabanında roller "ROLE_FARMER" diye kayıtlıdır.
-                        // Spring Security "hasRole('FARMER')" dediğimizde otomatik başına "ROLE_" ekler.
+                        // --- C. ROLE-BASED RESTRICTIONS ---
+                        // Note: roles are stored in the database as "ROLE_FARMER" etc.
+                        // Spring Security automatically prepends "ROLE_" when we write hasRole('FARMER').
 
-                        // FARMER (Çiftçi) İşlemleri
-                        // GET işlemini Müşteri de görebilir (Ürün listeleme vb.)
-                        // Ama Ekleme/Silme/Güncelleme sadece Çiftçi yapabilir.
+                        // FARMER operations.
+                        // GET can also be used by a customer (product listings, etc.),
+                        // but create/update/delete is farmer-only.
                         .requestMatchers(HttpMethod.GET, "/farmer/**").hasAnyRole("FARMER", "CUSTOMER")
                         .requestMatchers(HttpMethod.POST, "/farmer/**").hasRole("FARMER")
                         .requestMatchers(HttpMethod.PUT, "/farmer/**").hasRole("FARMER")
                         .requestMatchers(HttpMethod.DELETE, "/farmer/**").hasRole("FARMER")
 
-                        // PRODUCT (Ürün) İşlemleri
+                        // PRODUCT operations.
                         .requestMatchers(HttpMethod.GET, "/product/**").hasAnyRole("FARMER", "CUSTOMER")
                         .requestMatchers(HttpMethod.POST, "/product/**").hasRole("FARMER")
                         .requestMatchers(HttpMethod.PUT, "/product/**").hasRole("FARMER")
                         .requestMatchers(HttpMethod.DELETE, "/product/**").hasRole("FARMER")
 
-                        // CUSTOMER (Müşteri) İşlemleri
+                        // CUSTOMER operations.
                         .requestMatchers("/customer/**").hasRole("CUSTOMER")
-                        .requestMatchers("/order/**").hasRole("CUSTOMER")
+                        // OrderController is mapped at "/api/orders" (not "/order/**"), so these
+                        // endpoints rely on the customer's own "domainId" JWT claim as the
+                        // customerId. Match the real path so the role check actually applies.
+                        .requestMatchers(HttpMethod.POST, "/api/orders/create").hasRole("CUSTOMER")
+                        .requestMatchers(HttpMethod.GET, "/api/orders/my-orders").hasRole("CUSTOMER")
+                        .requestMatchers(HttpMethod.GET, "/api/orders/*").hasRole("CUSTOMER")
 
-                        // TRUCKER (Nakliyeci) İşlemleri
+                        // TRUCKER operations.
                         .requestMatchers(HttpMethod.GET, "/truck/**").hasAnyRole("TRUCKER", "CUSTOMER")
                         .requestMatchers(HttpMethod.POST, "/truck/**").hasRole("TRUCKER")
                         .requestMatchers(HttpMethod.PUT, "/truck/**").hasRole("TRUCKER")
                         .requestMatchers(HttpMethod.DELETE, "/truck/**").hasRole("TRUCKER")
 
-                        // Nakliye İlanları (Truck Ad Controller)
+                        // Truck ads (Truck Ad Controller).
                         .requestMatchers(HttpMethod.GET, "/truck/ads/**").hasAnyRole("TRUCKER", "CUSTOMER")
                         .requestMatchers(HttpMethod.POST, "/truck/ads/**").hasRole("TRUCKER")
                         .requestMatchers(HttpMethod.PATCH, "/truck/ads/**").hasRole("TRUCKER")
                         .requestMatchers(HttpMethod.DELETE, "/truck/ads/**").hasRole("TRUCKER")
 
-                        // DEPOT (Depo Sahibi) İşlemleri
+                        // DEPOT operations.
                         .requestMatchers(HttpMethod.GET, "/depot/**").hasAnyRole("DEPOT_OWNER", "FARMER", "CUSTOMER")
                         .requestMatchers(HttpMethod.POST, "/depot/**").hasRole("DEPOT_OWNER")
                         .requestMatchers(HttpMethod.PUT, "/depot/**").hasRole("DEPOT_OWNER")
                         .requestMatchers(HttpMethod.DELETE, "/depot/**").hasRole("DEPOT_OWNER")
 
-                        // --- D. DİĞER HER ŞEY ---
-                        // Yukarıda tanımlanmamış herhangi bir istek gelirse,
-                        // mutlaka giriş yapılmış (Token geçerli) olmalıdır.
+                        // --- D. EVERYTHING ELSE ---
+                        // Any request not covered above must at least be authenticated
+                        // (a valid token).
                         .anyRequest().authenticated()
 
                 )
 
-                // 7. FİLTRE ZİNCİRİNE EKLEME
-                // Spring Security'nin kendi UsernamePasswordAuthenticationFilter'ı çalışmadan ÖNCE
-                // bizim yazdığımız 'jwtAuthFilter' devreye girsin.
-                // Böylece token varsa, kullanıcıyı sistem otomatik tanısın.
+                // 7. ADD TO THE FILTER CHAIN
+                // Run our 'jwtAuthFilter' BEFORE Spring Security's own
+                // UsernamePasswordAuthenticationFilter, so a valid token authenticates the
+                // user automatically.
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

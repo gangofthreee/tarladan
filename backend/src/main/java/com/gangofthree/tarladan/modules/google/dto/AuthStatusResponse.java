@@ -9,8 +9,8 @@ import lombok.*;
 @NoArgsConstructor
 public class AuthStatusResponse {
 
-    // Eğer 'true' ise, kullanıcı sistemde kayıtlıdır, direkt login yapılır.
-    // Eğer 'false' ise, kullanıcı yeni demektir ve role/phone bilgileri istenmelidir.
+    // If 'true', the user is already registered and has been logged in directly.
+    // If 'false', the user is new and their role/phone information must be requested.
     private boolean isRegistered;
     private TokenResponse tokenResponse;
 }
